@@ -8,17 +8,14 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="651b6b24-632f-4275-a778-dd161c492901" name="Changes" comment="">
-      <change afterPath="$PROJECT_DIR$/FinalProject/Core/Camera.cs" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/FinalProject/Core/Direction.cs" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/FinalProject/Entities/Player.cs" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/FinalProject/States/MainMenuState.cs" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/FinalProject/World/MapLoader.cs" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/FinalProject/World/TileLayer.cs" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/FinalProject/World/TileMap.cs" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/FinalProject/World/TilesetInfo.cs" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/.idea.FinalProject/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/.idea.FinalProject/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/FinalProject/Content/Content.mgcb" beforeDir="false" afterPath="$PROJECT_DIR$/FinalProject/Content/Content.mgcb" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/FinalProject/Core/GameSettings.cs" beforeDir="false" afterPath="$PROJECT_DIR$/FinalProject/Core/GameSettings.cs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/FinalProject/EventBus.cs" beforeDir="false" afterPath="$PROJECT_DIR$/FinalProject/Core/EventBus.cs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/FinalProject/Events.cs" beforeDir="false" afterPath="$PROJECT_DIR$/FinalProject/Events/GameEvents.cs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/FinalProject/Game1.cs" beforeDir="false" afterPath="$PROJECT_DIR$/FinalProject/Game1.cs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/FinalProject/InputManager.cs" beforeDir="false" afterPath="$PROJECT_DIR$/FinalProject/Core/InputManager.cs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/FinalProject/Maps/town_1.tmx" beforeDir="false" afterPath="$PROJECT_DIR$/FinalProject/Maps/town_1.tmx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/FinalProject/States/OverworldState.cs" beforeDir="false" afterPath="$PROJECT_DIR$/FinalProject/States/OverworldState.cs" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -60,6 +57,10 @@
     <setting file="file://$PROJECT_DIR$/FinalProject/Entities/Player.cs" root0="FORCE_HIGHLIGHTING" />
     <setting file="file://$PROJECT_DIR$/FinalProject/States/MainMenuState.cs" root0="FORCE_HIGHLIGHTING" />
     <setting file="file://$PROJECT_DIR$/FinalProject/States/OverworldState.cs" root0="FORCE_HIGHLIGHTING" />
+    <setting file="file://$PROJECT_DIR$/FinalProject/World/MapLoader.cs" root0="FORCE_HIGHLIGHTING" />
+    <setting file="file://$PROJECT_DIR$/FinalProject/World/TileLayer.cs" root0="FORCE_HIGHLIGHTING" />
+    <setting file="file://$PROJECT_DIR$/FinalProject/World/TileMap.cs" root0="FORCE_HIGHLIGHTING" />
+    <setting file="file://$PROJECT_DIR$/FinalProject/World/Tilesetinfo.cs" root0="FORCE_HIGHLIGHTING" />
   </component>
   <component name="McpProjectServerCommands">
     <commands />
@@ -129,7 +130,7 @@
       <option name="presentableId" value="Default" />
       <updated>1781625066118</updated>
       <workItem from="1781625067521" duration="151000" />
-      <workItem from="1781914910186" duration="8866000" />
+      <workItem from="1781914910186" duration="11667000" />
     </task>
     <servers />
   </component>

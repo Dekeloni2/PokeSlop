@@ -27,6 +27,10 @@ namespace FinalProject.States
                 GameSettings.WindowWidth,
                 GameSettings.WindowHeight / 3
             );
+
+            // For quick debugging, immediately enter the overworld so we can
+            // verify the map loads and the player is visible without user input.
+            StateManager.Replace(new OverworldState(Game, StateManager));
         }
 
         public override void Update(GameTime gameTime)

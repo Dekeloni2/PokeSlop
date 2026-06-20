@@ -1,6 +1,6 @@
 using Microsoft.Xna.Framework.Input;
 
-namespace FinalProject;
+namespace FinalProject.Core;
 
 public class InputManager
 {

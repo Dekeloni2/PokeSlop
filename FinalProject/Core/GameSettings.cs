@@ -2,7 +2,7 @@ namespace FinalProject.Core;
 
 public static class GameSettings
 {
-    public const string GameTilte = "PokeSlop";
+    public const string GameTitle = "PokeSlop";
     public const int  WindowWidth = 800;
     public const int  WindowHeight = 600;
 

@@ -1,52 +1,75 @@
-﻿using Microsoft.Xna.Framework;
+﻿// Game1.cs
+using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
+using FinalProject.Core;
+using FinalProject.States;
 
-namespace FinalProject;
-
-public class Game1 : Game
+namespace FinalProject
 {
-    private GraphicsDeviceManager _graphics;
-    private SpriteBatch _spriteBatch;
-
-    public Game1()
+    public class Game1 : Game
     {
-        _graphics = new GraphicsDeviceManager(this);
-        Content.RootDirectory = "Content";
-        IsMouseVisible = true;
-    }
+        private GraphicsDeviceManager _graphics;
+        private SpriteBatch _spriteBatch;
 
-    protected override void Initialize()
-    {
-        // TODO: Add your initialization logic here
+        // Shared systems — public so any state can reach them through Game.X
+        public GameStateManager StateManager { get; private set; }
+        public InputManager     Input        { get; private set; }
 
-        base.Initialize();
-    }
+        // A 1x1 white pixel, tinted and stretched to draw any colored rectangle.
+        // Useful for HP bars, overlays, debug rects — no dedicated sprite needed.
+        public Texture2D PixelTexture { get; private set; }
 
-    protected override void LoadContent()
-    {
-        _spriteBatch = new SpriteBatch(GraphicsDevice);
+        public Game1()
+        {
+            _graphics = new GraphicsDeviceManager(this)
+            {
+                PreferredBackBufferWidth  = GameSettings.WindowWidth,
+                PreferredBackBufferHeight = GameSettings.WindowHeight
+            };
 
-        // TODO: use this.Content to load your game content here
-    }
+            Content.RootDirectory = "Content";
+            IsMouseVisible = true;
+        }
 
-    protected override void Update(GameTime gameTime)
-    {
-        if (GamePad.GetState(PlayerIndex.One).Buttons.Back == ButtonState.Pressed ||
-            Keyboard.GetState().IsKeyDown(Keys.Escape))
-            Exit();
+        protected override void Initialize()
+        {
+            Window.Title = GameSettings.GameTitle;
 
-        // TODO: Add your update logic here
+            Input        = new InputManager();
+            StateManager = new GameStateManager();
 
-        base.Update(gameTime);
-    }
+            base.Initialize();
+        }
 
-    protected override void Draw(GameTime gameTime)
-    {
-        GraphicsDevice.Clear(Color.CornflowerBlue);
+        protected override void LoadContent()
+        {
+            _spriteBatch = new SpriteBatch(GraphicsDevice);
 
-        // TODO: Add your drawing code here
+            PixelTexture = new Texture2D(GraphicsDevice, 1, 1);
+            PixelTexture.SetData(new[] { Color.White });
 
-        base.Draw(gameTime);
+            // First thing the player sees
+            StateManager.Replace(new MainMenuState(this, StateManager));
+        }
+
+        protected override void Update(GameTime gameTime)
+        {
+            // Input first so every state sees a consistent snapshot this frame
+            Input.Update();
+
+            if (Input.IsKeyPressed(Keys.Escape))
+                Exit();
+
+            StateManager.Update(gameTime);
+            base.Update(gameTime);
+        }
+
+        protected override void Draw(GameTime gameTime)
+        {
+            GraphicsDevice.Clear(Color.Black);
+            StateManager.Draw(_spriteBatch);
+            base.Draw(gameTime);
+        }
     }
 }

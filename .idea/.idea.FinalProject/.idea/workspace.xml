@@ -8,12 +8,17 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="651b6b24-632f-4275-a778-dd161c492901" name="Changes" comment="">
-      <change afterPath="$PROJECT_DIR$/FinalProject/EventBus.cs" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/FinalProject/Events.cs" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/FinalProject/GameSettings.cs" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/FinalProject/InputManager.cs" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/FinalProject/Core/Camera.cs" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/FinalProject/Core/Direction.cs" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/FinalProject/Entities/Player.cs" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/FinalProject/States/MainMenuState.cs" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/.idea.FinalProject/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/.idea.FinalProject/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/FinalProject/Content/Content.mgcb" beforeDir="false" afterPath="$PROJECT_DIR$/FinalProject/Content/Content.mgcb" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/FinalProject/Core/GameSettings.cs" beforeDir="false" afterPath="$PROJECT_DIR$/FinalProject/Core/GameSettings.cs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/FinalProject/EventBus.cs" beforeDir="false" afterPath="$PROJECT_DIR$/FinalProject/Core/EventBus.cs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/FinalProject/Events.cs" beforeDir="false" afterPath="$PROJECT_DIR$/FinalProject/Events/GameEvents.cs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/FinalProject/Game1.cs" beforeDir="false" afterPath="$PROJECT_DIR$/FinalProject/Game1.cs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/FinalProject/InputManager.cs" beforeDir="false" afterPath="$PROJECT_DIR$/FinalProject/Core/InputManager.cs" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -24,6 +29,9 @@
     <persistenceIdMap>
       <entry key="_D:/PokeSlop" value="3FE0kdZAsEnrlzHf2q4Z0yjjAsC" />
     </persistenceIdMap>
+  </component>
+  <component name="DpaMonitoringSettings">
+    <option name="firstShow" value="false" />
   </component>
   <component name="EmbeddingIndexingInfo">
     <option name="cachedIndexableFilesCount" value="8" />
@@ -45,9 +53,13 @@
   }
 }</component>
   <component name="HighlightingSettingsPerFile">
-    <setting file="file://$PROJECT_DIR$/FinalProject/Events.cs" root0="FORCE_HIGHLIGHTING" />
-    <setting file="file://$PROJECT_DIR$/FinalProject/GameSettings.cs" root0="FORCE_HIGHLIGHTING" />
-    <setting file="file://$PROJECT_DIR$/FinalProject/InputManager.cs" root0="FORCE_HIGHLIGHTING" />
+    <setting file="file://$PROJECT_DIR$/FinalProject/Core/Camera.cs" root0="FORCE_HIGHLIGHTING" />
+    <setting file="file://$PROJECT_DIR$/FinalProject/Core/Direction.cs" root0="FORCE_HIGHLIGHTING" />
+    <setting file="file://$PROJECT_DIR$/FinalProject/Core/GameState.cs" root0="FORCE_HIGHLIGHTING" />
+    <setting file="file://$PROJECT_DIR$/FinalProject/Core/GameStateManager.cs" root0="FORCE_HIGHLIGHTING" />
+    <setting file="file://$PROJECT_DIR$/FinalProject/Entities/Player.cs" root0="FORCE_HIGHLIGHTING" />
+    <setting file="file://$PROJECT_DIR$/FinalProject/States/MainMenuState.cs" root0="FORCE_HIGHLIGHTING" />
+    <setting file="file://$PROJECT_DIR$/FinalProject/States/OverworldState.cs" root0="FORCE_HIGHLIGHTING" />
   </component>
   <component name="McpProjectServerCommands">
     <commands />
@@ -58,30 +70,34 @@
   &quot;fromUser&quot;: false
 }</component>
   <component name="ProjectId" id="3FE0kdZAsEnrlzHf2q4Z0yjjAsC" />
+  <component name="ProjectLevelVcsManager">
+    <ConfirmationsSetting value="2" id="Add" />
+  </component>
   <component name="ProjectViewState">
     <option name="hideEmptyMiddlePackages" value="true" />
     <option name="showLibraryContents" value="true" />
   </component>
-  <component name="PropertiesComponent">{
-  &quot;keyToString&quot;: {
-    &quot;ModuleVcsDetector.initialDetectionPerformed&quot;: &quot;true&quot;,
-    &quot;RunOnceActivity.MCP Project settings loaded&quot;: &quot;true&quot;,
-    &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
-    &quot;RunOnceActivity.TerminalTabsStorage.copyFrom.TerminalArrangementManager.252&quot;: &quot;true&quot;,
-    &quot;RunOnceActivity.git.unshallow&quot;: &quot;true&quot;,
-    &quot;RunOnceActivity.typescript.service.memoryLimit.init&quot;: &quot;true&quot;,
-    &quot;com.intellij.ml.llm.matterhorn.ej.ui.settings.DefaultModelSelectionForGA.v1&quot;: &quot;true&quot;,
-    &quot;git-widget-placeholder&quot;: &quot;Dekel&quot;,
-    &quot;junie.onboarding.icon.badge.shown&quot;: &quot;true&quot;,
-    &quot;node.js.detected.package.eslint&quot;: &quot;true&quot;,
-    &quot;node.js.detected.package.tslint&quot;: &quot;true&quot;,
-    &quot;node.js.selected.package.eslint&quot;: &quot;(autodetect)&quot;,
-    &quot;node.js.selected.package.tslint&quot;: &quot;(autodetect)&quot;,
-    &quot;nodejs_package_manager_path&quot;: &quot;npm&quot;,
-    &quot;to.speed.mode.migration.done&quot;: &quot;true&quot;,
-    &quot;vue.rearranger.settings.migration&quot;: &quot;true&quot;
+  <component name="PropertiesComponent"><![CDATA[{
+  "keyToString": {
+    ".NET Project.FinalProject.executor": "Run",
+    "ModuleVcsDetector.initialDetectionPerformed": "true",
+    "RunOnceActivity.MCP Project settings loaded": "true",
+    "RunOnceActivity.ShowReadmeOnStart": "true",
+    "RunOnceActivity.TerminalTabsStorage.copyFrom.TerminalArrangementManager.252": "true",
+    "RunOnceActivity.git.unshallow": "true",
+    "RunOnceActivity.typescript.service.memoryLimit.init": "true",
+    "com.intellij.ml.llm.matterhorn.ej.ui.settings.DefaultModelSelectionForGA.v1": "true",
+    "git-widget-placeholder": "Dekel",
+    "junie.onboarding.icon.badge.shown": "true",
+    "node.js.detected.package.eslint": "true",
+    "node.js.detected.package.tslint": "true",
+    "node.js.selected.package.eslint": "(autodetect)",
+    "node.js.selected.package.tslint": "(autodetect)",
+    "nodejs_package_manager_path": "npm",
+    "to.speed.mode.migration.done": "true",
+    "vue.rearranger.settings.migration": "true"
   }
-}</component>
+}]]></component>
   <component name="RunManager">
     <configuration name="FinalProject" type="DotNetProject" factoryName=".NET Project">
       <option name="EXE_PATH" value="" />
@@ -113,7 +129,7 @@
       <option name="presentableId" value="Default" />
       <updated>1781625066118</updated>
       <workItem from="1781625067521" duration="151000" />
-      <workItem from="1781914910186" duration="3471000" />
+      <workItem from="1781914910186" duration="8866000" />
     </task>
     <servers />
   </component>

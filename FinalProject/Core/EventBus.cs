@@ -1,6 +1,7 @@
-namespace FinalProject;
 using System;
 using System.Collections.Generic;
+
+namespace FinalProject.Core;
 
 public abstract class GameEvent { }
 

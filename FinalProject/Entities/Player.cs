@@ -4,6 +4,7 @@ using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Input;
 using Microsoft.Xna.Framework.Graphics;
 using FinalProject.Core;
+using FinalProject.World;
 
     public class Player
     {
@@ -32,15 +33,16 @@ using FinalProject.Core;
             _moveTime = GameSettings.TileSize / GameSettings.PlayerSpeed;
         }
 
-        public void Update(GameTime gameTime)
+        // map is used for collision and bounds checks
+        public void Update(GameTime gameTime, TileMap map)
         {
             if (IsMoving)
                 UpdateMovement(gameTime);
             else
-                HandleInput();
+                HandleInput(map);
         }
 
-        private void HandleInput()
+        private void HandleInput(TileMap map)
         {
             Direction? input = null;
 
@@ -55,7 +57,9 @@ using FinalProject.Core;
 
             Point next = GetNeighbour(TilePosition, input.Value);
 
-            // TODO: ask the tilemap if next is walkable before moving
+            // IsWalkable returns false for out-of-bounds AND for Object-layer tiles
+            if (!map.IsWalkable(next.X, next.Y)) return;
+
             StartMoving(next);
         }
 

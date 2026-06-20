@@ -1,4 +1,12 @@
 { "compressionlevel":-1,
+ "editorsettings":
+    {
+     "export":
+        {
+         "format":"json",
+         "target":"..\/Content\/Maps\/town_1.tmj"
+        }
+    },
  "height":20,
  "infinite":false,
  "layers":[
@@ -74,7 +82,7 @@
         {
          "columns":64,
          "firstgid":1,
-         "image":"..\/Sprites\/Tilesets\/main_town_tilemap.png",
+         "image":"..\/Content\/Sprites\/Tilesets\/main_town_tilemap.png",
          "imageheight":376,
          "imagewidth":1032,
          "margin":0,
@@ -87,7 +95,7 @@
         {
          "columns":88,
          "firstgid":1473,
-         "image":"..\/Sprites\/Tilesets\/TileMap.png",
+         "image":"..\/Content\/Sprites\/Tilesets\/TileMap.png",
          "imageheight":1104,
          "imagewidth":1408,
          "margin":0,
@@ -101,7 +109,7 @@
         {
          "columns":100,
          "firstgid":7545,
-         "image":"..\/Sprites\/Tilesets\/houses.png",
+         "image":"..\/Content\/Sprites\/Tilesets\/houses.png",
          "imageheight":1696,
          "imagewidth":1600,
          "margin":0,

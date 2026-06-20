@@ -34,7 +34,7 @@ namespace FinalProject.World
 
                 TilesetInfo info = tsEl.TryGetProperty("source", out JsonElement sourceEl)
                     ? LoadExternalTileset(Path.Combine(mapDir, sourceEl.GetString()), firstGid, content)
-                    : ParseTileset(tsEl, firstGid, content);
+                    : ParseTileset(tsEl, firstGid, content, mapDir);
 
                 if (info != null)
                     tilesets.Add(info);
@@ -80,18 +80,44 @@ namespace FinalProject.World
         {
             string json = File.ReadAllText(tsPath);
             using JsonDocument doc = JsonDocument.Parse(json);
-            return ParseTileset(doc.RootElement, firstGid, content);
+            string mapDir = Path.GetDirectoryName(tsPath);
+            return ParseTileset(doc.RootElement, firstGid, content, mapDir);
         }
 
-        private static TilesetInfo ParseTileset(JsonElement el, int firstGid, ContentManager content)
+        private static TilesetInfo ParseTileset(JsonElement el, int firstGid, ContentManager content, string mapDir)
         {
             string imagePath = el.GetProperty("image").GetString();
             int    columns   = el.GetProperty("columns").GetInt32();
             int    tileWidth  = el.GetProperty("tilewidth").GetInt32();
             int    tileHeight = el.GetProperty("tileheight").GetInt32();
 
-            string    contentKey = ImagePathToContentKey(imagePath);
-            Texture2D texture    = content.Load<Texture2D>(contentKey);
+            string    contentKey = ImagePathToContentKey(imagePath, mapDir);
+
+            // Debug: record attempted content key loads to a file so we can inspect them
+            try
+            {
+                string logPath = Path.GetFullPath(Path.Combine(AppContext.BaseDirectory, "map_debug.txt"));
+                File.AppendAllText(logPath, $"Attempting to load texture key: {contentKey}\n");
+            }
+            catch { /* ignore logging failures */ }
+
+            Texture2D texture;
+            try
+            {
+                texture = content.Load<Texture2D>(contentKey);
+            }
+            catch (Exception ex)
+            {
+                try
+                {
+                    string logPath = Path.GetFullPath(Path.Combine(AppContext.BaseDirectory, "map_debug.txt"));
+                    File.AppendAllText(logPath, $"Failed to load texture '{contentKey}': {ex.Message}\n");
+                }
+                catch { }
+
+                // Rethrow so callers can handle the failure
+                throw;
+            }
 
             return new TilesetInfo(firstGid, texture, columns, tileWidth, tileHeight);
         }
@@ -109,20 +135,34 @@ namespace FinalProject.World
 
         // Converts a Tiled image path to a ContentManager key.
         // "../../Content/Sprites/Tilesets/TileMap.png" → "Sprites/Tilesets/TileMap"
-        private static string ImagePathToContentKey(string imagePath)
+        // Resolves image paths relative to the map file location and converts them to
+        // ContentManager keys (path without extension, using forward slashes).
+        private static string ImagePathToContentKey(string imagePath, string mapDir)
         {
-            string normalized = imagePath.Replace('\\', '/');
+            // Resolve the image path relative to the map file's directory
+            string fullPath = Path.GetFullPath(Path.Combine(mapDir ?? string.Empty, imagePath));
+            string normalized = fullPath.Replace('\\', '/');
 
-            int index = normalized.IndexOf("Content/", StringComparison.OrdinalIgnoreCase);
-
+            // Find "Content/" and take everything after it as the key
+            int index = normalized.IndexOf("/Content/", StringComparison.OrdinalIgnoreCase);
             if (index >= 0)
             {
-                string relative = normalized.Substring(index + "Content/".Length);
-                return Path.ChangeExtension(relative, null);
+                string relative = normalized.Substring(index + "/Content/".Length);
+                // Ensure forward slashes and remove extension
+                string key = Path.ChangeExtension(relative, null).Replace('\\', '/');
+                // If the key still starts with an extra Content/ prefix, strip it
+                if (key.StartsWith("Content/", StringComparison.OrdinalIgnoreCase))
+                    key = key.Substring("Content/".Length);
+                if (key.StartsWith("/Content/", StringComparison.OrdinalIgnoreCase))
+                    key = key.Substring("/Content/".Length);
+                return key;
             }
 
-            // Fallback: just the filename without extension
-            return Path.GetFileNameWithoutExtension(imagePath);
+            // If we couldn't find Content/, fall back to using the filename without extension
+            string fallback = Path.GetFileNameWithoutExtension(imagePath);
+            if (fallback.StartsWith("Content/", StringComparison.OrdinalIgnoreCase))
+                fallback = fallback.Substring("Content/".Length);
+            return fallback;
         }
     }
 }

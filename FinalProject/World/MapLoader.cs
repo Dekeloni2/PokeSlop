@@ -46,6 +46,7 @@ namespace FinalProject.World
             // ── Layers ───────────────────────────────────────────────────────
             TileLayer groundLayer  = null;
             TileLayer objectsLayer = null;
+            TileLayer tallgrass = null;
 
             foreach (JsonElement layerEl in root.GetProperty("layers").EnumerateArray())
             {
@@ -63,6 +64,7 @@ namespace FinalProject.World
 
                 if (name == "Ground")  groundLayer  = layer;
                 if (name == "Objects") objectsLayer = layer;
+                if (name == "Tall Grass") tallgrass = layer;
             }
 
             if (groundLayer == null)
@@ -70,8 +72,10 @@ namespace FinalProject.World
             if (objectsLayer == null)
                 throw new Exception("Map is missing a layer named 'Objects'.");
 
+            // tallgrass is optional; pass it through to the TileMap so the game
+            // can render it and query for tall-grass tiles.
             return new TileMap(mapWidth, mapHeight, tileWidth, tileHeight,
-                               tilesets, groundLayer, objectsLayer);
+                               tilesets, groundLayer, tallgrass, objectsLayer);
         }
 
         // ── Private helpers ──────────────────────────────────────────────────

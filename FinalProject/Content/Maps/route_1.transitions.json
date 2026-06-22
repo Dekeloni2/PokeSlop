@@ -1,0 +1,10 @@
+[
+  {
+    "direction": "Down",
+    "tileMin": 14,
+    "tileMax": 15,
+    "targetMap": "town_1",
+    "spawnX": 14,
+    "spawnY": 1
+  }
+]

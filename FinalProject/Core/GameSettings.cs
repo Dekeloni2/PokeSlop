@@ -14,7 +14,7 @@ public static class GameSettings
     // How many screen pixels each world pixel occupies — 2 = GBA 2× look
     public const float Zoom = 2f;
 
-    public const float PlayerSpeed = 120f;
+    public const float PlayerSpeed = 64f;
 
     public const float WildEncounterChance = 0.10f;
 }

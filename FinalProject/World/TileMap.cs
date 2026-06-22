@@ -19,11 +19,12 @@ namespace FinalProject.World
 
         private readonly List<TilesetInfo> _tilesets;
         private readonly TileLayer         _groundLayer;
+        private readonly TileLayer         _tallGrassLayer;
         private readonly TileLayer         _objectsLayer;
 
         public TileMap(int width, int height, int tileWidth, int tileHeight,
                        List<TilesetInfo> tilesets,
-                       TileLayer groundLayer, TileLayer objectsLayer)
+                       TileLayer groundLayer, TileLayer tallGrassLayer, TileLayer objectsLayer)
         {
             Width         = width;
             Height        = height;
@@ -31,8 +32,12 @@ namespace FinalProject.World
             TileHeight    = tileHeight;
             _tilesets     = tilesets;
             _groundLayer  = groundLayer;
+            _tallGrassLayer = tallGrassLayer;
             _objectsLayer = objectsLayer;
         }
+
+        public bool IsInBounds(int tileX, int tileY)
+            => tileX >= 0 && tileY >= 0 && tileX < Width && tileY < Height;
 
         // Returns true if the player can walk onto this tile
         public bool IsWalkable(int tileX, int tileY)
@@ -47,8 +52,19 @@ namespace FinalProject.World
 
         public void Draw(SpriteBatch spriteBatch)
         {
+            // Draw order: ground, tall grass (if any), then objects
             DrawLayer(_groundLayer,  spriteBatch);
+            if (_tallGrassLayer != null)
+                DrawLayer(_tallGrassLayer, spriteBatch);
             DrawLayer(_objectsLayer, spriteBatch);
+        }
+
+        // Returns true if the given tile coordinate contains tall grass
+        public bool IsTallGrass(int tileX, int tileY)
+        {
+            if (_tallGrassLayer == null) return false;
+            if (!_tallGrassLayer.InBounds(tileX, tileY)) return false;
+            return _tallGrassLayer.HasTile(tileX, tileY);
         }
 
         private void DrawLayer(TileLayer layer, SpriteBatch spriteBatch)

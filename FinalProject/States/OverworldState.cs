@@ -1,6 +1,8 @@
 // States/OverworldState.cs
 using System;
+using System.Collections.Generic;
 using System.IO;
+using System.Text.Json;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using FinalProject.Core;
@@ -14,108 +16,142 @@ namespace FinalProject.States
     {
         public OverworldState(Game1 game, GameStateManager stateManager)
             : base(game, stateManager) { }
+
         private static readonly Color BackgroundColor = new Color(20, 120, 20);
+
         private Player _player;
         private Camera _camera;
         private TileMap _map;
-        private string _currentAreaName = "town_1";
+        private string  _currentAreaName;
+        private List<MapTransition> _transitions  = new();
+        private bool               _transitioning = false; // prevents repeated trigger on failed load
+
+        // ── Lifecycle ────────────────────────────────────────────────────────
 
         public override void OnEnter()
         {
-            try { File.AppendAllText(Path.GetFullPath(Path.Combine(AppContext.BaseDirectory, "map_debug.txt")), "OverworldState.OnEnter called\n"); } catch { }
-            // Try loading JSON first, then fall back to .tmj (Tiled map editor export)
-            // Resolve paths relative to the compiled binary so the files are found
-            // whether running from the project root or the build output directory.
-            string jsonPath = Path.GetFullPath(Path.Combine(AppContext.BaseDirectory, "..", "..", "..", "Content", "Maps", "town_1.json"));
-            string tmjPath  = Path.GetFullPath(Path.Combine(AppContext.BaseDirectory, "..", "..", "..", "Content", "Maps", "town_1.tmj"));
-
-            try
-            {
-                if (System.IO.File.Exists(jsonPath))
-                    _map = MapLoader.Load(jsonPath, Game.Content);
-                else if (System.IO.File.Exists(tmjPath))
-                    _map = MapLoader.Load(tmjPath, Game.Content);
-
-                if (_map != null)
-                {
-                    System.Diagnostics.Debug.WriteLine($"Loaded map: {_currentAreaName} ({_map.Width}x{_map.Height} tiles)");
-                    Console.WriteLine($"Loaded map: {_currentAreaName} ({_map.Width}x{_map.Height} tiles)");
-                    try
-                    {
-                        string logPath = Path.GetFullPath(Path.Combine(AppContext.BaseDirectory, "map_debug.txt"));
-                        File.AppendAllText(logPath, $"Loaded map: {_currentAreaName} ({_map.Width}x{_map.Height})\n");
-                    }
-                    catch { }
-                }
-                else
-                    throw new System.IO.FileNotFoundException("No map file found for town_1");
-
-                _player = new Player(Game, 5, 5);
-                _camera = new Camera();
-                EventBus.Instance.Publish(new AreaChangedEvent(_currentAreaName));
-            }
-            catch (Exception e)
-            {
-                System.Diagnostics.Debug.WriteLine("MAP LOAD ERROR: " + e.Message);
-                System.Diagnostics.Debug.WriteLine(e.StackTrace);
-                try
-                {
-                    string logPath = Path.GetFullPath(Path.Combine(AppContext.BaseDirectory, "map_debug.txt"));
-                    File.AppendAllText(logPath, $"MAP LOAD ERROR: {e.Message}\n{e.StackTrace}\n");
-                }
-                catch { }
-                // If map load fails, ensure player and camera still exist so the overworld runs
-                if (_player == null) _player = new Player(Game, 5, 5);
-                if (_camera == null) _camera = new Camera();
-            }
+            _player = new Player(Game, 5, 5);
+            _camera = new Camera();
+            LoadMap("town_1", 5, 5);
         }
 
         public override void Update(GameTime gameTime)
         {
-            // Guard: if map failed to load, nothing should move
             if (_map == null) return;
 
             _player.Update(gameTime, _map);
             _camera.Follow(_player, _map);
-            // TODO: Handle world state, check for encounters
+            CheckTransitions();
+
+            // Debug: press F1 to log the player's current tile position
+            if (Game.Input.IsKeyPressed(Microsoft.Xna.Framework.Input.Keys.F1))
+                LogDebug($"Player tile: ({_player.TilePosition.X}, {_player.TilePosition.Y}) on {_currentAreaName}");
         }
 
         public override void Draw(SpriteBatch spriteBatch)
         {
             Game.GraphicsDevice.Clear(BackgroundColor);
-            // PointClamp = nearest-neighbour sampling, no bleeding between tile edges
+
             spriteBatch.Begin(
-                samplerState: Microsoft.Xna.Framework.Graphics.SamplerState.PointClamp,
+                samplerState: SamplerState.PointClamp,
                 transformMatrix: _camera.GetTransform()
             );
-
-            // Draw the map (if loaded) first, then the player and other entities
             _map?.Draw(spriteBatch);
             _player.Draw(spriteBatch);
-            // TODO: Draw NPCs, HUD
-
-            // Draw a visible map boundary to help debug when the tiles appear off-screen
-            if (_map != null)
-            {
-                Rectangle mapRect = new Rectangle(0, 0, _map.PixelWidth, _map.PixelHeight);
-                DrawRectangleOutline(spriteBatch, mapRect, 2, Color.Red * 0.6f);
-            }
-
             spriteBatch.End();
         }
 
-        // Helper to draw a rectangle outline using the 1x1 PixelTexture from Game.
-        private void DrawRectangleOutline(SpriteBatch spriteBatch, Rectangle rect, int thickness, Color color)
+        // ── Transitions ──────────────────────────────────────────────────────
+
+        private void CheckTransitions()
         {
-            // Top
-            spriteBatch.Draw(Game.PixelTexture, new Rectangle(rect.X, rect.Y, rect.Width, thickness), color);
-            // Bottom
-            spriteBatch.Draw(Game.PixelTexture, new Rectangle(rect.X, rect.Y + rect.Height - thickness, rect.Width, thickness), color);
-            // Left
-            spriteBatch.Draw(Game.PixelTexture, new Rectangle(rect.X, rect.Y, thickness, rect.Height), color);
-            // Right
-            spriteBatch.Draw(Game.PixelTexture, new Rectangle(rect.X + rect.Width - thickness, rect.Y, thickness, rect.Height), color);
+            if (_player.IsMoving || _transitioning) return;
+
+            foreach (MapTransition t in _transitions)
+            {
+                Point next = StepInDirection(_player.TilePosition, t.Direction);
+
+                // The player must be facing the exit and their next step would leave the map
+                bool facingExit  = _player.Facing.ToString() == t.Direction;
+                bool leavingMap  = !_map.IsInBounds(next.X, next.Y);
+
+                // For Up/Down exits the opening is a column range; for Left/Right a row range
+                bool inRange = t.Direction is "Up" or "Down"
+                    ? _player.TilePosition.X >= t.TileMin && _player.TilePosition.X <= t.TileMax
+                    : _player.TilePosition.Y >= t.TileMin && _player.TilePosition.Y <= t.TileMax;
+
+                if (facingExit && leavingMap && inRange)
+                {
+                    _transitioning = true;
+                    LoadMap(t.TargetMap, t.SpawnX, t.SpawnY);
+                    _transitioning = false;
+                    return;
+                }
+            }
+        }
+
+        private static Point StepInDirection(Point from, string direction) => direction switch
+        {
+            "Up"    => new Point(from.X,     from.Y - 1),
+            "Down"  => new Point(from.X,     from.Y + 1),
+            "Left"  => new Point(from.X - 1, from.Y),
+            "Right" => new Point(from.X + 1, from.Y),
+            _       => from
+        };
+
+        // ── Map loading ──────────────────────────────────────────────────────
+
+        private void LoadMap(string mapName, int spawnX, int spawnY)
+        {
+            _currentAreaName = mapName;
+
+            string mapsDir = Path.GetFullPath(
+                Path.Combine(AppContext.BaseDirectory, "..", "..", "..", "Content", "Maps"));
+
+            string path = Path.Combine(mapsDir, mapName + ".tmj");
+            if (!File.Exists(path))
+                path = Path.Combine(mapsDir, mapName + ".json");
+
+            try
+            {
+                _map = MapLoader.Load(path, Game.Content);
+            }
+            catch (Exception e)
+            {
+                LogDebug($"MAP LOAD ERROR ({mapName}): {e.Message}\n{e.StackTrace}");
+                return;
+            }
+
+            _player.Teleport(spawnX, spawnY);
+            _transitions = LoadTransitions(mapsDir, mapName);
+
+            EventBus.Instance.Publish(new AreaChangedEvent(_currentAreaName));
+        }
+
+        private static List<MapTransition> LoadTransitions(string mapsDir, string mapName)
+        {
+            string path = Path.Combine(mapsDir, mapName + ".transitions.json");
+            if (!File.Exists(path)) return new List<MapTransition>();
+
+            try
+            {
+                string json = File.ReadAllText(path);
+                return JsonSerializer.Deserialize<List<MapTransition>>(json,
+                    new JsonSerializerOptions { PropertyNameCaseInsensitive = true })
+                    ?? new List<MapTransition>();
+            }
+            catch { return new List<MapTransition>(); }
+        }
+
+        private static void LogDebug(string message)
+        {
+            try
+            {
+                File.AppendAllText(
+                    Path.GetFullPath(Path.Combine(AppContext.BaseDirectory, "map_debug.txt")),
+                    message + "\n");
+            }
+            catch { }
         }
     }
 }
-

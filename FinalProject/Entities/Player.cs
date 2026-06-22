@@ -38,8 +38,9 @@ public class Player
         _               => 0
     };
 
-    // Alternates which foot leads on each new step (0 = left foot, 2 = right foot)
-    private bool _walkToggle;
+    // Cycles through the 4-frame walk animation: left foot, standing, right foot, standing
+    private int _walkStep;
+    private static readonly int[] WalkCycle = { 0, 1, 2, 1 };
 
     public Player(Game1 game, int startTileX, int startTileY)
     {
@@ -95,7 +96,7 @@ public class Player
         _moveOrigin      = WorldPosition;
         _moveDestination = TileToWorld(destination);
         TilePosition     = destination;
-        _walkToggle      = !_walkToggle;  // alternate feet each step
+        _walkStep = (_walkStep + 1) % 4;  // advance through left, stand, right, stand
     }
 
     private void UpdateMovement(GameTime gameTime)
@@ -114,7 +115,7 @@ public class Player
     public void Draw(SpriteBatch spriteBatch)
     {
         // Pick the walk frame: idle = 1, left foot = 0, right foot = 2
-        int animFrame = IsMoving ? (_walkToggle ? 0 : 2) : 1;
+        int animFrame = IsMoving ? WalkCycle[_walkStep] : 1;
         int frameIndex = DirectionRow(Facing) + animFrame;
 
         Rectangle src = new Rectangle(FrameX[frameIndex], 0, FrameW[frameIndex], FrameH);

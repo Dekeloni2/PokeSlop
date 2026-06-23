@@ -1,0 +1,43 @@
+[
+  { "name": "Tackle",       "type": "Normal",      "power": 40,  "accuracy": 100, "description": "A basic full-body charge." },
+  { "name": "Scratch",      "type": "Normal",      "power": 40,  "accuracy": 100, "description": "Rakes the target with sharp claws." },
+  { "name": "Quick Attack", "type": "Normal",      "power": 40,  "accuracy": 100, "description": "An extremely fast strike that always hits first." },
+  { "name": "Slam",         "type": "Normal",      "power": 85,  "accuracy": 100, "description": "Slams the target with full body weight. May inflict paralysis." },
+  { "name": "Headbutt",     "type": "Normal",      "power": 70,  "accuracy": 100, "description": "Charges forward and slams with the head." },
+  { "name": "Super Cannon", "type": "Normal",      "power": 150, "accuracy": 90,  "description": "An overwhelming blast of raw energy. Makes the creature dormant for 1 turn." },
+
+  { "name": "Ember",        "type": "Fire",        "power": 40,  "accuracy": 100, "description": "A weak fire attack." },
+  { "name": "Flame Burst",  "type": "Fire",        "power": 70,  "accuracy": 100, "description": "A burst of flame." },
+  { "name": "Fire Fang",    "type": "Fire",        "power": 65,  "accuracy": 95,  "description": "Bites with scorching fire. May inflict burn." },
+  { "name": "Flamethrower", "type": "Fire",        "power": 90,  "accuracy": 100, "description": "A powerful stream of fire." },
+  { "name": "Fire Blast",   "type": "Fire",        "power": 110, "accuracy": 85,  "description": "A massive fire blast." },
+  { "name": "Inferno",      "type": "Fire",        "power": 130, "accuracy": 75,  "description": "An overwhelming inferno. Reduces this creature's attack." },
+
+  { "name": "Water Gun",    "type": "Water",       "power": 40,  "accuracy": 100, "description": "Shoots a stream of water." },
+  { "name": "Bubble",       "type": "Water",       "power": 40,  "accuracy": 100, "description": "Fires a volley of bubbles." },
+  { "name": "Aqua Jet",     "type": "Water",       "power": 40,  "accuracy": 100, "description": "A swift water strike." },
+  { "name": "Surf",         "type": "Water",       "power": 90,  "accuracy": 100, "description": "A large wave crashes down." },
+  { "name": "Hydro Pump",   "type": "Water",       "power": 110, "accuracy": 80,  "description": "A fierce jet of water." },
+  { "name": "Tidal Wave",   "type": "Water",       "power": 130, "accuracy": 75,  "description": "An enormous tidal wave." },
+
+  { "name": "Mud Shot",      "type": "Earth",      "power": 20,  "accuracy": 100, "description": "Flings mud at the target." },
+  { "name": "Rock Throw",    "type": "Earth",      "power": 50,  "accuracy": 90,  "description": "Hurls a large rock." },
+  { "name": "Bulldoze",      "type": "Earth",      "power": 60,  "accuracy": 100, "description": "Stomps the ground hard." },
+  { "name": "Earthquake",    "type": "Earth",      "power": 100, "accuracy": 100, "description": "Shakes the ground violently." },
+  { "name": "Stone Edge",    "type": "Earth",      "power": 100, "accuracy": 80,  "description": "Sharp stones strike the target." },
+  { "name": "Tectonic Rage", "type": "Earth",      "power": 130, "accuracy": 75,  "description": "A devastating seismic attack." },
+
+  { "name": "Spark",         "type": "Electricity","power": 40,  "accuracy": 100, "description": "A jolt of electricity." },
+  { "name": "Thunder Shock", "type": "Electricity","power": 40,  "accuracy": 100, "description": "A weak electric shock." },
+  { "name": "Charge Beam",   "type": "Electricity","power": 50,  "accuracy": 90,  "description": "Fires a beam of electricity." },
+  { "name": "Thunderbolt",   "type": "Electricity","power": 90,  "accuracy": 100, "description": "A strong electric blast." },
+  { "name": "Thunder",       "type": "Electricity","power": 110, "accuracy": 70,  "description": "A wild lightning strike." },
+  { "name": "Gigavolt",      "type": "Electricity","power": 130, "accuracy": 75,  "description": "An overwhelming surge of power." },
+
+  { "name": "Gust",          "type": "Wind",       "power": 40,  "accuracy": 100, "description": "A sharp gust of wind." },
+  { "name": "Wing Attack",   "type": "Wind",       "power": 60,  "accuracy": 100, "description": "Strikes with sharp wings." },
+  { "name": "Air Slash",     "type": "Wind",       "power": 75,  "accuracy": 95,  "description": "Slices with a blade of air." },
+  { "name": "Hurricane",     "type": "Wind",       "power": 110, "accuracy": 70,  "description": "A vicious spinning storm." },
+  { "name": "Tempest",       "type": "Wind",       "power": 90,  "accuracy": 100, "description": "A raging windstorm." },
+  { "name": "Sky Rend",      "type": "Wind",       "power": 130, "accuracy": 75,  "description": "Tears through the sky itself." }
+]

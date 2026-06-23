@@ -35,5 +35,9 @@
         <Content Include="Content\Maps\*.json">
             <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
         </Content>
+        <!-- Data files are loaded at runtime via File.ReadAllText, not the content pipeline -->
+        <Content Include="Content\Data\*.json">
+            <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+        </Content>
     </ItemGroup>
 </Project>

@@ -26,6 +26,9 @@ namespace FinalProject.States
         private List<MapTransition> _transitions  = new();
         private bool               _transitioning = false; // prevents repeated trigger on failed load
 
+        // Cache of already-loaded maps so backtracking doesn't re-parse JSON from disk
+        private readonly Dictionary<string, TileMap> _mapCache = new();
+
         // ── Lifecycle ────────────────────────────────────────────────────────
 
         public override void OnEnter()
@@ -56,7 +59,7 @@ namespace FinalProject.States
                 samplerState: SamplerState.PointClamp,
                 transformMatrix: _camera.GetTransform()
             );
-            _map?.Draw(spriteBatch);
+            _map?.Draw(spriteBatch, _camera);
             _player.Draw(spriteBatch);
             spriteBatch.End();
         }
@@ -69,14 +72,14 @@ namespace FinalProject.States
 
             foreach (MapTransition t in _transitions)
             {
-                Point next = StepInDirection(_player.TilePosition, t.Direction);
+                Point next = t.Direction.GetNeighbour(_player.TilePosition);
 
                 // The player must be facing the exit and their next step would leave the map
-                bool facingExit  = _player.Facing.ToString() == t.Direction;
-                bool leavingMap  = !_map.IsInBounds(next.X, next.Y);
+                bool facingExit = _player.Facing == t.Direction;
+                bool leavingMap = !_map.IsInBounds(next.X, next.Y);
 
                 // For Up/Down exits the opening is a column range; for Left/Right a row range
-                bool inRange = t.Direction is "Up" or "Down"
+                bool inRange = t.Direction is Direction.Up or Direction.Down
                     ? _player.TilePosition.X >= t.TileMin && _player.TilePosition.X <= t.TileMax
                     : _player.TilePosition.Y >= t.TileMin && _player.TilePosition.Y <= t.TileMax;
 
@@ -90,15 +93,6 @@ namespace FinalProject.States
             }
         }
 
-        private static Point StepInDirection(Point from, string direction) => direction switch
-        {
-            "Up"    => new Point(from.X,     from.Y - 1),
-            "Down"  => new Point(from.X,     from.Y + 1),
-            "Left"  => new Point(from.X - 1, from.Y),
-            "Right" => new Point(from.X + 1, from.Y),
-            _       => from
-        };
-
         // ── Map loading ──────────────────────────────────────────────────────
 
         private void LoadMap(string mapName, int spawnX, int spawnY)
@@ -108,20 +102,26 @@ namespace FinalProject.States
             string mapsDir = Path.GetFullPath(
                 Path.Combine(AppContext.BaseDirectory, "..", "..", "..", "Content", "Maps"));
 
-            string path = Path.Combine(mapsDir, mapName + ".tmj");
-            if (!File.Exists(path))
-                path = Path.Combine(mapsDir, mapName + ".json");
-
-            try
+            // Return cached map if we've already loaded it
+            if (!_mapCache.TryGetValue(mapName, out TileMap loaded))
             {
-                _map = MapLoader.Load(path, Game.Content);
-            }
-            catch (Exception e)
-            {
-                LogDebug($"MAP LOAD ERROR ({mapName}): {e.Message}\n{e.StackTrace}");
-                return;
+                string path = Path.Combine(mapsDir, mapName + ".tmj");
+                if (!File.Exists(path))
+                    path = Path.Combine(mapsDir, mapName + ".json");
+
+                try
+                {
+                    loaded = MapLoader.Load(path, Game.Content);
+                    _mapCache[mapName] = loaded;
+                }
+                catch (Exception e)
+                {
+                    LogDebug($"MAP LOAD ERROR ({mapName}): {e.Message}\n{e.StackTrace}");
+                    return;
+                }
             }
 
+            _map = loaded;
             _player.Teleport(spawnX, spawnY);
             _transitions = LoadTransitions(mapsDir, mapName);
 
@@ -136,8 +136,12 @@ namespace FinalProject.States
             try
             {
                 string json = File.ReadAllText(path);
-                return JsonSerializer.Deserialize<List<MapTransition>>(json,
-                    new JsonSerializerOptions { PropertyNameCaseInsensitive = true })
+                var options = new JsonSerializerOptions
+                {
+                    PropertyNameCaseInsensitive = true,
+                    Converters = { new System.Text.Json.Serialization.JsonStringEnumConverter() }
+                };
+                return JsonSerializer.Deserialize<List<MapTransition>>(json, options)
                     ?? new List<MapTransition>();
             }
             catch { return new List<MapTransition>(); }

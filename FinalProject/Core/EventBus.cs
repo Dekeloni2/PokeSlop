@@ -24,17 +24,25 @@ public class EventBus
 
         if (!_handlers.ContainsKey(key))
             _handlers[key] = new List<Delegate>();
-        
+
         _handlers[key].Add(handler);
     }
-    
+
+    public void Unsubscribe<TEvent>(Action<TEvent> handler) where TEvent : GameEvent
+    {
+        Type key = typeof(TEvent);
+
+        if (_handlers.TryGetValue(key, out List<Delegate> list))
+            list.Remove(handler);
+    }
+
     public void Publish<TEvent>(TEvent gameEvent) where TEvent : GameEvent
     {
         Type key = typeof(TEvent);
 
         if (!_handlers.TryGetValue(key, out List<Delegate> list))
             return;
-        
+
         foreach (Delegate handler in new List<Delegate>(list))
             ((Action<TEvent>)handler)(gameEvent);
     }

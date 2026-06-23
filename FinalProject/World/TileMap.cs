@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
@@ -7,7 +8,7 @@ namespace FinalProject.World
 {
     // A loaded map with all its layers and tilesets.
     // Handles drawing and collision queries.
-    public class TileMap : IGameDrawable
+    public class TileMap
     {
         public int Width      { get; }  // in tiles
         public int Height     { get; }  // in tiles
@@ -51,13 +52,24 @@ namespace FinalProject.World
             return !_objectsLayer.HasTile(tileX, tileY);
         }
 
-        public void Draw(SpriteBatch spriteBatch)
+        // Draw only the tiles visible through the camera viewport.
+        public void Draw(SpriteBatch spriteBatch, Camera camera)
         {
+            // Convert the camera's world-space position to a visible tile range.
+            // Add one tile of padding on each edge to avoid pop-in during sub-tile scrolling.
+            float viewW = GameSettings.WindowWidth  / GameSettings.Zoom;
+            float viewH = GameSettings.WindowHeight / GameSettings.Zoom;
+
+            int minX = Math.Max(0,      (int)(camera.Position.X / TileWidth)  - 1);
+            int minY = Math.Max(0,      (int)(camera.Position.Y / TileHeight) - 1);
+            int maxX = Math.Min(Width,  (int)((camera.Position.X + viewW) / TileWidth)  + 2);
+            int maxY = Math.Min(Height, (int)((camera.Position.Y + viewH) / TileHeight) + 2);
+
             // Draw order: ground, tall grass (if any), then objects
-            DrawLayer(_groundLayer,  spriteBatch);
+            DrawLayer(_groundLayer,   spriteBatch, minX, minY, maxX, maxY);
             if (_tallGrassLayer != null)
-                DrawLayer(_tallGrassLayer, spriteBatch);
-            DrawLayer(_objectsLayer, spriteBatch);
+                DrawLayer(_tallGrassLayer, spriteBatch, minX, minY, maxX, maxY);
+            DrawLayer(_objectsLayer,  spriteBatch, minX, minY, maxX, maxY);
         }
 
         // Returns true if the given tile coordinate contains tall grass
@@ -68,11 +80,12 @@ namespace FinalProject.World
             return _tallGrassLayer.HasTile(tileX, tileY);
         }
 
-        private void DrawLayer(TileLayer layer, SpriteBatch spriteBatch)
+        private void DrawLayer(TileLayer layer, SpriteBatch spriteBatch,
+                                int minX, int minY, int maxX, int maxY)
         {
-            for (int y = 0; y < layer.Height; y++)
+            for (int y = minY; y < maxY; y++)
             {
-                for (int x = 0; x < layer.Width; x++)
+                for (int x = minX; x < maxX; x++)
                 {
                     int gid = layer.GetTileGid(x, y);
                     if (gid == 0) continue;

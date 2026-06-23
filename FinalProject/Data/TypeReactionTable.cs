@@ -1,23 +1,42 @@
+using System.Collections.Generic;
+
 namespace FinalProject.Data
 {
     // Maps two types to the reaction they produce when combined.
     // Usage: TypeReactionTable.GetReaction(CreatureType.Fire, CreatureType.Water) → Vapor
+    //
+    // To add a new type: add a CreatureType enum value, then add entries here for every
+    // (newType, existingType) and (existingType, newType) pair that should react.
+    // Only non-None reactions need an entry — everything else defaults to None.
     public static class TypeReactionTable
     {
-        // Indexed by (int)attacker type, (int)defender type
-        // Matches enum order: Normal=0, Fire=1, Water=2, Earth=3, Wind=4, Electricity=5
-        private static readonly ReactionEffect[,] _table =
+        private static readonly Dictionary<(CreatureType, CreatureType), ReactionEffect> _table = new()
         {
-            //               Normal               Fire                  Water                 Earth                 Wind                  Electricity
-            /* Normal */  {  ReactionEffect.None,  ReactionEffect.None,  ReactionEffect.None,  ReactionEffect.None,  ReactionEffect.None,  ReactionEffect.None       },
-            /* Fire    */  {  ReactionEffect.None,  ReactionEffect.None,  ReactionEffect.Vapor, ReactionEffect.Crystalize, ReactionEffect.Inferno, ReactionEffect.Explosion  },
-            /* Water   */  {  ReactionEffect.None,  ReactionEffect.Vapor, ReactionEffect.None,  ReactionEffect.Mud,   ReactionEffect.Frost,  ReactionEffect.Conduction },
-            /* Earth   */  {  ReactionEffect.None,  ReactionEffect.Crystalize, ReactionEffect.Mud, ReactionEffect.None, ReactionEffect.Sandstorm, ReactionEffect.Magnetize },
-            /* Wind    */  {  ReactionEffect.None,  ReactionEffect.Inferno, ReactionEffect.Frost, ReactionEffect.Sandstorm, ReactionEffect.None, ReactionEffect.Lightning },
-            /* Elec    */  {  ReactionEffect.None,  ReactionEffect.Explosion, ReactionEffect.Conduction, ReactionEffect.Magnetize, ReactionEffect.Lightning, ReactionEffect.None },
+            { (CreatureType.Fire,        CreatureType.Water),       ReactionEffect.Vapor       },
+            { (CreatureType.Water,       CreatureType.Fire),        ReactionEffect.Vapor       },
+            { (CreatureType.Fire,        CreatureType.Earth),       ReactionEffect.Crystalize  },
+            { (CreatureType.Earth,       CreatureType.Fire),        ReactionEffect.Crystalize  },
+            { (CreatureType.Fire,        CreatureType.Wind),        ReactionEffect.Inferno     },
+            { (CreatureType.Wind,        CreatureType.Fire),        ReactionEffect.Inferno     },
+            { (CreatureType.Fire,        CreatureType.Electricity), ReactionEffect.Explosion   },
+            { (CreatureType.Electricity, CreatureType.Fire),        ReactionEffect.Explosion   },
+            { (CreatureType.Water,       CreatureType.Earth),       ReactionEffect.Mud         },
+            { (CreatureType.Earth,       CreatureType.Water),       ReactionEffect.Mud         },
+            { (CreatureType.Water,       CreatureType.Wind),        ReactionEffect.Frost       },
+            { (CreatureType.Wind,        CreatureType.Water),       ReactionEffect.Frost       },
+            { (CreatureType.Water,       CreatureType.Electricity), ReactionEffect.Conduction  },
+            { (CreatureType.Electricity, CreatureType.Water),       ReactionEffect.Conduction  },
+            { (CreatureType.Earth,       CreatureType.Wind),        ReactionEffect.Sandstorm   },
+            { (CreatureType.Wind,        CreatureType.Earth),       ReactionEffect.Sandstorm   },
+            { (CreatureType.Earth,       CreatureType.Electricity), ReactionEffect.Magnetize   },
+            { (CreatureType.Electricity, CreatureType.Earth),       ReactionEffect.Magnetize   },
+            { (CreatureType.Wind,        CreatureType.Electricity), ReactionEffect.Lightning   },
+            { (CreatureType.Electricity, CreatureType.Wind),        ReactionEffect.Lightning   },
         };
 
         public static ReactionEffect GetReaction(CreatureType attacker, CreatureType defender)
-            => _table[(int)attacker, (int)defender];
+            => _table.TryGetValue((attacker, defender), out ReactionEffect effect)
+               ? effect
+               : ReactionEffect.None;
     }
 }

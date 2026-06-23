@@ -28,6 +28,15 @@ public class Player : Sprite
     private const int FrameH = 26;
     private static readonly int[] WalkCycle = { 0, 1, 2, 1 };
 
+    // Maps keyboard keys to movement directions — add/remap bindings here
+    private static readonly (Keys Key, Direction Dir)[] _keyBindings =
+    {
+        (Keys.Up,    Direction.Up),
+        (Keys.Down,  Direction.Down),
+        (Keys.Left,  Direction.Left),
+        (Keys.Right, Direction.Right),
+    };
+
     public Player(Game1 game, int startTileX, int startTileY)
         : base(game.Content.Load<Texture2D>("Sprites/Player/player_world"))
     {
@@ -58,16 +67,21 @@ public class Player : Sprite
     {
         Direction? input = null;
 
-        if      (_game.Input.IsKeyDown(Keys.Up))    input = Direction.Up;
-        else if (_game.Input.IsKeyDown(Keys.Down))  input = Direction.Down;
-        else if (_game.Input.IsKeyDown(Keys.Left))  input = Direction.Left;
-        else if (_game.Input.IsKeyDown(Keys.Right)) input = Direction.Right;
+        // Prefer a freshly pressed key over one already held — this way the most
+        // recently pressed direction always wins when two keys are held at once,
+        // preventing the facing/movement mismatch bug.
+        foreach (var (key, direction) in _keyBindings)
+            if (_game.Input.IsKeyPressed(key)) { input = direction; break; }
+
+        if (input == null)
+            foreach (var (key, direction) in _keyBindings)
+                if (_game.Input.IsKeyDown(key)) { input = direction; break; }
 
         if (input == null) return;
 
         Facing = input.Value;
 
-        Point next = GetNeighbour(TilePosition, input.Value);
+        Point next = input.Value.GetNeighbour(TilePosition);
         if (!map.IsWalkable(next.X, next.Y)) return;
 
         StartMoving(next);
@@ -121,12 +135,4 @@ public class Player : Sprite
     private static Vector2 TileToWorld(Point tile)
         => new Vector2(tile.X * GameSettings.TileSize, tile.Y * GameSettings.TileSize);
 
-    private static Point GetNeighbour(Point from, Direction direction) => direction switch
-    {
-        Direction.Up    => new Point(from.X,     from.Y - 1),
-        Direction.Down  => new Point(from.X,     from.Y + 1),
-        Direction.Left  => new Point(from.X - 1, from.Y),
-        Direction.Right => new Point(from.X + 1, from.Y),
-        _               => from
-    };
 }

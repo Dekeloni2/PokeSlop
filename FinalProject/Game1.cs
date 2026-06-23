@@ -1,8 +1,11 @@
 ﻿// Game1.cs
+using System;
+using System.IO;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
 using FinalProject.Core;
+using FinalProject.Data;
 using FinalProject.States;
 
 namespace FinalProject
@@ -48,6 +51,12 @@ namespace FinalProject
 
             PixelTexture = new Texture2D(GraphicsDevice, 1, 1);
             PixelTexture.SetData(new[] { Color.White });
+
+            // Load data registries from JSON so new content never requires a recompile
+            string dataDir = Path.GetFullPath(
+                Path.Combine(AppContext.BaseDirectory, "..", "..", "..", "Content", "Data"));
+            MoveRegistry.Load(Path.Combine(dataDir, "moves.json"));
+            SpeciesRegistry.Load(Path.Combine(dataDir, "species.json"));
 
             // First thing the player sees
             StateManager.Replace(new MainMenuState(this, StateManager));

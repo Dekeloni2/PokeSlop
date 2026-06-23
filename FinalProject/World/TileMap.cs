@@ -1,12 +1,13 @@
 using System.Collections.Generic;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
+using FinalProject.Core;
 
 namespace FinalProject.World
 {
     // A loaded map with all its layers and tilesets.
     // Handles drawing and collision queries.
-    public class TileMap
+    public class TileMap : IGameDrawable
     {
         public int Width      { get; }  // in tiles
         public int Height     { get; }  // in tiles

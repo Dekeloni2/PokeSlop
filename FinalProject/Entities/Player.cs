@@ -5,8 +5,9 @@ using Microsoft.Xna.Framework.Input;
 using Microsoft.Xna.Framework.Graphics;
 using FinalProject.Core;
 using FinalProject.World;
+using Sprite = FinalProject.Core.Sprite;
 
-public class Player
+public class Player : Sprite
 {
     public Point   TilePosition  { get; private set; }
     public Vector2 WorldPosition { get; private set; }
@@ -17,42 +18,26 @@ public class Player
     private float   _moveTimer;
     private Vector2 _moveOrigin;
     private Vector2 _moveDestination;
+    private int     _walkStep;
 
-    private readonly Game1     _game;
-    private readonly Texture2D _texture;
+    private readonly Game1 _game;
 
-    // Sprite sheet has 12 frames in a single row: 4 directions x 3 walk frames
-    // Each frame is ~16px wide, 26px tall.
-    // Detected x-positions and widths for each frame (widths vary slightly across the sheet)
+    // Sprite sheet animation data: 4 directions x 3 frames per direction
     private static readonly int[] FrameX = { 2, 19, 36, 54, 71, 88, 104, 121, 138, 157, 174, 191 };
     private static readonly int[] FrameW = { 15, 15, 16, 14, 14, 14, 14, 14, 14, 14, 14, 14 };
     private const int FrameH = 26;
-
-    // Direction → starting frame index in the sheet (groups of 3)
-    private static int DirectionRow(Direction d) => d switch
-    {
-        Direction.Down  => 0,
-        Direction.Up    => 3,
-        Direction.Left  => 6,
-        Direction.Right => 9,
-        _               => 0
-    };
-
-    // Cycles through the 4-frame walk animation: left foot, standing, right foot, standing
-    private int _walkStep;
     private static readonly int[] WalkCycle = { 0, 1, 2, 1 };
 
     public Player(Game1 game, int startTileX, int startTileY)
+        : base(game.Content.Load<Texture2D>("Sprites/Player/player_world"))
     {
         _game         = game;
-        _texture      = game.Content.Load<Texture2D>("Sprites/Player/player_world");
         TilePosition  = new Point(startTileX, startTileY);
         WorldPosition = TileToWorld(TilePosition);
         Facing        = Direction.Down;
         _moveTime     = GameSettings.TileSize / GameSettings.PlayerSpeed;
     }
 
-    // map is used for collision and bounds checks
     public void Update(GameTime gameTime, TileMap map)
     {
         if (IsMoving)
@@ -61,7 +46,6 @@ public class Player
             HandleInput(map);
     }
 
-    // Instantly places the player on a tile — used on map transitions
     public void Teleport(int tileX, int tileY)
     {
         TilePosition  = new Point(tileX, tileY);
@@ -96,7 +80,7 @@ public class Player
         _moveOrigin      = WorldPosition;
         _moveDestination = TileToWorld(destination);
         TilePosition     = destination;
-        _walkStep = (_walkStep + 1) % 4;  // advance through left, stand, right, stand
+        _walkStep = (_walkStep + 1) % 4;
     }
 
     private void UpdateMovement(GameTime gameTime)
@@ -112,21 +96,27 @@ public class Player
         }
     }
 
-    public void Draw(SpriteBatch spriteBatch)
+    public override void Draw(SpriteBatch spriteBatch)
     {
-        // Pick the walk frame: idle = 1, left foot = 0, right foot = 2
-        int animFrame = IsMoving ? WalkCycle[_walkStep] : 1;
-        int frameIndex = DirectionRow(Facing) + animFrame;
+        int animFrame = IsMoving ? WalkCycle[_walkStep % 4] : 1;
+        int frameIndex = GetDirectionRow(Facing) + animFrame;
 
         Rectangle src = new Rectangle(FrameX[frameIndex], 0, FrameW[frameIndex], FrameH);
 
-        // Draw sprite with feet aligned to the tile bottom
-        // (sprite is taller than 1 tile so shift it up by the overflow)
         int yOffset = -(FrameH - GameSettings.TileSize);
         Vector2 drawPos = new Vector2((int)WorldPosition.X, (int)WorldPosition.Y + yOffset);
 
-        spriteBatch.Draw(_texture, drawPos, src, Color.White);
+        spriteBatch.Draw(Texture, drawPos, src, Color.White);
     }
+
+    private static int GetDirectionRow(Direction d) => d switch
+    {
+        Direction.Down  => 0,
+        Direction.Up    => 3,
+        Direction.Left  => 6,
+        Direction.Right => 9,
+        _               => 0
+    };
 
     private static Vector2 TileToWorld(Point tile)
         => new Vector2(tile.X * GameSettings.TileSize, tile.Y * GameSettings.TileSize);

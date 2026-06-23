@@ -10,6 +10,7 @@
     <list default="true" id="651b6b24-632f-4275-a778-dd161c492901" name="Changes" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/.idea.FinalProject/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/.idea.FinalProject/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/FinalProject/Entities/Player.cs" beforeDir="false" afterPath="$PROJECT_DIR$/FinalProject/Entities/Player.cs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/FinalProject/World/TileMap.cs" beforeDir="false" afterPath="$PROJECT_DIR$/FinalProject/World/TileMap.cs" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -25,7 +26,7 @@
     <option name="firstShow" value="false" />
   </component>
   <component name="EmbeddingIndexingInfo">
-    <option name="cachedIndexableFilesCount" value="8" />
+    <option name="cachedIndexableFilesCount" value="48" />
     <option name="fileBasedEmbeddingIndicesEnabled" value="true" />
   </component>
   <component name="Git.Settings">
@@ -127,6 +128,9 @@
       <workItem from="1781914910186" duration="16799000" />
       <workItem from="1782053350381" duration="7920000" />
       <workItem from="1782107928923" duration="906000" />
+      <workItem from="1782222510092" duration="121000" />
+      <workItem from="1782225402975" duration="77000" />
+      <workItem from="1782225576430" duration="1647000" />
     </task>
     <servers />
   </component>

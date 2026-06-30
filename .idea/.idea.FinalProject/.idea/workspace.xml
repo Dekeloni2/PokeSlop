@@ -8,17 +8,22 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="651b6b24-632f-4275-a778-dd161c492901" name="Changes" comment="">
+      <change afterPath="$PROJECT_DIR$/FinalProject/Battle/Creatures.cs" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/FinalProject/Core/PlayerData.cs" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/FinalProject/States/BattleState.cs" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/FinalProject/World/EncounterEntry.cs" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/.idea.FinalProject/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/.idea.FinalProject/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/FinalProject/Core/EventBus.cs" beforeDir="false" afterPath="$PROJECT_DIR$/FinalProject/Core/EventBus.cs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/FinalProject/Data/MoveRegistry.cs" beforeDir="false" afterPath="$PROJECT_DIR$/FinalProject/Data/MoveRegistry.cs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/FinalProject/Data/SpeciesRegistry.cs" beforeDir="false" afterPath="$PROJECT_DIR$/FinalProject/Data/SpeciesRegistry.cs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/FinalProject/Data/TypeReactionTable.cs" beforeDir="false" afterPath="$PROJECT_DIR$/FinalProject/Data/TypeReactionTable.cs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/FinalProject/Entities/Player.cs" beforeDir="false" afterPath="$PROJECT_DIR$/FinalProject/Entities/Player.cs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/FinalProject/FinalProject.csproj" beforeDir="false" afterPath="$PROJECT_DIR$/FinalProject/FinalProject.csproj" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/FinalProject/Content/Data/moves.json" beforeDir="false" afterPath="$PROJECT_DIR$/FinalProject/Content/Data/moves.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/FinalProject/Content/Data/species.json" beforeDir="false" afterPath="$PROJECT_DIR$/FinalProject/Content/Data/species.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/FinalProject/Content/Maps/route_1.tmj" beforeDir="false" afterPath="$PROJECT_DIR$/FinalProject/Content/Maps/route_1.tmj" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/FinalProject/Core/GameStateManager.cs" beforeDir="false" afterPath="$PROJECT_DIR$/FinalProject/Core/GameStateManager.cs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/FinalProject/Core/IDrawable.cs" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/FinalProject/Core/IGameUpdateable.cs" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/FinalProject/Core/IUpdateable.cs" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/FinalProject/Data/PokemonSpecies.cs" beforeDir="false" afterPath="$PROJECT_DIR$/FinalProject/Data/CreatureSpecies.cs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/FinalProject/Data/PokemonType.cs" beforeDir="false" afterPath="$PROJECT_DIR$/FinalProject/Data/CreatureType.cs" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/FinalProject/Game1.cs" beforeDir="false" afterPath="$PROJECT_DIR$/FinalProject/Game1.cs" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/FinalProject/States/OverworldState.cs" beforeDir="false" afterPath="$PROJECT_DIR$/FinalProject/States/OverworldState.cs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/FinalProject/World/MapTransition.cs" beforeDir="false" afterPath="$PROJECT_DIR$/FinalProject/World/MapTransition.cs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/FinalProject/World/TileMap.cs" beforeDir="false" afterPath="$PROJECT_DIR$/FinalProject/World/TileMap.cs" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -53,13 +58,17 @@
   }
 }</component>
   <component name="HighlightingSettingsPerFile">
+    <setting file="file://$PROJECT_DIR$/FinalProject/Battle/Creatures.cs" root0="FORCE_HIGHLIGHTING" />
     <setting file="file://$PROJECT_DIR$/FinalProject/Core/Camera.cs" root0="FORCE_HIGHLIGHTING" />
     <setting file="file://$PROJECT_DIR$/FinalProject/Core/Direction.cs" root0="FORCE_HIGHLIGHTING" />
     <setting file="file://$PROJECT_DIR$/FinalProject/Core/GameState.cs" root0="FORCE_HIGHLIGHTING" />
     <setting file="file://$PROJECT_DIR$/FinalProject/Core/GameStateManager.cs" root0="FORCE_HIGHLIGHTING" />
+    <setting file="file://$PROJECT_DIR$/FinalProject/Core/PlayerData.cs" root0="FORCE_HIGHLIGHTING" />
     <setting file="file://$PROJECT_DIR$/FinalProject/Entities/Player.cs" root0="FORCE_HIGHLIGHTING" />
+    <setting file="file://$PROJECT_DIR$/FinalProject/States/BattleState.cs" root0="FORCE_HIGHLIGHTING" />
     <setting file="file://$PROJECT_DIR$/FinalProject/States/MainMenuState.cs" root0="FORCE_HIGHLIGHTING" />
     <setting file="file://$PROJECT_DIR$/FinalProject/States/OverworldState.cs" root0="FORCE_HIGHLIGHTING" />
+    <setting file="file://$PROJECT_DIR$/FinalProject/World/EncounterEntry.cs" root0="FORCE_HIGHLIGHTING" />
     <setting file="file://$PROJECT_DIR$/FinalProject/World/MapLoader.cs" root0="FORCE_HIGHLIGHTING" />
     <setting file="file://$PROJECT_DIR$/FinalProject/World/TileLayer.cs" root0="FORCE_HIGHLIGHTING" />
     <setting file="file://$PROJECT_DIR$/FinalProject/World/TileMap.cs" root0="FORCE_HIGHLIGHTING" />
@@ -83,7 +92,7 @@
   </component>
   <component name="PropertiesComponent">{
   &quot;keyToString&quot;: {
-    &quot;.NET Project.FinalProject.executor&quot;: &quot;Run&quot;,
+    &quot;.NET Project.FinalProject.executor&quot;: &quot;Debug&quot;,
     &quot;ModuleVcsDetector.initialDetectionPerformed&quot;: &quot;true&quot;,
     &quot;RunOnceActivity.MCP Project settings loaded&quot;: &quot;true&quot;,
     &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
@@ -139,6 +148,8 @@
       <workItem from="1782222510092" duration="121000" />
       <workItem from="1782225402975" duration="77000" />
       <workItem from="1782225576430" duration="1647000" />
+      <workItem from="1782437343921" duration="5301000" />
+      <workItem from="1782846422556" duration="709000" />
     </task>
     <servers />
   </component>

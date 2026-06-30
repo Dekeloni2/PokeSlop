@@ -23,6 +23,8 @@ namespace FinalProject
         // Useful for HP bars, overlays, debug rects — no dedicated sprite needed.
         public Texture2D PixelTexture { get; private set; }
 
+        public PlayerData PlayerData { get; private set; } = new();
+        
         public Game1()
         {
             _graphics = new GraphicsDeviceManager(this)

@@ -1,0 +1,5 @@
+[
+  { "speciesId": 16, "minLevel": 3, "maxLevel": 6, "weight": 50 },
+  { "speciesId": 19, "minLevel": 3, "maxLevel": 5, "weight": 30 },
+  { "speciesId": 25, "minLevel": 4, "maxLevel": 6, "weight": 20 }
+]

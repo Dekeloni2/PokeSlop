@@ -21,7 +21,6 @@ namespace FinalProject.World
 
         private readonly List<TilesetInfo> _tilesets;
         private readonly TileLayer         _groundLayer;
-        private readonly TileLayer         _tallGrassLayer;
         private readonly TileLayer         _objectsLayer;
 
         public TileMap(int width, int height, int tileWidth, int tileHeight,
@@ -34,7 +33,6 @@ namespace FinalProject.World
             TileHeight    = tileHeight;
             _tilesets     = tilesets;
             _groundLayer  = groundLayer;
-            _tallGrassLayer = tallGrassLayer;
             _objectsLayer = objectsLayer;
         }
 
@@ -67,17 +65,7 @@ namespace FinalProject.World
 
             // Draw order: ground, tall grass (if any), then objects
             DrawLayer(_groundLayer,   spriteBatch, minX, minY, maxX, maxY);
-            if (_tallGrassLayer != null)
-                DrawLayer(_tallGrassLayer, spriteBatch, minX, minY, maxX, maxY);
             DrawLayer(_objectsLayer,  spriteBatch, minX, minY, maxX, maxY);
-        }
-
-        // Returns true if the given tile coordinate contains tall grass
-        public bool IsTallGrass(int tileX, int tileY)
-        {
-            if (_tallGrassLayer == null) return false;
-            if (!_tallGrassLayer.InBounds(tileX, tileY)) return false;
-            return _tallGrassLayer.HasTile(tileX, tileY);
         }
 
         private void DrawLayer(TileLayer layer, SpriteBatch spriteBatch,

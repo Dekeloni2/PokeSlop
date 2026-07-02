@@ -26,7 +26,6 @@ namespace FinalProject.States
         private string  _currentAreaName;
         private List<MapTransition> _transitions  = new();
         private bool _transitioning = false; // prevents repeated trigger on failed load
-        private EncounterTable _encounterTable;
         private bool           _wasMoving = false;
         private readonly Random _rng      = new();
         
@@ -50,10 +49,6 @@ namespace FinalProject.States
             _player.Update(gameTime, _map);
             _camera.Follow(_player, _map);
 
-            // Check for wild encounter the moment a step completes
-            if (_wasMoving && !_player.IsMoving)
-                CheckWildEncounter();
-
             CheckTransitions();
         }
 
@@ -68,16 +63,6 @@ namespace FinalProject.States
             _map?.Draw(spriteBatch, _camera);
             _player.Draw(spriteBatch);
             spriteBatch.End();
-        }
-        
-        private void CheckWildEncounter()
-        {
-            if (_encounterTable == null) return;
-            if (!_map.IsTallGrass(_player.TilePosition.X, _player.TilePosition.Y)) return;
-            if (_rng.NextDouble() >= GameSettings.WildEncounterChance) return;
-
-            Creature wild = _encounterTable.SpawnRandom(_rng);
-            StateManager.Push(new BattleState(Game, StateManager, wild));
         }
 
         // ── Transitions ──────────────────────────────────────────────────────
@@ -140,8 +125,6 @@ namespace FinalProject.States
             _map = loaded;
             _player.Teleport(spawnX, spawnY);
             _transitions    = LoadTransitions(mapsDir, mapName);
-            _encounterTable = LoadEncounterTable(mapsDir, mapName);
-
             EventBus.Instance.Publish(new AreaChangedEvent(_currentAreaName));
         }
 
@@ -162,21 +145,6 @@ namespace FinalProject.States
                     ?? new List<MapTransition>();
             }
             catch { return new List<MapTransition>(); }
-        }
-
-        private static EncounterTable LoadEncounterTable(string mapsDir, string mapName)
-        {
-            string path = Path.Combine(mapsDir, mapName + ".encounters.json");
-            if (!File.Exists(path)) return null;
-
-            try
-            {
-                string json = File.ReadAllText(path);
-                var options = new JsonSerializerOptions { PropertyNameCaseInsensitive = true };
-                var entries = JsonSerializer.Deserialize<List<EncounterEntry>>(json, options);
-                return entries != null && entries.Count > 0 ? new EncounterTable(entries) : null;
-            }
-            catch { return null; }
         }
 
         private static void LogDebug(string message)

@@ -57,8 +57,6 @@ namespace FinalProject
             // Load data registries from JSON so new content never requires a recompile
             string dataDir = Path.GetFullPath(
                 Path.Combine(AppContext.BaseDirectory, "..", "..", "..", "Content", "Data"));
-            MoveRegistry.Load(Path.Combine(dataDir, "moves.json"));
-            SpeciesRegistry.Load(Path.Combine(dataDir, "species.json"));
 
             // First thing the player sees
             StateManager.Replace(new MainMenuState(this, StateManager));

@@ -4,19 +4,13 @@ namespace FinalProject.Data
     public class MoveData
     {
         public string      Name        { get; }
-        public CreatureType Type       { get; }
         public int         Power       { get; }    // 0 = status move, no damage
-        public int         Accuracy    { get; }    // 0-100
         public string      Description { get; }
 
-        public bool IsStatusMove => Power == 0;
-
-        public MoveData(string name, CreatureType type, int power, int accuracy, string description)
+        public MoveData(string name, int power, string description)
         {
             Name        = name;
-            Type        = type;
             Power       = power;
-            Accuracy    = accuracy;
             Description = description;
         }
     }

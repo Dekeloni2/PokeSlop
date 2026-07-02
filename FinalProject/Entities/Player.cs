@@ -1,3 +1,6 @@
+using System.Runtime.InteropServices.Swift;
+using System.Text.Json.Serialization;
+
 namespace FinalProject.Entities;
 
 using Microsoft.Xna.Framework;
@@ -19,6 +22,8 @@ public class Player : Sprite
     private Vector2 _moveOrigin;
     private Vector2 _moveDestination;
     private int     _walkStep;
+
+    public int _health;
 
     private readonly Game1 _game;
 
@@ -50,9 +55,9 @@ public class Player : Sprite
     public void Update(GameTime gameTime, TileMap map)
     {
         if (IsMoving)
-            UpdateMovement(gameTime);
+            UpdateMovementWorld(gameTime);
         else
-            HandleInput(map);
+            HandleInputWorld(map);
     }
 
     public void Teleport(int tileX, int tileY)
@@ -63,7 +68,16 @@ public class Player : Sprite
         _moveTimer    = 0f;
     }
 
-    private void HandleInput(TileMap map)
+    private void HandleInputBattle()
+    {
+        foreach (var (key, direction) in _keyBindings)
+            if (_game.Input.IsKeyPressed(key))
+            {
+                
+            }
+    }
+    
+    private void HandleInputWorld(TileMap map)
     {
         Direction? input = null;
 
@@ -97,7 +111,7 @@ public class Player : Sprite
         _walkStep = (_walkStep + 1) % 4;
     }
 
-    private void UpdateMovement(GameTime gameTime)
+    private void UpdateMovementWorld(GameTime gameTime)
     {
         _moveTimer += (float)gameTime.ElapsedGameTime.TotalSeconds;
         float t = MathHelper.Clamp(_moveTimer / _moveTime, 0f, 1f);

@@ -13,7 +13,7 @@
 
 #---------------------------------- Content ---------------------------------#
 
-#begin Sprites/Player/player_world.png
+#begin Sprites/Player/student_world.png
 /importer:TextureImporter
 /processor:TextureProcessor
 /processorParam:ColorKeyColor=255,0,255,255
@@ -23,9 +23,9 @@
 /processorParam:ResizeToPowerOfTwo=False
 /processorParam:MakeSquare=False
 /processorParam:TextureFormat=Color
-/build:Sprites/Player/player_world.png
+/build:Sprites/Player/student_world.png
 
-#begin Sprites/Tilesets/buildings.png
+#begin Sprites/Tilesets/TileMap.png
 /importer:TextureImporter
 /processor:TextureProcessor
 /processorParam:ColorKeyColor=255,0,255,255
@@ -35,7 +35,7 @@
 /processorParam:ResizeToPowerOfTwo=False
 /processorParam:MakeSquare=False
 /processorParam:TextureFormat=Color
-/build:Sprites/Tilesets/buildings.png
+/build:Sprites/Tilesets/TileMap.png
 
 #begin Sprites/Tilesets/houses.png
 /importer:TextureImporter
@@ -61,7 +61,7 @@
 /processorParam:TextureFormat=Color
 /build:Sprites/Tilesets/main_town_tilemap.png
 
-#begin Sprites/Tilesets/TileMap.png
+#begin Sprites/Tilesets/dd51y4b-d8974f58-deb1-47fc-ae44-234a64467744.png
 /importer:TextureImporter
 /processor:TextureProcessor
 /processorParam:ColorKeyColor=255,0,255,255
@@ -71,5 +71,27 @@
 /processorParam:ResizeToPowerOfTwo=False
 /processorParam:MakeSquare=False
 /processorParam:TextureFormat=Color
-/build:Sprites/Tilesets/TileMap.png
+/build:Sprites/Tilesets/dd51y4b-d8974f58-deb1-47fc-ae44-234a64467744.png
 
+#begin Sprites/Tilesets/tiltan_tale_ruins.png
+/importer:TextureImporter
+/processor:TextureProcessor
+/processorParam:ColorKeyColor=255,0,255,255
+/processorParam:ColorKeyEnabled=True
+/processorParam:GenerateMipmaps=False
+/processorParam:PremultiplyAlpha=True
+/processorParam:ResizeToPowerOfTwo=False
+/processorParam:MakeSquare=False
+/processorParam:TextureFormat=Color
+/build:Sprites/Tilesets/tiltan_tale_ruins.png
+
+# NOTE: buildings.png and tiltan_tale_ruins_v2.png exist on disk in this
+# folder but aren't referenced by any current map, so they're left out here.
+# Add a #begin block for either if a map starts using it.
+
+#begin Fonts/DialogueFont.spritefont
+/importer:FontDescriptionImporter
+/processor:FontDescriptionProcessor
+/processorParam:PremultiplyAlpha=True
+/processorParam:TextureFormat=Compressed
+/build:Fonts/DialogueFont.spritefont

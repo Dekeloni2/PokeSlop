@@ -22,11 +22,37 @@ public class Player : Sprite
 
     private readonly Game1 _game;
 
-    // Sprite sheet animation data: 4 directions x 3 frames per direction
-    private static readonly int[] FrameX = { 2, 19, 36, 54, 71, 88, 104, 121, 138, 157, 174, 191 };
-    private static readonly int[] FrameW = { 15, 15, 16, 14, 14, 14, 14, 14, 14, 14, 14, 14 };
-    private const int FrameH = 26;
-    private static readonly int[] WalkCycle = { 0, 1, 2, 1 };
+    // student_world.png layout: 3 rows (Down, Left, Up) x 4 walk-cycle frames,
+    // each frame ~19-20px wide, separated by ~3px gaps. There's no Right row —
+    // Right reuses the Left frames, mirrored horizontally at draw time (see
+    // GetFrameSet), which is why RightFrames doesn't exist below.
+    private static readonly Rectangle[] DownFrames =
+    {
+        new Rectangle(3,  3, 19, 30),
+        new Rectangle(26, 3, 19, 30),
+        new Rectangle(49, 3, 19, 30),
+        new Rectangle(72, 3, 19, 30),
+    };
+
+    private static readonly Rectangle[] LeftFrames =
+    {
+        new Rectangle(3,  37, 19, 29),
+        new Rectangle(26, 37, 19, 29),
+        new Rectangle(49, 37, 19, 29),
+        new Rectangle(72, 37, 19, 29),
+    };
+
+    private static readonly Rectangle[] UpFrames =
+    {
+        new Rectangle(3,  69, 19, 30),
+        new Rectangle(26, 69, 19, 30),
+        new Rectangle(49, 69, 19, 30),
+        new Rectangle(72, 69, 19, 30),
+    };
+
+    // Which frame to show while standing still — index into whichever row is
+    // active. Tweak this if a different pose reads better once in-game.
+    private const int IdleFrame = 0;
 
     // Maps keyboard keys to movement directions — add/remap bindings here
     private static readonly (Keys Key, Direction Dir)[] _keyBindings =
@@ -38,7 +64,7 @@ public class Player : Sprite
     };
 
     public Player(Game1 game, int startTileX, int startTileY)
-        : base(game.Content.Load<Texture2D>("Sprites/Player/player_world"))
+        : base(game.Content.Load<Texture2D>("Sprites/Player/student_world"))
     {
         _game         = game;
         TilePosition  = new Point(startTileX, startTileY);
@@ -112,24 +138,28 @@ public class Player : Sprite
 
     public override void Draw(SpriteBatch spriteBatch)
     {
-        int animFrame = IsMoving ? WalkCycle[_walkStep % 4] : 1;
-        int frameIndex = GetDirectionRow(Facing) + animFrame;
+        // _walkStep already cycles 0-3 (one full lap per 4 completed steps),
+        // matching the 4 real frames per row — no remapping needed.
+        int frameIndex = IsMoving ? _walkStep : IdleFrame;
 
-        Rectangle src = new Rectangle(FrameX[frameIndex], 0, FrameW[frameIndex], FrameH);
+        (Rectangle[] frames, bool flip) = GetFrameSet(Facing);
+        Rectangle src = frames[frameIndex];
 
-        int yOffset = -(FrameH - GameSettings.TileSize);
+        int yOffset = -(src.Height - GameSettings.TileSize);
         Vector2 drawPos = new Vector2((int)WorldPosition.X, (int)WorldPosition.Y + yOffset);
 
-        spriteBatch.Draw(Texture, drawPos, src, Color.White);
+        SpriteEffects effects = flip ? SpriteEffects.FlipHorizontally : SpriteEffects.None;
+        spriteBatch.Draw(Texture, drawPos, src, Color.White, 0f, Vector2.Zero, 1f, effects, 0f);
     }
 
-    private static int GetDirectionRow(Direction d) => d switch
+    // Right isn't drawn from the sheet — it's the Left row flipped horizontally.
+    private static (Rectangle[] Frames, bool Flip) GetFrameSet(Direction facing) => facing switch
     {
-        Direction.Down  => 0,
-        Direction.Up    => 3,
-        Direction.Left  => 6,
-        Direction.Right => 9,
-        _               => 0
+        Direction.Down  => (DownFrames, false),
+        Direction.Up    => (UpFrames,   false),
+        Direction.Left  => (LeftFrames, false),
+        Direction.Right => (LeftFrames, true),
+        _               => (DownFrames, false)
     };
 
     private static Vector2 TileToWorld(Point tile)

@@ -1,3 +1,4 @@
+// World/TileMap.cs
 using System;
 using System.Collections.Generic;
 using Microsoft.Xna.Framework;
@@ -23,10 +24,12 @@ namespace FinalProject.World
         private readonly TileLayer         _groundLayer;
         private readonly TileLayer         _tallGrassLayer;
         private readonly TileLayer         _objectsLayer;
+        private readonly List<Interactable> _interactables;
 
         public TileMap(int width, int height, int tileWidth, int tileHeight,
                        List<TilesetInfo> tilesets,
-                       TileLayer groundLayer, TileLayer tallGrassLayer, TileLayer objectsLayer)
+                       TileLayer groundLayer, TileLayer tallGrassLayer, TileLayer objectsLayer,
+                       List<Interactable> interactables = null)
         {
             Width         = width;
             Height        = height;
@@ -36,6 +39,7 @@ namespace FinalProject.World
             _groundLayer  = groundLayer;
             _tallGrassLayer = tallGrassLayer;
             _objectsLayer = objectsLayer;
+            _interactables = interactables ?? new List<Interactable>();
         }
 
         public bool IsInBounds(int tileX, int tileY)
@@ -80,6 +84,19 @@ namespace FinalProject.World
             return _tallGrassLayer.HasTile(tileX, tileY);
         }
 
+<<<<<<< Updated upstream
+=======
+        // Returns the interactable covering the given tile (e.g. the tile the
+        // player is facing), or null if there isn't one there.
+        public Interactable GetInteractableAt(int tileX, int tileY)
+        {
+            foreach (Interactable interactable in _interactables)
+                if (interactable.ContainsTile(tileX, tileY))
+                    return interactable;
+            return null;
+        }
+
+>>>>>>> Stashed changes
         private void DrawLayer(TileLayer layer, SpriteBatch spriteBatch,
                                 int minX, int minY, int maxX, int maxY)
         {

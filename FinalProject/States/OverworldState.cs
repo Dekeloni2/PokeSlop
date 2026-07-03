@@ -3,13 +3,14 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Text.Json;
-using FinalProject.Battle;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
+using Microsoft.Xna.Framework.Input;
 using FinalProject.Core;
 using FinalProject.Entities;
 using FinalProject.World;
 using FinalProject.Events;
+using FinalProject.UI;
 
 namespace FinalProject.States
 {
@@ -26,10 +27,17 @@ namespace FinalProject.States
         private string  _currentAreaName;
         private List<MapTransition> _transitions  = new();
         private bool _transitioning = false; // prevents repeated trigger on failed load
+<<<<<<< Updated upstream
         private EncounterTable _encounterTable;
         private bool           _wasMoving = false;
         private readonly Random _rng      = new();
         
+=======
+
+        // Undertale-style textbox — owns input while open (see Update below).
+        private DialogueBox _dialogueBox;
+
+>>>>>>> Stashed changes
         // Cache of already-loaded maps so backtracking doesn't re-parse JSON from disk
         private readonly Dictionary<string, TileMap> _mapCache = new();
 
@@ -37,22 +45,48 @@ namespace FinalProject.States
 
         public override void OnEnter()
         {
-            _player = new Player(Game, 5, 5);
-            _camera = new Camera();
-            LoadMap("town_1", 5, 5);
+            _player      = new Player(Game, 6, 12);
+            _camera      = new Camera();
+            _dialogueBox = new DialogueBox(Game.PixelTexture, Game.DialogueFont);
+            // TODO: swap back to the real starting map once the tileset rework
+            // lands — pointed at "entrance" for now to test the Interactables layer.
+            LoadMap("entrance", 6, 12);
         }
-        
+
         public override void Update(GameTime gameTime)
         {
+            // The dialogue box owns input while a conversation is on screen —
+            // updated (and testable) independent of whether the map loaded, so
+            // it isn't blocked by the in-progress tileset rework.
+            if (_dialogueBox.IsActive)
+            {
+                _dialogueBox.Update(gameTime, Game.Input);
+                return;
+            }
+
+            if (Game.Input.IsKeyPressed(Keys.Z))
+            {
+                TryInteract();
+                return;
+            }
+
             if (_map == null) return;
 
-            _wasMoving = _player.IsMoving;
             _player.Update(gameTime, _map);
             _camera.Follow(_player, _map);
 
+<<<<<<< Updated upstream
             // Check for wild encounter the moment a step completes
             if (_wasMoving && !_player.IsMoving)
                 CheckWildEncounter();
+=======
+            // NOTE: there used to be a wild-encounter check here (random
+            // creature battles in tall grass). This is an Undertale-style
+            // game — Teachers are specific bosses, not a random wild-catch
+            // pool — so that's gone. However a boss battle actually starts is
+            // still TBD (probably via TryInteract below, walking up to a
+            // Teacher NPC, but that hookup doesn't exist yet).
+>>>>>>> Stashed changes
 
             CheckTransitions();
         }
@@ -68,6 +102,27 @@ namespace FinalProject.States
             _map?.Draw(spriteBatch, _camera);
             _player.Draw(spriteBatch);
             spriteBatch.End();
+
+            // UI layer — screen space, unaffected by the world camera's zoom/scroll.
+            spriteBatch.Begin(samplerState: SamplerState.PointClamp);
+            _dialogueBox.Draw(spriteBatch);
+            spriteBatch.End();
+        }
+
+        // Checks the tile the player is facing for an Interactable and, if
+        // there's one there, opens its Text in the dialogue box. This is also
+        // the natural place a Teacher-boss encounter would hook in later
+        // (e.g. an Interactable that starts a BattleState instead of/after
+        // showing dialogue) — not wired up yet.
+        private void TryInteract()
+        {
+            if (_map == null) return;
+
+            Point facingTile = _player.Facing.GetNeighbour(_player.TilePosition);
+            Interactable interactable = _map.GetInteractableAt(facingTile.X, facingTile.Y);
+
+            if (interactable != null)
+                _dialogueBox.Open(interactable.Text);
         }
         
         private void CheckWildEncounter()
@@ -139,8 +194,12 @@ namespace FinalProject.States
 
             _map = loaded;
             _player.Teleport(spawnX, spawnY);
+<<<<<<< Updated upstream
             _transitions    = LoadTransitions(mapsDir, mapName);
             _encounterTable = LoadEncounterTable(mapsDir, mapName);
+=======
+            _transitions = LoadTransitions(mapsDir, mapName);
+>>>>>>> Stashed changes
 
             EventBus.Instance.Publish(new AreaChangedEvent(_currentAreaName));
         }

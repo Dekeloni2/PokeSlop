@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Text.Json;
+using System.Xml.Linq;
 using Microsoft.Xna.Framework.Content;
 using Microsoft.Xna.Framework.Graphics;
 
@@ -47,10 +48,22 @@ namespace FinalProject.World
             TileLayer groundLayer  = null;
             TileLayer objectsLayer = null;
             TileLayer tallgrass = null;
+            var interactables = new List<Interactable>();
 
             foreach (JsonElement layerEl in root.GetProperty("layers").EnumerateArray())
             {
                 string type = layerEl.GetProperty("type").GetString();
+
+                // Object layers (Tiled's "objectgroup") hold freeform placed
+                // objects rather than a tile grid — that's where interactables
+                // (signs, NPCs, anything with per-instance text) live.
+                if (type == "objectgroup")
+                {
+                    string groupName = layerEl.GetProperty("name").GetString();
+                    if (groupName == "Interactables")
+                        interactables.AddRange(ParseInteractables(layerEl, tileWidth, tileHeight));
+                    continue;
+                }
 
                 // Skip anything that isn't a tile layer
                 if (type != "tilelayer") continue;
@@ -75,16 +88,65 @@ namespace FinalProject.World
             // tallgrass is optional; pass it through to the TileMap so the game
             // can render it and query for tall-grass tiles.
             return new TileMap(mapWidth, mapHeight, tileWidth, tileHeight,
-                               tilesets, groundLayer, tallgrass, objectsLayer);
+                               tilesets, groundLayer, tallgrass, objectsLayer, interactables);
+        }
+
+        // Reads every object in an "Interactables" object layer into a list of
+        // Interactable instances. Each object's pixel rect is converted to the
+        // tile range it covers, and its "Text" custom property (set in Tiled's
+        // Properties panel) becomes the dialogue shown on interact.
+        private static List<Interactable> ParseInteractables(JsonElement layerEl, int tileWidth, int tileHeight)
+        {
+            var results = new List<Interactable>();
+
+            if (!layerEl.TryGetProperty("objects", out JsonElement objectsEl))
+                return results;
+
+            foreach (JsonElement objEl in objectsEl.EnumerateArray())
+            {
+                double x      = objEl.GetProperty("x").GetDouble();
+                double y      = objEl.GetProperty("y").GetDouble();
+                double width  = objEl.TryGetProperty("width",  out JsonElement wEl) ? wEl.GetDouble() : 0;
+                double height = objEl.TryGetProperty("height", out JsonElement hEl) ? hEl.GetDouble() : 0;
+
+                int minTileX = (int)Math.Floor(x / tileWidth);
+                int minTileY = (int)Math.Floor(y / tileHeight);
+                int maxTileX = Math.Max(minTileX, (int)Math.Ceiling((x + width)  / tileWidth)  - 1);
+                int maxTileY = Math.Max(minTileY, (int)Math.Ceiling((y + height) / tileHeight) - 1);
+
+                string text = "";
+                if (objEl.TryGetProperty("properties", out JsonElement propsEl))
+                {
+                    foreach (JsonElement propEl in propsEl.EnumerateArray())
+                    {
+                        if (propEl.GetProperty("name").GetString() == "Text")
+                        {
+                            text = propEl.GetProperty("value").GetString();
+                            break;
+                        }
+                    }
+                }
+
+                results.Add(new Interactable(minTileX, minTileY, maxTileX, maxTileY, text));
+            }
+
+            return results;
         }
 
         // ── Private helpers ──────────────────────────────────────────────────
 
+        // An external tileset reference can point at either Tiled's native XML
+        // format (.tsx — the default when you save a tileset outside the map)
+        // or a JSON tileset (.tsj, from exporting as JSON). Branch on extension.
         private static TilesetInfo LoadExternalTileset(string tsPath, int firstGid, ContentManager content)
         {
+            string mapDir = Path.GetDirectoryName(tsPath);
+
+            if (string.Equals(Path.GetExtension(tsPath), ".tsx", StringComparison.OrdinalIgnoreCase))
+                return ParseTilesetXml(tsPath, firstGid, content, mapDir);
+
             string json = File.ReadAllText(tsPath);
             using JsonDocument doc = JsonDocument.Parse(json);
-            string mapDir = Path.GetDirectoryName(tsPath);
             return ParseTileset(doc.RootElement, firstGid, content, mapDir);
         }
 
@@ -95,35 +157,58 @@ namespace FinalProject.World
             int    tileWidth  = el.GetProperty("tilewidth").GetInt32();
             int    tileHeight = el.GetProperty("tileheight").GetInt32();
 
-            string    contentKey = ImagePathToContentKey(imagePath, mapDir);
+            string contentKey = ImagePathToContentKey(imagePath, mapDir);
+            Texture2D texture = LoadTexture(content, contentKey);
 
-            // Debug: record attempted content key loads to a file so we can inspect them
+            return new TilesetInfo(firstGid, texture, columns, tileWidth, tileHeight);
+        }
+
+        // Parses Tiled's native .tsx (plain XML) tileset format:
+        // <tileset ... tilewidth="20" tileheight="20" columns="32">
+        //   <image source="../Content/Sprites/Tilesets/foo.png" .../>
+        // </tileset>
+        private static TilesetInfo ParseTilesetXml(string tsPath, int firstGid, ContentManager content, string mapDir)
+        {
+            XElement tilesetEl = XDocument.Load(tsPath).Root;
+
+            int columns    = (int)tilesetEl.Attribute("columns");
+            int tileWidth  = (int)tilesetEl.Attribute("tilewidth");
+            int tileHeight = (int)tilesetEl.Attribute("tileheight");
+
+            string imagePath = (string)tilesetEl.Element("image").Attribute("source");
+
+            string contentKey = ImagePathToContentKey(imagePath, mapDir);
+            Texture2D texture = LoadTexture(content, contentKey);
+
+            return new TilesetInfo(firstGid, texture, columns, tileWidth, tileHeight);
+        }
+
+        // Loads a texture by ContentManager key, logging both the attempt and
+        // any failure to map_debug.txt next to the executable — the only place
+        // to look since this runs headless with no console attached.
+        private static Texture2D LoadTexture(ContentManager content, string contentKey)
+        {
+            LogDebug($"Attempting to load texture key: {contentKey}");
+
             try
             {
-                string logPath = Path.GetFullPath(Path.Combine(AppContext.BaseDirectory, "map_debug.txt"));
-                File.AppendAllText(logPath, $"Attempting to load texture key: {contentKey}\n");
-            }
-            catch { /* ignore logging failures */ }
-
-            Texture2D texture;
-            try
-            {
-                texture = content.Load<Texture2D>(contentKey);
+                return content.Load<Texture2D>(contentKey);
             }
             catch (Exception ex)
             {
-                try
-                {
-                    string logPath = Path.GetFullPath(Path.Combine(AppContext.BaseDirectory, "map_debug.txt"));
-                    File.AppendAllText(logPath, $"Failed to load texture '{contentKey}': {ex.Message}\n");
-                }
-                catch { }
-
-                // Rethrow so callers can handle the failure
-                throw;
+                LogDebug($"Failed to load texture '{contentKey}': {ex.Message}");
+                throw; // rethrow so callers (MapLoader.Load) can handle the failure
             }
+        }
 
-            return new TilesetInfo(firstGid, texture, columns, tileWidth, tileHeight);
+        private static void LogDebug(string message)
+        {
+            try
+            {
+                string logPath = Path.GetFullPath(Path.Combine(AppContext.BaseDirectory, "map_debug.txt"));
+                File.AppendAllText(logPath, message + "\n");
+            }
+            catch { /* ignore logging failures */ }
         }
 
         private static int[] ParseLayerData(JsonElement layerEl, int count)

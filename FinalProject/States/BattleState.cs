@@ -1,50 +1,36 @@
-using System;
-using System.Collections.Generic;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using FinalProject.Battle;
 using FinalProject.Core;
-using FinalProject.Data;
-using FinalProject.Entities;
 
 namespace FinalProject.States
 {
-    // Handles a single battle: 2 player creatures vs 1 wild creature.
-    // Pushed onto the state stack by OverworldState when an encounter triggers.
-    // Pops itself when the battle ends.
-    
+    // Handles a single boss fight: the player vs one Teacher.
+    // Undertale-style — Attack, Act, Item, Spare. ACT is meant to build
+    // toward being able to Spare the boss; Attack deals damage instead.
+    // Pushed onto the state stack when a boss encounter starts, pops itself
+    // when the fight ends (Teacher defeated, spared, or the player loses).
     public class BattleState : GameState
     {
-        // The two player slots — slot 1 may be null if the player only has 1 creature
-        private Player _player;
-        private readonly int _playerChoice;
-        
-        private enum PlayerMoveList 
-        {
-            Attack, // deal dmg to teacher (sounds better in my head)
-            Act, // list
-            Item, // list
-            Spare // only if teacher is spareable
-        }
-        
         private readonly Teacher _teacher;
-        
-        
 
         private BattlePhase _phase;
-
-        // Which player slot is currently selecting a move (0 or 1)
-        private int _selectingSlot;
-
-        public BattleState(Game1 game, GameStateManager sm)
+        private PlayerMoveList? _playerChoice;
+        
+        private static int boxSpawnPosX = 100;
+        private static int boxSpawnPosY = 100;
+        private static int boxWidth = 300;
+        private static int boxHeight = 200;
+        
+        private Rectangle battleBox = new Rectangle(boxSpawnPosX, boxSpawnPosY, boxWidth, boxHeight);
+        
+        public BattleState(Game1 game, GameStateManager sm, Teacher teacher)
             : base(game, sm)
         {
-            List<Teacher> party = game.PlayerData.Party;
-            
-            _phase         = BattlePhase.SelectingMove;
-            _selectingSlot = 0;
+            _teacher = teacher;
+            _phase   = BattlePhase.SelectingMove;
         }
-
+        
         public override void Update(GameTime gameTime)
         {
             switch (_phase)
@@ -65,60 +51,47 @@ namespace FinalProject.States
 
         public override void Draw(SpriteBatch spriteBatch)
         {
-            // battle UI comes next
+            Game.GraphicsDevice.Clear(Color.Black);
+            if (_phase == BattlePhase.Intro)
+
+
+            // TODO: Attack/Act/Item/Spare menu + HP bars — battle UI comes next
         }
 
         // ── Phase: SelectingMove ─────────────────────────────────────────────
 
         private void UpdateMoveSelection()
         {
-            // TODO: show move menu and collect input for each active slot
-            // When both slots have chosen, move to execution
-            if (_playerChoice != null && Enum.IsDefined(typeof(PlayerMoveList), _playerChoice))
-            {
+            // TODO: show the Attack/Act/Item/Spare menu and collect input,
+            // setting _playerChoice to whichever the player picked.
+            if (_playerChoice.HasValue)
                 _phase = BattlePhase.ExecutingTurn;
-            }
         }
 
         // ── Phase: ExecutingTurn ─────────────────────────────────────────────
 
         private void UpdateTurnExecution()
         {
-            // TODO: resolve moves in Speed order, apply damage, check reactions
-            if (IsBattleOver())
-                _phase = BattlePhase.BattleOver;
-            else
-                _phase = BattlePhase.SelectingMove;
+            // TODO: resolve the chosen action —
+            //   Attack: deal damage to _teacher
+            //   Act:    make progress toward Spare being viable
+            //   Item:   use an item (heal/buff/etc.)
+            //   Spare:  if ACT progress allows it, _teacher.Spare()
+            // then the Teacher's turn (attack back, using _teacher.Moves).
+
+            _playerChoice = null;
+
+            _phase = IsBattleOver() ? BattlePhase.BattleOver : BattlePhase.SelectingMove;
         }
 
         // ── Helpers ──────────────────────────────────────────────────────────
 
         private bool IsBattleOver()
-        {
-            return (_player._health <= 0 || _teacher.CurrentHp <= 0 || _teacher.IsSpared);
-        }
+            => !Game.PlayerData.IsAlive || !_teacher.IsAlive || _teacher.IsSpared;
     }
 
-    // Holds a player's move choice for one slot this turn
-    public class PlayerMoveChoice
-    {
-        public MoveData Move { get; }
+    // The four choices on the Undertale-style battle menu.
+    public enum PlayerMoveList { Attack, Act, Item, Spare }
 
-        public PlayerMoveChoice(MoveData move)
-        {
-            Move = move;
-        }
-    }
-    
-    public class TeacherMoveChoice
-    {
-        public MoveData Move { get; }
-
-        public TeacherMoveChoice(MoveData move)
-        {
-            Move = move;
-        }
-    }
-
-    public enum BattlePhase { SelectingMove, ExecutingTurn, TeacherAttack, BattleOver }
+    public enum BattlePhase {Intro, SelectingMove, ExecutingTurn, BattleOver }
 }

@@ -13,7 +13,7 @@
 
 #---------------------------------- Content ---------------------------------#
 
-#begin Sprites/Player/player_world.png
+#begin Sprites/Player/student_world.png
 /importer:TextureImporter
 /processor:TextureProcessor
 /processorParam:ColorKeyColor=255,0,255,255
@@ -23,9 +23,9 @@
 /processorParam:ResizeToPowerOfTwo=False
 /processorParam:MakeSquare=False
 /processorParam:TextureFormat=Color
-/build:Sprites/Player/player_world.png
+/build:Sprites/Player/student_world.png
 
-#begin Sprites/Tilesets/buildings.png
+#begin Sprites/Tilesets/tiltan_tale_ruins.png
 /importer:TextureImporter
 /processor:TextureProcessor
 /processorParam:ColorKeyColor=255,0,255,255
@@ -35,41 +35,17 @@
 /processorParam:ResizeToPowerOfTwo=False
 /processorParam:MakeSquare=False
 /processorParam:TextureFormat=Color
-/build:Sprites/Tilesets/buildings.png
+/build:Sprites/Tilesets/tiltan_tale_ruins.png
 
-#begin Sprites/Tilesets/houses.png
-/importer:TextureImporter
-/processor:TextureProcessor
-/processorParam:ColorKeyColor=255,0,255,255
-/processorParam:ColorKeyEnabled=True
-/processorParam:GenerateMipmaps=False
+# NOTE: TileMap.png, houses.png, main_town_tilemap.png, and the
+# dd51y4b-....png file were deleted from disk (route_1/town_1/lab still
+# reference them in their .tmj tilesets, but those maps are not currently
+# in use). Re-add a #begin block for any of them if a map starts using it
+# again and the file is restored.
+
+#begin Fonts/DialogueFont.spritefont
+/importer:FontDescriptionImporter
+/processor:FontDescriptionProcessor
 /processorParam:PremultiplyAlpha=True
-/processorParam:ResizeToPowerOfTwo=False
-/processorParam:MakeSquare=False
-/processorParam:TextureFormat=Color
-/build:Sprites/Tilesets/houses.png
-
-#begin Sprites/Tilesets/main_town_tilemap.png
-/importer:TextureImporter
-/processor:TextureProcessor
-/processorParam:ColorKeyColor=255,0,255,255
-/processorParam:ColorKeyEnabled=True
-/processorParam:GenerateMipmaps=False
-/processorParam:PremultiplyAlpha=True
-/processorParam:ResizeToPowerOfTwo=False
-/processorParam:MakeSquare=False
-/processorParam:TextureFormat=Color
-/build:Sprites/Tilesets/main_town_tilemap.png
-
-#begin Sprites/Tilesets/TileMap.png
-/importer:TextureImporter
-/processor:TextureProcessor
-/processorParam:ColorKeyColor=255,0,255,255
-/processorParam:ColorKeyEnabled=True
-/processorParam:GenerateMipmaps=False
-/processorParam:PremultiplyAlpha=True
-/processorParam:ResizeToPowerOfTwo=False
-/processorParam:MakeSquare=False
-/processorParam:TextureFormat=Color
-/build:Sprites/Tilesets/TileMap.png
-
+/processorParam:TextureFormat=Compressed
+/build:Fonts/DialogueFont.spritefont

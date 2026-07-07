@@ -8,27 +8,40 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="651b6b24-632f-4275-a778-dd161c492901" name="Changes" comment="">
-      <change afterPath="$PROJECT_DIR$/FinalProject/Battle/Teachers.cs" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/FinalProject/Data/TeacherStats.cs" afterDir="false" />
+<<<<<<< Updated upstream
+      <change afterPath="$PROJECT_DIR$/FinalProject/Battle/Creatures.cs" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/FinalProject/Core/PlayerData.cs" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/FinalProject/States/BattleState.cs" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/FinalProject/World/EncounterEntry.cs" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/.idea.FinalProject/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/.idea.FinalProject/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/FinalProject/Battle/Creatures.cs" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/FinalProject/Core/GameSettings.cs" beforeDir="false" afterPath="$PROJECT_DIR$/FinalProject/Core/GameSettings.cs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/FinalProject/Content/Data/moves.json" beforeDir="false" afterPath="$PROJECT_DIR$/FinalProject/Content/Data/moves.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/FinalProject/Content/Data/species.json" beforeDir="false" afterPath="$PROJECT_DIR$/FinalProject/Content/Data/species.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/FinalProject/Content/Maps/route_1.tmj" beforeDir="false" afterPath="$PROJECT_DIR$/FinalProject/Content/Maps/route_1.tmj" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/FinalProject/Core/GameStateManager.cs" beforeDir="false" afterPath="$PROJECT_DIR$/FinalProject/Core/GameStateManager.cs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/FinalProject/Core/IDrawable.cs" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/FinalProject/Core/IGameUpdateable.cs" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/FinalProject/Core/IUpdateable.cs" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/FinalProject/Data/PokemonSpecies.cs" beforeDir="false" afterPath="$PROJECT_DIR$/FinalProject/Data/CreatureSpecies.cs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/FinalProject/Data/PokemonType.cs" beforeDir="false" afterPath="$PROJECT_DIR$/FinalProject/Data/CreatureType.cs" afterDir="false" />
+=======
+      <change beforePath="$PROJECT_DIR$/.idea/.idea.FinalProject/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/.idea.FinalProject/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/FinalProject/Battle/Teachers.cs" beforeDir="false" afterPath="$PROJECT_DIR$/FinalProject/Battle/Teachers.cs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/FinalProject/Content/Content.mgcb" beforeDir="false" afterPath="$PROJECT_DIR$/FinalProject/Content/Content.mgcb" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/FinalProject/Content/Data/moves.json" beforeDir="false" afterPath="$PROJECT_DIR$/FinalProject/Content/Data/moves.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/FinalProject/Content/Data/species.json" beforeDir="false" afterPath="$PROJECT_DIR$/FinalProject/Content/Data/species.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/FinalProject/Content/Maps/route_1.transitions.json" beforeDir="false" afterPath="$PROJECT_DIR$/FinalProject/Content/Maps/route_1.transitions.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/FinalProject/Content/Maps/town_1.transitions.json" beforeDir="false" afterPath="$PROJECT_DIR$/FinalProject/Content/Maps/town_1.transitions.json" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/FinalProject/Core/PlayerData.cs" beforeDir="false" afterPath="$PROJECT_DIR$/FinalProject/Core/PlayerData.cs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/FinalProject/Data/CreatureSpecies.cs" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/FinalProject/Data/CreatureType.cs" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/FinalProject/Data/MoveData.cs" beforeDir="false" afterPath="$PROJECT_DIR$/FinalProject/Data/MoveData.cs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/FinalProject/Data/MoveRegistry.cs" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/FinalProject/Data/ReactionEffect.cs" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/FinalProject/Data/SpeciesRegistry.cs" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/FinalProject/Data/TypeReactionTable.cs" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/FinalProject/Data/TeacherStats.cs" beforeDir="false" afterPath="$PROJECT_DIR$/FinalProject/Data/TeacherStats.cs" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/FinalProject/Entities/Player.cs" beforeDir="false" afterPath="$PROJECT_DIR$/FinalProject/Entities/Player.cs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/FinalProject/Events/GameEvents.cs" beforeDir="false" afterPath="$PROJECT_DIR$/FinalProject/Events/GameEvents.cs" afterDir="false" />
+>>>>>>> Stashed changes
       <change beforePath="$PROJECT_DIR$/FinalProject/Game1.cs" beforeDir="false" afterPath="$PROJECT_DIR$/FinalProject/Game1.cs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/FinalProject/States/BattleState.cs" beforeDir="false" afterPath="$PROJECT_DIR$/FinalProject/States/BattleState.cs" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/FinalProject/States/OverworldState.cs" beforeDir="false" afterPath="$PROJECT_DIR$/FinalProject/States/OverworldState.cs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/FinalProject/World/EncounterEntry.cs" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/FinalProject/World/EncounterTable.cs" beforeDir="false" />
+<<<<<<< Updated upstream
+=======
+      <change beforePath="$PROJECT_DIR$/FinalProject/World/MapLoader.cs" beforeDir="false" afterPath="$PROJECT_DIR$/FinalProject/World/MapLoader.cs" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/FinalProject/World/TileMap.cs" beforeDir="false" afterPath="$PROJECT_DIR$/FinalProject/World/TileMap.cs" afterDir="false" />
+>>>>>>> Stashed changes
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -38,6 +51,7 @@
   <component name="CopilotPersistence">
     <persistenceIdMap>
       <entry key="_D:/PokeSlop" value="3FE0kdZAsEnrlzHf2q4Z0yjjAsC" />
+      <entry key="_D:/TiltanTale" value="3FyrOPxIVyAgP73rVTpXE0SdqmZ" />
     </persistenceIdMap>
   </component>
   <component name="DpaMonitoringSettings">
@@ -56,14 +70,13 @@
     &quot;assignee&quot;: &quot;Dekeloni2&quot;
   }
 }</component>
-  <component name="GithubPullRequestsUISettings">{
-  &quot;selectedUrlAndAccountId&quot;: {
-    &quot;url&quot;: &quot;https://github.com/Dekeloni2/PokeSlop.git&quot;,
-    &quot;accountId&quot;: &quot;24db29f9-9a3d-41be-b251-7b8127a665ce&quot;
+  <component name="GithubPullRequestsUISettings"><![CDATA[{
+  "selectedUrlAndAccountId": {
+    "url": "https://github.com/Dekeloni2/TiltanTale.git",
+    "accountId": "24db29f9-9a3d-41be-b251-7b8127a665ce"
   }
-}</component>
+}]]></component>
   <component name="HighlightingSettingsPerFile">
-    <setting file="file://$APPLICATION_CONFIG_DIR$/resharper-host/DecompilerCache/decompiler/a69b121f85054691b2a8d28643003c23136600/d8/d765ecf4/Point.cs" root0="FORCE_HIGHLIGHTING" />
     <setting file="file://$PROJECT_DIR$/FinalProject/Battle/Creatures.cs" root0="FORCE_HIGHLIGHTING" />
     <setting file="file://$PROJECT_DIR$/FinalProject/Core/Camera.cs" root0="FORCE_HIGHLIGHTING" />
     <setting file="file://$PROJECT_DIR$/FinalProject/Core/Direction.cs" root0="FORCE_HIGHLIGHTING" />
@@ -74,10 +87,11 @@
     <setting file="file://$PROJECT_DIR$/FinalProject/States/BattleState.cs" root0="FORCE_HIGHLIGHTING" />
     <setting file="file://$PROJECT_DIR$/FinalProject/States/MainMenuState.cs" root0="FORCE_HIGHLIGHTING" />
     <setting file="file://$PROJECT_DIR$/FinalProject/States/OverworldState.cs" root0="FORCE_HIGHLIGHTING" />
+    <setting file="file://$PROJECT_DIR$/FinalProject/World/EncounterEntry.cs" root0="FORCE_HIGHLIGHTING" />
     <setting file="file://$PROJECT_DIR$/FinalProject/World/MapLoader.cs" root0="FORCE_HIGHLIGHTING" />
     <setting file="file://$PROJECT_DIR$/FinalProject/World/TileLayer.cs" root0="FORCE_HIGHLIGHTING" />
     <setting file="file://$PROJECT_DIR$/FinalProject/World/TileMap.cs" root0="FORCE_HIGHLIGHTING" />
-    <setting file="file://$PROJECT_DIR$/FinalProject/World/TilesetInfo.cs" root0="FORCE_HIGHLIGHTING" />
+    <setting file="file://$PROJECT_DIR$/FinalProject/World/Tilesetinfo.cs" root0="FORCE_HIGHLIGHTING" />
   </component>
   <component name="McpProjectServerCommands">
     <commands />
@@ -95,27 +109,35 @@
     <option name="hideEmptyMiddlePackages" value="true" />
     <option name="showLibraryContents" value="true" />
   </component>
-  <component name="PropertiesComponent"><![CDATA[{
-  "keyToString": {
-    ".NET Project.FinalProject.executor": "Run",
-    "ModuleVcsDetector.initialDetectionPerformed": "true",
-    "RunOnceActivity.MCP Project settings loaded": "true",
-    "RunOnceActivity.ShowReadmeOnStart": "true",
-    "RunOnceActivity.TerminalTabsStorage.copyFrom.TerminalArrangementManager.252": "true",
-    "RunOnceActivity.git.unshallow": "true",
-    "RunOnceActivity.typescript.service.memoryLimit.init": "true",
-    "com.intellij.ml.llm.matterhorn.ej.ui.settings.DefaultModelSelectionForGA.v1": "true",
-    "git-widget-placeholder": "Yonatan",
-    "junie.onboarding.icon.badge.shown": "true",
-    "node.js.detected.package.eslint": "true",
-    "node.js.detected.package.tslint": "true",
-    "node.js.selected.package.eslint": "(autodetect)",
-    "node.js.selected.package.tslint": "(autodetect)",
-    "nodejs_package_manager_path": "npm",
-    "to.speed.mode.migration.done": "true",
-    "vue.rearranger.settings.migration": "true"
+  <component name="PropertiesComponent">{
+  &quot;keyToString&quot;: {
+<<<<<<< Updated upstream
+    &quot;.NET Project.FinalProject.executor&quot;: &quot;Debug&quot;,
+=======
+    &quot;.NET Project.FinalProject.executor&quot;: &quot;Run&quot;,
+>>>>>>> Stashed changes
+    &quot;ModuleVcsDetector.initialDetectionPerformed&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.MCP Project settings loaded&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.TerminalTabsStorage.copyFrom.TerminalArrangementManager.252&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.git.unshallow&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.typescript.service.memoryLimit.init&quot;: &quot;true&quot;,
+    &quot;com.intellij.ml.llm.matterhorn.ej.ui.settings.DefaultModelSelectionForGA.v1&quot;: &quot;true&quot;,
+<<<<<<< Updated upstream
+    &quot;git-widget-placeholder&quot;: &quot;Dekel&quot;,
+=======
+    &quot;git-widget-placeholder&quot;: &quot;Yonatan&quot;,
+>>>>>>> Stashed changes
+    &quot;junie.onboarding.icon.badge.shown&quot;: &quot;true&quot;,
+    &quot;node.js.detected.package.eslint&quot;: &quot;true&quot;,
+    &quot;node.js.detected.package.tslint&quot;: &quot;true&quot;,
+    &quot;node.js.selected.package.eslint&quot;: &quot;(autodetect)&quot;,
+    &quot;node.js.selected.package.tslint&quot;: &quot;(autodetect)&quot;,
+    &quot;nodejs_package_manager_path&quot;: &quot;npm&quot;,
+    &quot;to.speed.mode.migration.done&quot;: &quot;true&quot;,
+    &quot;vue.rearranger.settings.migration&quot;: &quot;true&quot;
   }
-}]]></component>
+}</component>
   <component name="RunManager">
     <configuration name="FinalProject" type="DotNetProject" factoryName=".NET Project">
       <option name="EXE_PATH" value="" />
@@ -155,7 +177,11 @@
       <workItem from="1782225576430" duration="1647000" />
       <workItem from="1782437343921" duration="5301000" />
       <workItem from="1782846422556" duration="709000" />
+<<<<<<< Updated upstream
+=======
       <workItem from="1783012901279" duration="5864000" />
+      <workItem from="1783058120685" duration="1238000" />
+>>>>>>> Stashed changes
     </task>
     <servers />
   </component>

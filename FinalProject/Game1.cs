@@ -1,11 +1,8 @@
-﻿// Game1.cs
-using System;
-using System.IO;
+// Game1.cs
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
 using FinalProject.Core;
-using FinalProject.Data;
 using FinalProject.States;
 
 namespace FinalProject
@@ -23,8 +20,11 @@ namespace FinalProject
         // Useful for HP bars, overlays, debug rects — no dedicated sprite needed.
         public Texture2D PixelTexture { get; private set; }
 
+        // Shared font for dialogue/UI text (Content/Fonts/DialogueFont.spritefont).
+        public SpriteFont DialogueFont { get; private set; }
+
         public PlayerData PlayerData { get; private set; } = new();
-        
+
         public Game1()
         {
             _graphics = new GraphicsDeviceManager(this)
@@ -54,9 +54,12 @@ namespace FinalProject
             PixelTexture = new Texture2D(GraphicsDevice, 1, 1);
             PixelTexture.SetData(new[] { Color.White });
 
-            // Load data registries from JSON so new content never requires a recompile
-            string dataDir = Path.GetFullPath(
-                Path.Combine(AppContext.BaseDirectory, "..", "..", "..", "Content", "Data"));
+            DialogueFont = Content.Load<SpriteFont>("Fonts/DialogueFont");
+
+            // Registers every spritesheet up front so entities (e.g. Player)
+            // can ask for one by name instead of loading their own texture.
+            new SpriteManager(Content);
+            SpriteManager.AddSprite("student_world", "Sprites/Player/student_world", 4, 3);
 
             // First thing the player sees
             StateManager.Replace(new MainMenuState(this, StateManager));

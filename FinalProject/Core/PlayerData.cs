@@ -8,10 +8,6 @@ namespace FinalProject.Core
     // roster of anything collectible.
     public class PlayerData
     {
-<<<<<<< Updated upstream
-        public List<Creature> Party { get; } = new();
-        public int Money { get; set; } = 500;
-=======
         public int CurrentHp { get; set; } = 100;
         public int MaxHp     { get; set; } = 100;
         public int Attack    { get; set; } = 10;
@@ -21,6 +17,5 @@ namespace FinalProject.Core
 
         public void TakeDamage(int amount) => CurrentHp = Math.Max(0, CurrentHp - amount);
         public void Heal(int amount)       => CurrentHp = Math.Min(MaxHp, CurrentHp + amount);
->>>>>>> Stashed changes
     }
 }

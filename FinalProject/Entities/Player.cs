@@ -5,7 +5,6 @@ using Microsoft.Xna.Framework.Input;
 using Microsoft.Xna.Framework.Graphics;
 using FinalProject.Core;
 using FinalProject.World;
-using Sprite = FinalProject.Core.Sprite;
 
 public class Player : Sprite
 {
@@ -21,11 +20,7 @@ public class Player : Sprite
     private int     _walkStep;
 
     private readonly Game1 _game;
-
-    // student_world.png layout: 3 rows (Down, Left, Up) x 4 walk-cycle frames,
-    // each frame ~19-20px wide, separated by ~3px gaps. There's no Right row —
-    // Right reuses the Left frames, mirrored horizontally at draw time (see
-    // GetFrameSet), which is why RightFrames doesn't exist below.
+    
     private static readonly Rectangle[] DownFrames =
     {
         new Rectangle(3,  3, 19, 30),
@@ -63,8 +58,11 @@ public class Player : Sprite
         (Keys.Right, Direction.Right),
     };
 
+    // The student_world spritesheet itself is registered once in
+    // Game1.LoadContent via SpriteManager — Player only ever refers to it by
+    // name, it doesn't know the content path.
     public Player(Game1 game, int startTileX, int startTileY)
-        : base(game.Content.Load<Texture2D>("Sprites/Player/student_world"))
+        : base("student_world")
     {
         _game         = game;
         TilePosition  = new Point(startTileX, startTileY);

@@ -3,7 +3,6 @@ using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
 using FinalProject.Core;
-using FinalProject.Data;
 using FinalProject.States;
 
 namespace FinalProject
@@ -55,24 +54,12 @@ namespace FinalProject
             PixelTexture = new Texture2D(GraphicsDevice, 1, 1);
             PixelTexture.SetData(new[] { Color.White });
 
-<<<<<<< Updated upstream
-            // Load data registries from JSON so new content never requires a recompile
-            string dataDir = Path.GetFullPath(
-                Path.Combine(AppContext.BaseDirectory, "..", "..", "..", "Content", "Data"));
-            MoveRegistry.Load(Path.Combine(dataDir, "moves.json"));
-            SpeciesRegistry.Load(Path.Combine(dataDir, "species.json"));
-=======
             DialogueFont = Content.Load<SpriteFont>("Fonts/DialogueFont");
 
-            // NOTE: this used to load Content/Data/moves.json and species.json
-            // into a MoveRegistry/SpeciesRegistry (Pokemon-style creature data).
-            // Both registries and that Pokemon-shaped JSON belong to the old
-            // creature-collecting design and don't apply to the Teacher-boss
-            // system — removed rather than adapted. Boss Teachers are built
-            // directly from TeacherStats (see Data/TeacherStats.cs) wherever a
-            // fight is triggered; there's no data-driven loading step for them
-            // yet.
->>>>>>> Stashed changes
+            // Registers every spritesheet up front so entities (e.g. Player)
+            // can ask for one by name instead of loading their own texture.
+            new SpriteManager(Content);
+            SpriteManager.AddSprite("student_world", "Sprites/Player/student_world", 4, 3);
 
             // First thing the player sees
             StateManager.Replace(new MainMenuState(this, StateManager));

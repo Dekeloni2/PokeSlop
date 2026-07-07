@@ -25,54 +25,6 @@
 /processorParam:TextureFormat=Color
 /build:Sprites/Player/student_world.png
 
-#begin Sprites/Tilesets/TileMap.png
-/importer:TextureImporter
-/processor:TextureProcessor
-/processorParam:ColorKeyColor=255,0,255,255
-/processorParam:ColorKeyEnabled=True
-/processorParam:GenerateMipmaps=False
-/processorParam:PremultiplyAlpha=True
-/processorParam:ResizeToPowerOfTwo=False
-/processorParam:MakeSquare=False
-/processorParam:TextureFormat=Color
-/build:Sprites/Tilesets/TileMap.png
-
-#begin Sprites/Tilesets/houses.png
-/importer:TextureImporter
-/processor:TextureProcessor
-/processorParam:ColorKeyColor=255,0,255,255
-/processorParam:ColorKeyEnabled=True
-/processorParam:GenerateMipmaps=False
-/processorParam:PremultiplyAlpha=True
-/processorParam:ResizeToPowerOfTwo=False
-/processorParam:MakeSquare=False
-/processorParam:TextureFormat=Color
-/build:Sprites/Tilesets/houses.png
-
-#begin Sprites/Tilesets/main_town_tilemap.png
-/importer:TextureImporter
-/processor:TextureProcessor
-/processorParam:ColorKeyColor=255,0,255,255
-/processorParam:ColorKeyEnabled=True
-/processorParam:GenerateMipmaps=False
-/processorParam:PremultiplyAlpha=True
-/processorParam:ResizeToPowerOfTwo=False
-/processorParam:MakeSquare=False
-/processorParam:TextureFormat=Color
-/build:Sprites/Tilesets/main_town_tilemap.png
-
-#begin Sprites/Tilesets/dd51y4b-d8974f58-deb1-47fc-ae44-234a64467744.png
-/importer:TextureImporter
-/processor:TextureProcessor
-/processorParam:ColorKeyColor=255,0,255,255
-/processorParam:ColorKeyEnabled=True
-/processorParam:GenerateMipmaps=False
-/processorParam:PremultiplyAlpha=True
-/processorParam:ResizeToPowerOfTwo=False
-/processorParam:MakeSquare=False
-/processorParam:TextureFormat=Color
-/build:Sprites/Tilesets/dd51y4b-d8974f58-deb1-47fc-ae44-234a64467744.png
-
 #begin Sprites/Tilesets/tiltan_tale_ruins.png
 /importer:TextureImporter
 /processor:TextureProcessor
@@ -85,9 +37,11 @@
 /processorParam:TextureFormat=Color
 /build:Sprites/Tilesets/tiltan_tale_ruins.png
 
-# NOTE: buildings.png and tiltan_tale_ruins_v2.png exist on disk in this
-# folder but aren't referenced by any current map, so they're left out here.
-# Add a #begin block for either if a map starts using it.
+# NOTE: TileMap.png, houses.png, main_town_tilemap.png, and the
+# dd51y4b-....png file were deleted from disk (route_1/town_1/lab still
+# reference them in their .tmj tilesets, but those maps are not currently
+# in use). Re-add a #begin block for any of them if a map starts using it
+# again and the file is restored.
 
 #begin Fonts/DialogueFont.spritefont
 /importer:FontDescriptionImporter

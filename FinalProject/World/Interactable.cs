@@ -1,4 +1,3 @@
-// World/Interactable.cs
 namespace FinalProject.World
 {
     // A single interactable placed on a map's "Interactables" object layer in

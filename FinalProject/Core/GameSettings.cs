@@ -2,9 +2,9 @@ namespace FinalProject.Core;
 
 public static class GameSettings
 {
-    public const string GameTitle = "PokeSlop";
-    public const int  WindowWidth  = 480;
-    public const int  WindowHeight = 320;
+    public const string GameTitle = "TiltanTale";
+    public const int  WindowWidth  = 720;
+    public const int  WindowHeight = 480;
 
     public const int TileSize = 16;
     

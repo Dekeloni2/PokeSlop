@@ -84,8 +84,6 @@ namespace FinalProject.World
             return _tallGrassLayer.HasTile(tileX, tileY);
         }
 
-<<<<<<< Updated upstream
-=======
         // Returns the interactable covering the given tile (e.g. the tile the
         // player is facing), or null if there isn't one there.
         public Interactable GetInteractableAt(int tileX, int tileY)
@@ -96,7 +94,6 @@ namespace FinalProject.World
             return null;
         }
 
->>>>>>> Stashed changes
         private void DrawLayer(TileLayer layer, SpriteBatch spriteBatch,
                                 int minX, int minY, int maxX, int maxY)
         {

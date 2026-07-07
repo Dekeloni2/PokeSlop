@@ -8,15 +8,6 @@ using FinalProject.Core;
 
 namespace FinalProject.UI
 {
-    // An Undertale-style dialogue box: black box, white border, white text that
-    // types itself out a character at a time, paginated so long text is split
-    // across multiple "pages" with a blinking indicator prompting the player
-    // to press a button to continue.
-    //
-    // Usage: create once (needs the shared pixel texture + a loaded SpriteFont),
-    // then call Open(text) whenever a conversation/sign/etc. should show text.
-    // Call Update every frame while IsActive, and Draw in screen space (i.e.
-    // NOT inside a camera-transformed SpriteBatch.Begin/End pair).
     public class DialogueBox
     {
         private const float CharsPerSecond  = 40f;
@@ -93,7 +84,6 @@ namespace FinalProject.UI
             if (!_pageFullyShown)
             {
                 // First press on a page instantly reveals the rest of it,
-                // just like Undertale/most JRPGs — never eat a press.
                 _visibleChars   = current.Length;
                 _pageFullyShown = true;
                 return;
@@ -134,8 +124,7 @@ namespace FinalProject.UI
                 spriteBatch.DrawString(_font, indicator, pos, Color.White);
             }
         }
-
-        // ── Helpers ──────────────────────────────────────────────────────────
+        
 
         private static bool IsAdvancePressed(InputManager input)
         {

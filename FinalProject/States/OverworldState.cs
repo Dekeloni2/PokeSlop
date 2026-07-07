@@ -27,17 +27,9 @@ namespace FinalProject.States
         private string  _currentAreaName;
         private List<MapTransition> _transitions  = new();
         private bool _transitioning = false; // prevents repeated trigger on failed load
-<<<<<<< Updated upstream
-        private EncounterTable _encounterTable;
-        private bool           _wasMoving = false;
-        private readonly Random _rng      = new();
-        
-=======
 
         // Undertale-style textbox — owns input while open (see Update below).
         private DialogueBox _dialogueBox;
-
->>>>>>> Stashed changes
         // Cache of already-loaded maps so backtracking doesn't re-parse JSON from disk
         private readonly Dictionary<string, TileMap> _mapCache = new();
 
@@ -45,12 +37,12 @@ namespace FinalProject.States
 
         public override void OnEnter()
         {
-            _player      = new Player(Game, 6, 12);
+            _player      = new Player(Game, 6, 14);
             _camera      = new Camera();
             _dialogueBox = new DialogueBox(Game.PixelTexture, Game.DialogueFont);
             // TODO: swap back to the real starting map once the tileset rework
             // lands — pointed at "entrance" for now to test the Interactables layer.
-            LoadMap("entrance", 6, 12);
+            LoadMap("entrance", 6, 14);
         }
 
         public override void Update(GameTime gameTime)
@@ -75,18 +67,12 @@ namespace FinalProject.States
             _player.Update(gameTime, _map);
             _camera.Follow(_player, _map);
 
-<<<<<<< Updated upstream
-            // Check for wild encounter the moment a step completes
-            if (_wasMoving && !_player.IsMoving)
-                CheckWildEncounter();
-=======
             // NOTE: there used to be a wild-encounter check here (random
             // creature battles in tall grass). This is an Undertale-style
             // game — Teachers are specific bosses, not a random wild-catch
             // pool — so that's gone. However a boss battle actually starts is
             // still TBD (probably via TryInteract below, walking up to a
             // Teacher NPC, but that hookup doesn't exist yet).
->>>>>>> Stashed changes
 
             CheckTransitions();
         }
@@ -125,16 +111,6 @@ namespace FinalProject.States
                 _dialogueBox.Open(interactable.Text);
         }
         
-        private void CheckWildEncounter()
-        {
-            if (_encounterTable == null) return;
-            if (!_map.IsTallGrass(_player.TilePosition.X, _player.TilePosition.Y)) return;
-            if (_rng.NextDouble() >= GameSettings.WildEncounterChance) return;
-
-            Creature wild = _encounterTable.SpawnRandom(_rng);
-            StateManager.Push(new BattleState(Game, StateManager, wild));
-        }
-
         // ── Transitions ──────────────────────────────────────────────────────
 
         private void CheckTransitions()
@@ -194,12 +170,7 @@ namespace FinalProject.States
 
             _map = loaded;
             _player.Teleport(spawnX, spawnY);
-<<<<<<< Updated upstream
-            _transitions    = LoadTransitions(mapsDir, mapName);
-            _encounterTable = LoadEncounterTable(mapsDir, mapName);
-=======
             _transitions = LoadTransitions(mapsDir, mapName);
->>>>>>> Stashed changes
 
             EventBus.Instance.Publish(new AreaChangedEvent(_currentAreaName));
         }
@@ -221,21 +192,6 @@ namespace FinalProject.States
                     ?? new List<MapTransition>();
             }
             catch { return new List<MapTransition>(); }
-        }
-
-        private static EncounterTable LoadEncounterTable(string mapsDir, string mapName)
-        {
-            string path = Path.Combine(mapsDir, mapName + ".encounters.json");
-            if (!File.Exists(path)) return null;
-
-            try
-            {
-                string json = File.ReadAllText(path);
-                var options = new JsonSerializerOptions { PropertyNameCaseInsensitive = true };
-                var entries = JsonSerializer.Deserialize<List<EncounterEntry>>(json, options);
-                return entries != null && entries.Count > 0 ? new EncounterTable(entries) : null;
-            }
-            catch { return null; }
         }
 
         private static void LogDebug(string message)

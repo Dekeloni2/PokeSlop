@@ -16,14 +16,21 @@ namespace FinalProject.States
 
         private BattlePhase _phase;
         private PlayerMoveList? _playerChoice;
-
+        
+        private static int boxSpawnPosX = 100;
+        private static int boxSpawnPosY = 100;
+        private static int boxWidth = 300;
+        private static int boxHeight = 200;
+        
+        private Rectangle battleBox = new Rectangle(boxSpawnPosX, boxSpawnPosY, boxWidth, boxHeight);
+        
         public BattleState(Game1 game, GameStateManager sm, Teacher teacher)
             : base(game, sm)
         {
             _teacher = teacher;
             _phase   = BattlePhase.SelectingMove;
         }
-
+        
         public override void Update(GameTime gameTime)
         {
             switch (_phase)
@@ -44,6 +51,10 @@ namespace FinalProject.States
 
         public override void Draw(SpriteBatch spriteBatch)
         {
+            Game.GraphicsDevice.Clear(Color.Black);
+            if (_phase == BattlePhase.Intro)
+
+
             // TODO: Attack/Act/Item/Spare menu + HP bars — battle UI comes next
         }
 
@@ -82,5 +93,5 @@ namespace FinalProject.States
     // The four choices on the Undertale-style battle menu.
     public enum PlayerMoveList { Attack, Act, Item, Spare }
 
-    public enum BattlePhase { SelectingMove, ExecutingTurn, BattleOver }
+    public enum BattlePhase {Intro, SelectingMove, ExecutingTurn, BattleOver }
 }

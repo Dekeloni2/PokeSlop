@@ -1,8 +1,11 @@
 // Game1.cs
+using System;
+using System.IO;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
 using FinalProject.Core;
+using FinalProject.Data;
 using FinalProject.States;
 
 namespace FinalProject
@@ -12,15 +15,13 @@ namespace FinalProject
         private GraphicsDeviceManager _graphics;
         private SpriteBatch _spriteBatch;
 
-        // Shared systems — public so any state can reach them through Game.X
+        // shared systems, public so states can reach them through Game.X
         public GameStateManager StateManager { get; private set; }
         public InputManager     Input        { get; private set; }
 
-        // A 1x1 white pixel, tinted and stretched to draw any colored rectangle.
-        // Useful for HP bars, overlays, debug rects — no dedicated sprite needed.
+        // 1x1 white pixel for drawing plain rectangles (HP bars, borders...)
         public Texture2D PixelTexture { get; private set; }
 
-        // Shared font for dialogue/UI text (Content/Fonts/DialogueFont.spritefont).
         public SpriteFont DialogueFont { get; private set; }
 
         public PlayerData PlayerData { get; private set; } = new();
@@ -55,19 +56,24 @@ namespace FinalProject
             PixelTexture.SetData(new[] { Color.White });
 
             DialogueFont = Content.Load<SpriteFont>("Fonts/DialogueFont");
-
-            // Registers every spritesheet up front so entities (e.g. Player)
-            // can ask for one by name instead of loading their own texture.
+            
             new SpriteManager(Content);
             SpriteManager.AddSprite("student_world", "Sprites/Player/student_world", 4, 3);
+            SpriteManager.AddSprite("soul", "Sprites/Battle/Soul", 2, 1);
+            SpriteManager.AddSprite("battleButtons", "Sprites/Battle/buttons", 2, 4, 10, 8);
+            SpriteManager.AddSprite("attackZone", "Sprites/Battle/attack_minigame");
+            SpriteManager.AddSprite("attackBar", "Sprites/Battle/attack_target", 2, 1, 6);
 
-            // First thing the player sees
+#if DEBUG
+            LoadStartingInventory();
+#endif
+
             StateManager.Replace(new MainMenuState(this, StateManager));
         }
 
         protected override void Update(GameTime gameTime)
         {
-            // Input first so every state sees a consistent snapshot this frame
+            // input first so every state sees the same snapshot this frame
             Input.Update();
 
             if (Input.IsKeyPressed(Keys.Escape))
@@ -76,6 +82,17 @@ namespace FinalProject
             StateManager.Update(gameTime);
             base.Update(gameTime);
         }
+
+#if DEBUG
+        // debug builds only - gives the player one of every item so ITEM can
+        // be tested until there's a real way to get items (shop/pickups)
+        private void LoadStartingInventory()
+        {
+            string itemsPath = Path.GetFullPath(
+                Path.Combine(AppContext.BaseDirectory, "..", "..", "..", "Content", "Items", "items.json"));
+            PlayerData.Inventory.AddRange(ItemLoader.LoadAll(itemsPath));
+        }
+#endif
 
         protected override void Draw(GameTime gameTime)
         {

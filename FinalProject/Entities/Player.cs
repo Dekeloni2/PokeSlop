@@ -33,8 +33,8 @@ public class Player : Sprite
     {
         new Rectangle(3,  37, 19, 29),
         new Rectangle(26, 37, 19, 29),
-        new Rectangle(49, 37, 19, 29),
-        new Rectangle(72, 37, 19, 29),
+        new Rectangle(3,  37, 19, 29),
+        new Rectangle(26, 37, 19, 29),
     };
 
     private static readonly Rectangle[] UpFrames =

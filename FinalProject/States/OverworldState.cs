@@ -6,7 +6,9 @@ using System.Text.Json;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
+using FinalProject.Battle;
 using FinalProject.Core;
+using FinalProject.Data;
 using FinalProject.Entities;
 using FinalProject.World;
 using FinalProject.Events;
@@ -62,6 +64,16 @@ namespace FinalProject.States
                 return;
             }
 
+#if DEBUG
+            // debug builds only - press B to start a test battle, remove once
+            // real encounter triggers exist
+            if (Game.Input.IsKeyPressed(Keys.B))
+            {
+                StartDebugBattle();
+                return;
+            }
+#endif
+
             if (_map == null) return;
 
             _player.Update(gameTime, _map);
@@ -95,11 +107,8 @@ namespace FinalProject.States
             spriteBatch.End();
         }
 
-        // Checks the tile the player is facing for an Interactable and, if
-        // there's one there, opens its Text in the dialogue box. This is also
-        // the natural place a Teacher-boss encounter would hook in later
-        // (e.g. an Interactable that starts a BattleState instead of/after
-        // showing dialogue) — not wired up yet.
+        // opens the dialogue box if the tile the player is facing has an
+        // interactable on it. Teacher encounters will probably hook in here too
         private void TryInteract()
         {
             if (_map == null) return;
@@ -110,7 +119,21 @@ namespace FinalProject.States
             if (interactable != null)
                 _dialogueBox.Open(interactable.Text);
         }
-        
+
+#if DEBUG
+        // builds a test teacher and starts a battle. Push (not Replace) so
+        // this state resumes when the battle pops itself
+        private void StartDebugBattle()
+        {
+            string teachersDir = Path.GetFullPath(
+                Path.Combine(AppContext.BaseDirectory, "..", "..", "..", "Content", "Teachers"));
+            TeacherStats stats = TeacherLoader.Load(Path.Combine(teachersDir, "substitute.json"));
+            var teacher = new Teacher(stats);
+
+            StateManager.Push(new BattleState(Game, StateManager, teacher));
+        }
+#endif
+
         // ── Transitions ──────────────────────────────────────────────────────
 
         private void CheckTransitions()

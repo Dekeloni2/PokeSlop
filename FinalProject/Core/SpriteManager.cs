@@ -15,13 +15,16 @@ public class SpriteManager
         _content = content;
     }
 
-    public static void AddSprite(string spriteName, string fileName, int columns = 1, int rows = 1)
+    public static void AddSprite(string spriteName, string fileName, int columns = 1, int rows = 1,
+        int spacingX = 0, int spacingY = 0)
     {
         _sprites[spriteName] = new Spritesheet
         {
-            Texture = _content.Load<Texture2D>(fileName),
-            Columns = columns,
-            Rows    = rows
+            Texture  = _content.Load<Texture2D>(fileName),
+            Columns  = columns,
+            Rows     = rows,
+            SpacingX = spacingX,
+            SpacingY = spacingY
         };
     }
 

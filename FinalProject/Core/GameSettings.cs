@@ -10,11 +10,24 @@ public static class GameSettings
     
     public static int TilesWide => WindowWidth / TileSize;
     public static int TilesTall => WindowHeight / TileSize;
-
-    // How many screen pixels each world pixel occupies — 2 = GBA 2× look
+    
     public const float Zoom = 2f;
 
-    public const float PlayerSpeed = 64f;
+    public const float PlayerSpeed = 128f;
 
     public const float WildEncounterChance = 0.10f;
+
+    // ── Battle: attack minigame ─────────────────────────────────────────
+    public const float AttackBarSpeed      = 480f; // px/sec sweep across the target zone
+    public const float AttackFlashSeconds  = 2f;   // how long the bar flashes after a hit
+    public const float AttackFlashInterval = 0.1f; // sec per white/black flash frame
+
+    // ── Battle: dodge phase ─────────────────────────────────────────────
+    public const int   DodgeBoxDefaultSize  = 200;  // px, base square arena side length
+    public const int   DodgeHitboxSize      = 8;    // px, player-controlled square
+    public const float DodgeHitboxSpeed     = 100f; // px/sec
+    public const int   DodgeProjectileSize  = 6;    // px, square
+    public const float DodgeProjectileSpeed = 90f;  // px/sec
+    public const float DodgeSpawnInterval   = 0.35f; // sec between spawns within a burst
+    public const int   DodgeBoundsMargin    = 16;   // px outside the current box before a projectile expires
 }

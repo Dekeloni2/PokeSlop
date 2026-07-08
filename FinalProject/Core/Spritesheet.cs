@@ -3,22 +3,24 @@ namespace FinalProject.Core;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 
-// A texture cut into a uniform Columns x Rows grid of equal-size frames.
-// Usage: sheet[2, 0] -> the source rect for column 2, row 0.
+// a texture split into equal frames. sheet[x, y] gives the source rect,
+// spacing is for atlases that have gaps between the cells.
 public class Spritesheet
 {
-    public int       Columns { get; set; }
-    public int       Rows    { get; set; }
-    public Texture2D Texture { get; set; }
+    public int       Columns  { get; set; }
+    public int       Rows     { get; set; }
+    public Texture2D Texture  { get; set; }
+    public int       SpacingX { get; set; } // gutter between columns, in px
+    public int       SpacingY { get; set; } // gutter between rows, in px
 
     public Rectangle this[int x, int y]
     {
         get
         {
-            int width  = Texture.Width  / Columns;
-            int height = Texture.Height / Rows;
+            int width  = (Texture.Width  - SpacingX * (Columns - 1)) / Columns;
+            int height = (Texture.Height - SpacingY * (Rows    - 1)) / Rows;
 
-            return new Rectangle(width * x, height * y, width, height);
+            return new Rectangle(x * (width + SpacingX), y * (height + SpacingY), width, height);
         }
     }
 }

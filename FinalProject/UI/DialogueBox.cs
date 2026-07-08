@@ -151,28 +151,7 @@ namespace FinalProject.UI
         private List<string> Paginate(string text)
         {
             int maxWidth = _boxRect.Width - PaddingX * 2;
-            var lines = new List<string>();
-
-            foreach (string paragraph in text.Split('\n'))
-            {
-                string[] words = paragraph.Split(' ', StringSplitOptions.RemoveEmptyEntries);
-                string currentLine = "";
-
-                foreach (string word in words)
-                {
-                    string candidate = currentLine.Length == 0 ? word : currentLine + " " + word;
-                    if (_font.MeasureString(candidate).X > maxWidth && currentLine.Length > 0)
-                    {
-                        lines.Add(currentLine);
-                        currentLine = word;
-                    }
-                    else
-                    {
-                        currentLine = candidate;
-                    }
-                }
-                lines.Add(currentLine);
-            }
+            List<string> lines = TextWrap.ToLines(_font, text, maxWidth);
 
             var pages = new List<string>();
             for (int i = 0; i < lines.Count; i += MaxLinesPerPage)

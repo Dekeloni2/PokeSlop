@@ -11,13 +11,15 @@ to draw with.
     <!--
     Modify this string to change the font that will be imported.
     -->
-    <FontName>Courier New</FontName>
+    <FontName>Pixel Operator 8</FontName>
 
     <!--
-    Size is a float value, measured in points. Modify this value to change
-    the size of the font.
+    Size is a float value, measured in points, not pixels. At the pipeline's
+    96 DPI, points-to-pixels is *4/3 — so 6pt lands close to Pixel Operator
+    8's native 8px design grid (8pt would rasterize to ~10.7px and blur off
+    -grid). Adjust from here if it's still soft.
     -->
-    <Size>11</Size>
+    <Size>6</Size>
 
     <!--
     Spacing is a float value, measured in pixels. Modify this value to change
@@ -35,7 +37,7 @@ to draw with.
     Style controls the style of the font. Valid entries are "Regular", "Bold",
     "Italic", and "Bold, Italic", and are case sensitive.
     -->
-    <Style>Regular</Style>
+    <Style>Bold</Style>
 
     <!--
     If you uncomment this line, the default character will be substituted if

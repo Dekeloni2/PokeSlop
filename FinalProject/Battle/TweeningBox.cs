@@ -31,22 +31,22 @@ namespace FinalProject.Battle
             _duration = overSeconds;
         }
 
-        public void Update(float dt)
+        public void Update(float deltaTimeSeconds)
         {
             if (_duration <= 0f) return;
 
-            _elapsed += dt;
-            float t = MathHelper.Clamp(_elapsed / _duration, 0f, 1f);
-            Current = Lerp(_from, _to, t);
+            _elapsed += deltaTimeSeconds;
+            float lerpProgress = MathHelper.Clamp(_elapsed / _duration, 0f, 1f);
+            Current = Lerp(_from, _to, lerpProgress);
 
-            if (t >= 1f)
+            if (lerpProgress >= 1f)
                 _duration = 0f;
         }
 
-        private static Rectangle Lerp(Rectangle a, Rectangle b, float t) => new Rectangle(
-            (int)MathHelper.Lerp(a.X,      b.X,      t),
-            (int)MathHelper.Lerp(a.Y,      b.Y,      t),
-            (int)MathHelper.Lerp(a.Width,  b.Width,  t),
-            (int)MathHelper.Lerp(a.Height, b.Height, t));
+        private static Rectangle Lerp(Rectangle a, Rectangle b, float lerpProgress) => new Rectangle(
+            (int)MathHelper.Lerp(a.X,      b.X,      lerpProgress),
+            (int)MathHelper.Lerp(a.Y,      b.Y,      lerpProgress),
+            (int)MathHelper.Lerp(a.Width,  b.Width,  lerpProgress),
+            (int)MathHelper.Lerp(a.Height, b.Height, lerpProgress));
     }
 }

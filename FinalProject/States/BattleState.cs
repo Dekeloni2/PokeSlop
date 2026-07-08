@@ -371,13 +371,13 @@ namespace FinalProject.States
             }
         }
 
-        private void DrawBoxBorder(SpriteBatch spriteBatch, Rectangle r)
+        private void DrawBoxBorder(SpriteBatch spriteBatch, Rectangle rect)
         {
-            const int t = 2;
-            spriteBatch.Draw(Game.PixelTexture, new Rectangle(r.X, r.Y, r.Width, t), Color.White);
-            spriteBatch.Draw(Game.PixelTexture, new Rectangle(r.X, r.Bottom - t, r.Width, t), Color.White);
-            spriteBatch.Draw(Game.PixelTexture, new Rectangle(r.X, r.Y, t, r.Height), Color.White);
-            spriteBatch.Draw(Game.PixelTexture, new Rectangle(r.Right - t, r.Y, t, r.Height), Color.White);
+            const int borderThickness = 2;
+            spriteBatch.Draw(Game.PixelTexture, new Rectangle(rect.X, rect.Y, rect.Width, borderThickness), Color.White);
+            spriteBatch.Draw(Game.PixelTexture, new Rectangle(rect.X, rect.Bottom - borderThickness, rect.Width, borderThickness), Color.White);
+            spriteBatch.Draw(Game.PixelTexture, new Rectangle(rect.X, rect.Y, borderThickness, rect.Height), Color.White);
+            spriteBatch.Draw(Game.PixelTexture, new Rectangle(rect.Right - borderThickness, rect.Y, borderThickness, rect.Height), Color.White);
         }
         
         // drawn in every phase so HP loss is always visible
@@ -393,10 +393,10 @@ namespace FinalProject.States
             var barBg = new Rectangle(x + 60, y + 4, 100, 16);
             spriteBatch.Draw(Game.PixelTexture, barBg, new Color(60, 20, 20));
 
-            float pct = Game.PlayerData.MaxHp > 0
+            float hpPercent = Game.PlayerData.MaxHp > 0
                 ? MathHelper.Clamp((float)Game.PlayerData.CurrentHp / Game.PlayerData.MaxHp, 0f, 1f)
                 : 0f;
-            var fill = new Rectangle(barBg.X, barBg.Y, (int)(barBg.Width * pct), barBg.Height);
+            var fill = new Rectangle(barBg.X, barBg.Y, (int)(barBg.Width * hpPercent), barBg.Height);
             spriteBatch.Draw(Game.PixelTexture, fill, Color.Yellow);
 
             string hpText = $"{Game.PlayerData.CurrentHp} / {Game.PlayerData.MaxHp}";

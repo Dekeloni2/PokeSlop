@@ -124,10 +124,10 @@ public class Player : Sprite
     private void UpdateMovement(GameTime gameTime)
     {
         _moveTimer += (float)gameTime.ElapsedGameTime.TotalSeconds;
-        float t = MathHelper.Clamp(_moveTimer / _moveTime, 0f, 1f);
-        WorldPosition = Vector2.Lerp(_moveOrigin, _moveDestination, t);
+        float lerpProgress = MathHelper.Clamp(_moveTimer / _moveTime, 0f, 1f);
+        WorldPosition = Vector2.Lerp(_moveOrigin, _moveDestination, lerpProgress);
 
-        if (t >= 1f)
+        if (lerpProgress >= 1f)
         {
             WorldPosition = _moveDestination;
             IsMoving      = false;

@@ -43,10 +43,10 @@ namespace FinalProject.Battle
 
         public void Update(GameTime gameTime, InputManager input)
         {
-            float dt = (float)gameTime.ElapsedGameTime.TotalSeconds;
-            _elapsed += dt;
+            float deltaTimeSeconds = (float)gameTime.ElapsedGameTime.TotalSeconds;
+            _elapsed += deltaTimeSeconds;
 
-            _box.Update(dt);
+            _box.Update(deltaTimeSeconds);
 
             _pattern.Update(gameTime, new DodgeContext(this));
 
@@ -96,13 +96,13 @@ namespace FinalProject.Battle
 
         private void DrawBoxBorder(SpriteBatch spriteBatch, Texture2D pixel)
         {
-            const int t = 2;
-            Rectangle r = _box.Current;
+            const int borderThickness = 2;
+            Rectangle boxRect = _box.Current;
 
-            spriteBatch.Draw(pixel, new Rectangle(r.X, r.Y, r.Width, t), Color.White);
-            spriteBatch.Draw(pixel, new Rectangle(r.X, r.Bottom - t, r.Width, t), Color.White);
-            spriteBatch.Draw(pixel, new Rectangle(r.X, r.Y, t, r.Height), Color.White);
-            spriteBatch.Draw(pixel, new Rectangle(r.Right - t, r.Y, t, r.Height), Color.White);
+            spriteBatch.Draw(pixel, new Rectangle(boxRect.X, boxRect.Y, boxRect.Width, borderThickness), Color.White);
+            spriteBatch.Draw(pixel, new Rectangle(boxRect.X, boxRect.Bottom - borderThickness, boxRect.Width, borderThickness), Color.White);
+            spriteBatch.Draw(pixel, new Rectangle(boxRect.X, boxRect.Y, borderThickness, boxRect.Height), Color.White);
+            spriteBatch.Draw(pixel, new Rectangle(boxRect.Right - borderThickness, boxRect.Y, borderThickness, boxRect.Height), Color.White);
         }
     }
 }

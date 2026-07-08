@@ -31,11 +31,11 @@ namespace FinalProject.Battle
             _duration = overSeconds;
         }
 
-        public void Update(float deltaTimeSeconds)
+        public void Update(float dt)
         {
             if (_duration <= 0f) return;
 
-            _elapsed += deltaTimeSeconds;
+            _elapsed += dt;
             float lerpProgress = MathHelper.Clamp(_elapsed / _duration, 0f, 1f);
             Current = Lerp(_from, _to, lerpProgress);
 

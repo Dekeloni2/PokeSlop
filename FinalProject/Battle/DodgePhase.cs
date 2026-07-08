@@ -43,10 +43,10 @@ namespace FinalProject.Battle
 
         public void Update(GameTime gameTime, InputManager input)
         {
-            float deltaTimeSeconds = (float)gameTime.ElapsedGameTime.TotalSeconds;
-            _elapsed += deltaTimeSeconds;
+            float dt = (float)gameTime.ElapsedGameTime.TotalSeconds;
+            _elapsed += dt;
 
-            _box.Update(deltaTimeSeconds);
+            _box.Update(dt);
 
             _pattern.Update(gameTime, new DodgeContext(this));
 

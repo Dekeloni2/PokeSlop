@@ -47,7 +47,7 @@ namespace FinalProject.World
             // ── Layers ───────────────────────────────────────────────────────
             TileLayer groundLayer  = null;
             TileLayer objectsLayer = null;
-            TileLayer tallgrass = null;
+            TileLayer elevatorDoor = null;
             var interactables = new List<Interactable>();
 
             foreach (JsonElement layerEl in root.GetProperty("layers").EnumerateArray())
@@ -77,7 +77,7 @@ namespace FinalProject.World
 
                 if (name == "Ground")  groundLayer  = layer;
                 if (name == "Objects") objectsLayer = layer;
-                if (name == "Tall Grass") tallgrass = layer;
+                if (name == "ElevatorDoor") elevatorDoor = layer;
             }
 
             if (groundLayer == null)
@@ -85,10 +85,8 @@ namespace FinalProject.World
             if (objectsLayer == null)
                 throw new Exception("Map is missing a layer named 'Objects'.");
 
-            // tallgrass is optional; pass it through to the TileMap so the game
-            // can render it and query for tall-grass tiles.
             return new TileMap(mapWidth, mapHeight, tileWidth, tileHeight,
-                               tilesets, groundLayer, tallgrass, objectsLayer, interactables);
+                               tilesets, groundLayer, objectsLayer, elevatorDoor, interactables);
         }
 
         // Reads every object in an "Interactables" object layer into a list of
@@ -156,11 +154,13 @@ namespace FinalProject.World
             int    columns   = el.GetProperty("columns").GetInt32();
             int    tileWidth  = el.GetProperty("tilewidth").GetInt32();
             int    tileHeight = el.GetProperty("tileheight").GetInt32();
+            int    spacing   = el.TryGetProperty("spacing", out JsonElement spEl) ? spEl.GetInt32() : 0;
+            int    margin    = el.TryGetProperty("margin",  out JsonElement mgEl) ? mgEl.GetInt32() : 0;
 
             string contentKey = ImagePathToContentKey(imagePath, mapDir);
             Texture2D texture = LoadTexture(content, contentKey);
 
-            return new TilesetInfo(firstGid, texture, columns, tileWidth, tileHeight);
+            return new TilesetInfo(firstGid, texture, columns, tileWidth, tileHeight, spacing, margin);
         }
 
         // Parses Tiled's native .tsx (plain XML) tileset format:
@@ -174,13 +174,15 @@ namespace FinalProject.World
             int columns    = (int)tilesetEl.Attribute("columns");
             int tileWidth  = (int)tilesetEl.Attribute("tilewidth");
             int tileHeight = (int)tilesetEl.Attribute("tileheight");
+            int spacing    = (int?)tilesetEl.Attribute("spacing") ?? 0;
+            int margin     = (int?)tilesetEl.Attribute("margin")  ?? 0;
 
             string imagePath = (string)tilesetEl.Element("image").Attribute("source");
 
             string contentKey = ImagePathToContentKey(imagePath, mapDir);
             Texture2D texture = LoadTexture(content, contentKey);
 
-            return new TilesetInfo(firstGid, texture, columns, tileWidth, tileHeight);
+            return new TilesetInfo(firstGid, texture, columns, tileWidth, tileHeight, spacing, margin);
         }
 
         // Loads a texture by ContentManager key, logging both the attempt and

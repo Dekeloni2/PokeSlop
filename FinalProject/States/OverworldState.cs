@@ -23,13 +23,14 @@ namespace FinalProject.States
         public OverworldState(Game1 game, GameStateManager stateManager)
             : base(game, stateManager) { }
 
-        private static readonly Color BackgroundColor = new Color(20, 120, 20);
+        private static readonly Color BackgroundColor = Color.Black;
 
         private Player _player;
         private Camera _camera;
         private TileMap _map;
         private string  _currentAreaName;
         private List<MapTransition> _transitions  = new();
+        private List<MapWarp>       _warps        = new();
         private bool _transitioning = false; // prevents repeated trigger on failed load
 
         // Undertale-style textbox — owns input while open (see Update below).
@@ -74,6 +75,14 @@ namespace FinalProject.States
                 StartDebugBattle();
                 return;
             }
+
+            // debug builds only - press O to open/close the elevator door layer
+            // (no effect on maps without an ElevatorDoor layer)
+            if (_map != null && _map.HasElevatorDoor && Game.Input.IsKeyPressed(Keys.O))
+            {
+                _map.ElevatorDoorVisible = !_map.ElevatorDoorVisible;
+                return;
+            }
 #endif
 
             if (_map == null) return;
@@ -89,6 +98,7 @@ namespace FinalProject.States
             // Teacher NPC, but that hookup doesn't exist yet).
 
             CheckTransitions();
+            CheckWarps();
         }
 
         public override void Draw(SpriteBatch spriteBatch)
@@ -165,6 +175,25 @@ namespace FinalProject.States
             }
         }
 
+        // Fires an on-step warp when the player is standing on a trigger tile.
+        // Unlike edge transitions these are interior tiles (e.g. stepping into
+        // the elevator), so there's no facing/edge check — just position.
+        private void CheckWarps()
+        {
+            if (_player.IsMoving || _transitioning) return;
+
+            foreach (MapWarp w in _warps)
+            {
+                if (w.ContainsTile(_player.TilePosition.X, _player.TilePosition.Y))
+                {
+                    _transitioning = true;
+                    LoadMap(w.TargetMap, w.SpawnX, w.SpawnY);
+                    _transitioning = false;
+                    return;
+                }
+            }
+        }
+
         // ── Map loading ──────────────────────────────────────────────────────
 
         private void LoadMap(string mapName, int spawnX, int spawnY)
@@ -194,8 +223,10 @@ namespace FinalProject.States
             }
 
             _map = loaded;
+            _player.SetTileSize(_map.TileWidth);
             _player.Teleport(spawnX, spawnY);
             _transitions = LoadTransitions(mapsDir, mapName);
+            _warps       = LoadWarps(mapsDir, mapName);
 
             EventBus.Instance.Publish(new AreaChangedEvent(_currentAreaName));
         }
@@ -217,6 +248,21 @@ namespace FinalProject.States
                     ?? new List<MapTransition>();
             }
             catch { return new List<MapTransition>(); }
+        }
+
+        private static List<MapWarp> LoadWarps(string mapsDir, string mapName)
+        {
+            string path = Path.Combine(mapsDir, mapName + ".warps.json");
+            if (!File.Exists(path)) return new List<MapWarp>();
+
+            try
+            {
+                string json = File.ReadAllText(path);
+                var options = new JsonSerializerOptions { PropertyNameCaseInsensitive = true };
+                return JsonSerializer.Deserialize<List<MapWarp>>(json, options)
+                    ?? new List<MapWarp>();
+            }
+            catch { return new List<MapWarp>(); }
         }
 
         private static void LogDebug(string message)

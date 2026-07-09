@@ -3,6 +3,9 @@ using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
 using FinalProject.Core;
+using FinalProject.Core.Graphics;
+using FinalProject.Core.Input;
+using FinalProject.Core.Text;
 
 namespace FinalProject.Battle
 {
@@ -20,6 +23,11 @@ namespace FinalProject.Battle
         private readonly Typewriter _typewriter = new();
         private int _cursor;
 
+        // set on Push, cleared on the first Draw once the box/font are known:
+        // the typewriter text gets its line breaks baked in up front so the
+        // wrap points can't shift while the text is still typing out
+        private bool _typewriterNeedsLayout;
+
         public void Open(List<MenuOption> rootPage, bool allowCancel = true, bool typewriter = false)
         {
             _pages.Clear();
@@ -32,7 +40,10 @@ namespace FinalProject.Battle
             _cursor = 0;
 
             if (typewriter)
+            {
                 _typewriter.SetText(page[0].Text);
+                _typewriterNeedsLayout = true;
+            }
         }
 
         // returns false once the player backs out of the last page
@@ -46,7 +57,7 @@ namespace FinalProject.Battle
             if (input.IsKeyPressed(Keys.Down)) _cursor = (_cursor + 1) % page.Count;
             if (input.IsKeyPressed(Keys.Up))   _cursor = (_cursor - 1 + page.Count) % page.Count;
 
-            if (allowCancel && input.IsKeyPressed(Keys.X))
+            if (allowCancel && input.IsKeyPressed(Keys.X) || input.IsKeyPressed(Keys.RightShift))
             {
                 _pages.Pop();
                 _cursor = 0;
@@ -79,22 +90,39 @@ namespace FinalProject.Battle
             float maxTextWidth = box.Width - textIndent - RightPadding;
             float lineSpacingPx = font.LineSpacing * TextScale;
 
+            // bake the wrap into the typewriter text once, so revealing it a
+            // character at a time never moves a letter that's already visible
+            if (typewriter && _typewriterNeedsLayout)
+            {
+                _typewriter.SetText(string.Join("\n",
+                    TextWrap.ToLines(font, "* " + page[0].Text, maxTextWidth, TextScale)));
+                _typewriterNeedsLayout = false;
+            }
+
             float y = box.Y + 16;
             for (int i = 0; i < page.Count; i++)
             {
                 Color color = Color.White;
                 float optionStartY = y;
 
-                string optionText = (typewriter && i == 0) ? _typewriter.VisibleText : page[i].Text;
+                bool isTyping = typewriter && i == 0;
 
-                // wrap long text so it stays inside the box
-                List<string> lines = TextWrap.ToLines(font, "* " + optionText, maxTextWidth, TextScale);
-                foreach (string line in lines)
-                {
-                    spriteBatch.DrawString(font, line, new Vector2(box.X + textIndent, y), color,
-                        0f, Vector2.Zero, TextScale, SpriteEffects.None, 0f);
-                    y += lineSpacingPx;
-                }
+                // wrap long text so it stays inside the box (the typewriter
+                // text was already wrapped above, with the breaks baked in)
+                string fullText = isTyping
+                    ? _typewriter.FullText
+                    : string.Join("\n", TextWrap.ToLines(font, "* " + page[i].Text, maxTextWidth, TextScale));
+                string shownText = isTyping ? _typewriter.VisibleText : fullText;
+
+                spriteBatch.DrawString(font, shownText, new Vector2(box.X + textIndent, y), color,
+                    0f, Vector2.Zero, TextScale, SpriteEffects.None, 0f);
+
+                // advance by the full text's height so anything below doesn't
+                // slide around while the text is still typing
+                int lineCount = 1;
+                foreach (char c in fullText)
+                    if (c == '\n') lineCount++;
+                y += lineCount * lineSpacingPx;
 
                 // no soul on message pages, only on lists you actually pick from
                 if (i == _cursor && !typewriter)

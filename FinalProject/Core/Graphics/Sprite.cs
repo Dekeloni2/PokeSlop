@@ -1,4 +1,4 @@
-namespace FinalProject.Core;
+namespace FinalProject.Core.Graphics;
 
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;

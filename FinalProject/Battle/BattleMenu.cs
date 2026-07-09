@@ -2,6 +2,8 @@ using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
 using FinalProject.Core;
+using FinalProject.Core.Graphics;
+using FinalProject.Core.Input;
 using FinalProject.States;
 
 namespace FinalProject.Battle
@@ -38,7 +40,7 @@ namespace FinalProject.Battle
             if (input.IsKeyPressed(Keys.Right)) _selectedIndex = (_selectedIndex + 1) % 4;
 
             choice = (PlayerMoveList)_selectedIndex;
-            return input.IsKeyPressed(Keys.Z);
+            return input.IsKeyPressed(Keys.Z) || input.IsKeyPressed(Keys.Enter);
         }
 
         // showSoul is false once the player is inside a submenu - the soul

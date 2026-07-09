@@ -4,7 +4,7 @@ using Microsoft.Xna.Framework;
 using FinalProject.Entities;
 using FinalProject.World;
 
-namespace FinalProject.Core
+namespace FinalProject.Core.Graphics
 {
     // Follows the player and produces a transform matrix that offsets
     // everything drawn so the player stays centered on screen.

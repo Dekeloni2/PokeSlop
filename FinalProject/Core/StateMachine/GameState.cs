@@ -2,7 +2,7 @@
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 
-namespace FinalProject.Core
+namespace FinalProject.Core.StateMachine
 {
     public abstract class GameState
     {

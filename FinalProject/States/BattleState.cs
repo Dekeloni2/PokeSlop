@@ -4,6 +4,8 @@ using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using FinalProject.Battle;
 using FinalProject.Core;
+using FinalProject.Core.StateMachine;
+using FinalProject.Core.Text;
 using FinalProject.Data;
 
 namespace FinalProject.States
@@ -34,6 +36,7 @@ namespace FinalProject.States
 
         private const float ShrinkSeconds = 0.6f;
         private const float GrowSeconds   = 0.6f;
+        private const float NarrationTextScale = 2f;
 
         // wide box for menus, square box for dodging. The wide box is sized
         // so the inside (minus the 2px border) is exactly 546x114 - the
@@ -135,12 +138,7 @@ namespace FinalProject.States
 
         private void UpdateMoveSelection(GameTime gameTime)
         {
-            string narrationText = PercentThresholdText.Resolve(_teacher.Stats.TurnNarration, CurrentHpPercent());
-            if (narrationText != _lastNarrationText)
-            {
-                _narrationTypewriter.SetText(narrationText);
-                _lastNarrationText = narrationText;
-            }
+            RefreshNarration();
             _narrationTypewriter.Update((float)gameTime.ElapsedGameTime.TotalSeconds);
 
             if (_menu.Update(Game.Input, out PlayerMoveList choice))
@@ -148,6 +146,23 @@ namespace FinalProject.States
                 _actionMenu.Open(BuildRootPage(choice));
                 _phase = BattlePhase.ActionMenu;
             }
+        }
+
+        // Rebuilds the narration typewriter for the teacher's current HP band,
+        // but only when the text actually changed — so backing out of a submenu
+        // doesn't restart the typing. To force a re-type (e.g. after an enemy
+        // turn), clear _lastNarrationText first.
+        private void RefreshNarration()
+        {
+            string narrationText = PercentThresholdText.Resolve(_teacher.Stats.TurnNarration, CurrentHpPercent());
+            if (narrationText == _lastNarrationText) return;
+
+            // bake the wrap in up front so the line breaks can't shift
+            // while the text is still typing out
+            float maxWidth = WideBoxRect.Width - 32;
+            _narrationTypewriter.SetText(string.Join("\n",
+                TextWrap.ToLines(Game.DialogueFont, narrationText, maxWidth, NarrationTextScale)));
+            _lastNarrationText = narrationText;
         }
 
         // ── Phase: ActionMenu ────────────────────────────────────────────────
@@ -338,6 +353,13 @@ namespace FinalProject.States
             {
                 _dodgePhase = null;
                 _box.ResizeTo(WideBoxRect, GrowSeconds);
+                // a finished enemy turn is a fresh turn — force the narration to
+                // re-type. Prime it to zero now (during the box transition, before
+                // the first SelectingMove draw) so there's no one-frame flash of
+                // the fully-typed text from last turn. Unlike backing out of a
+                // submenu, which keeps the guard and shows the text instantly.
+                _lastNarrationText = null;
+                RefreshNarration();
                 _phaseAfterTransition = BattlePhase.SelectingMove;
                 _phase = BattlePhase.BoxTransition;
             }
@@ -352,23 +374,14 @@ namespace FinalProject.States
             => _teacher.MaxHp > 0 ? (float)_teacher.CurrentHp / _teacher.MaxHp * 100f : 0f;
 
         // the flavor text about what the teacher is about to do. Plain text,
-        // no soul cursor since it's not selectable
+        // no soul cursor since it's not selectable. The text was pre-wrapped
+        // when it was set (SpriteFont draws embedded newlines natively)
         private void DrawTeacherNarration(SpriteBatch spriteBatch)
         {
-            const float textScale = 2f;
             Rectangle box = _box.Current;
-
-            string text = _narrationTypewriter.VisibleText;
-            float maxWidth = box.Width - 32;
-            List<string> lines = TextWrap.ToLines(Game.DialogueFont, text, maxWidth, textScale);
-
-            float y = box.Y + 16;
-            foreach (string line in lines)
-            {
-                spriteBatch.DrawString(Game.DialogueFont, line, new Vector2(box.X + 16, y), Color.White,
-                    0f, Vector2.Zero, textScale, SpriteEffects.None, 0f);
-                y += Game.DialogueFont.LineSpacing * textScale;
-            }
+            spriteBatch.DrawString(Game.DialogueFont, _narrationTypewriter.VisibleText,
+                new Vector2(box.X + 16, box.Y + 16), Color.White,
+                0f, Vector2.Zero, NarrationTextScale, SpriteEffects.None, 0f);
         }
 
         private void DrawBoxBorder(SpriteBatch spriteBatch, Rectangle rect)

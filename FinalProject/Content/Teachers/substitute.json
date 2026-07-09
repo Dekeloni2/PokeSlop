@@ -23,9 +23,9 @@
     {
       "name": "Check",
       "descriptionByHp": [
-        { "minPercent": 67, "text": "Substitute - stern, but fair." },
-        { "minPercent": 34, "text": "Substitute - starting to look rattled." },
-        { "minPercent": 0,  "text": " Substitute - out of patience, and nearly out of options." }
+        { "minPercent": 67, "text": "Substitute - HP 30, ATK 4. They seem to be annoyed with you." },
+        { "minPercent": 34, "text": "Substitute - HP 30, ATK 4. They seem to be annoyed with you." },
+        { "minPercent": 0,  "text": "Substitute - HP 30, ATK 4. They seem to be annoyed with you" }
       ],
       "spareGain": 10
     },

@@ -8,6 +8,8 @@ using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
 using FinalProject.Battle;
 using FinalProject.Core;
+using FinalProject.Core.Graphics;
+using FinalProject.Core.StateMachine;
 using FinalProject.Data;
 using FinalProject.Entities;
 using FinalProject.World;

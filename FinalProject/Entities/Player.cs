@@ -4,6 +4,7 @@ using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Input;
 using Microsoft.Xna.Framework.Graphics;
 using FinalProject.Core;
+using FinalProject.Core.Graphics;
 using FinalProject.World;
 
 public class Player : Sprite

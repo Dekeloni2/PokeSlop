@@ -1,6 +1,6 @@
 using System;
 
-namespace FinalProject.Core
+namespace FinalProject.Core.Text
 {
     // reveals text one character at a time, classic RPG dialogue effect.
     // (DialogueBox has its own older inline version of this)
@@ -14,6 +14,7 @@ namespace FinalProject.Core
 
         public bool   IsFullyShown => _visibleChars >= _text.Length;
         public string VisibleText  => _text.Substring(0, _visibleChars);
+        public string FullText     => _text;
 
         public void SetText(string text)
         {

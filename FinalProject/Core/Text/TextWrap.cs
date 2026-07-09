@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using Microsoft.Xna.Framework.Graphics;
 
-namespace FinalProject.Core
+namespace FinalProject.Core.Text
 {
     // word-wraps text to fit a pixel width. Used by DialogueBox and ActionMenu.
     public static class TextWrap

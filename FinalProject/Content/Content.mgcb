@@ -56,30 +56,6 @@
 /processorParam:TextureFormat=Color
 /build:Sprites/Battle/buttons.png
 
-#begin Sprites/Battle/buttons.png
-/importer:TextureImporter
-/processor:TextureProcessor
-/processorParam:ColorKeyColor=255,0,255,255
-/processorParam:ColorKeyEnabled=True
-/processorParam:GenerateMipmaps=False
-/processorParam:PremultiplyAlpha=True
-/processorParam:ResizeToPowerOfTwo=False
-/processorParam:MakeSquare=False
-/processorParam:TextureFormat=Color
-/build:Sprites/Battle/buttons.png
-
-#begin Sprites/Battle/Soul.png
-/importer:TextureImporter
-/processor:TextureProcessor
-/processorParam:ColorKeyColor=255,0,255,255
-/processorParam:ColorKeyEnabled=True
-/processorParam:GenerateMipmaps=False
-/processorParam:PremultiplyAlpha=True
-/processorParam:ResizeToPowerOfTwo=False
-/processorParam:MakeSquare=False
-/processorParam:TextureFormat=Color
-/build:Sprites/Battle/Soul.png
-
 #begin Sprites/Battle/Soul.png
 /importer:TextureImporter
 /processor:TextureProcessor
@@ -104,18 +80,6 @@
 /processorParam:TextureFormat=Color
 /build:Sprites/Player/student_world.png
 
-#begin Sprites/Tilesets/tiltan_tale_ruins.png
-/importer:TextureImporter
-/processor:TextureProcessor
-/processorParam:ColorKeyColor=255,0,255,255
-/processorParam:ColorKeyEnabled=True
-/processorParam:GenerateMipmaps=False
-/processorParam:PremultiplyAlpha=True
-/processorParam:ResizeToPowerOfTwo=False
-/processorParam:MakeSquare=False
-/processorParam:TextureFormat=Color
-/build:Sprites/Tilesets/tiltan_tale_ruins.png
-
 #begin Sprites/Tilesets/elevator.png
 /importer:TextureImporter
 /processor:TextureProcessor
@@ -127,4 +91,16 @@
 /processorParam:MakeSquare=False
 /processorParam:TextureFormat=Color
 /build:Sprites/Tilesets/elevator.png
+
+#begin Sprites/Tilesets/tiltan_tale_ruins.png
+/importer:TextureImporter
+/processor:TextureProcessor
+/processorParam:ColorKeyColor=255,0,255,255
+/processorParam:ColorKeyEnabled=True
+/processorParam:GenerateMipmaps=False
+/processorParam:PremultiplyAlpha=True
+/processorParam:ResizeToPowerOfTwo=False
+/processorParam:MakeSquare=False
+/processorParam:TextureFormat=Color
+/build:Sprites/Tilesets/tiltan_tale_ruins.png
 

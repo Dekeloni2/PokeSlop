@@ -17,6 +17,13 @@
       "accuracy": 100,
       "description": "The room closes in, then strikes.",
       "pattern": "ExpandingBox"
+    },
+    {
+      "name": "My precious boat",
+      "power": 5,
+      "accuracy": 100,
+      "description": "Dor's favorite pawn.",
+      "pattern": "Boat"
     }
   ],
   "actOptions": [

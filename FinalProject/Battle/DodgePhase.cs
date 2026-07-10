@@ -73,8 +73,8 @@ namespace FinalProject.Battle
 
         // ── DodgeContext surface ─────────────────────────────────────────────
 
-        internal void SpawnProjectile(Vector2 position, Vector2 velocity)
-            => _projectiles.Add(new Projectile(position, velocity));
+        internal void SpawnProjectile(Vector2 position, Vector2 velocity, ProjectileType type = ProjectileType.Normal)
+            => _projectiles.Add(new Projectile(position, velocity,  type));
 
         internal void ResizeBoxTo(Rectangle target, float overSeconds)
             => _box.ResizeTo(target, overSeconds);

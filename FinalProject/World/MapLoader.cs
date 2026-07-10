@@ -9,7 +9,7 @@ using Microsoft.Xna.Framework.Graphics;
 namespace FinalProject.World
 {
     // Reads a Tiled JSON export and constructs a TileMap ready for use.
-    // Usage: TileMap map = MapLoader.Load("Content/Maps/town_1.json", Content);
+    // Usage: TileMap map = MapLoader.Load("Content/Maps/entrance.json", Content);
     public static class MapLoader
     {
         public static TileMap Load(string jsonPath, ContentManager content)
@@ -224,36 +224,23 @@ namespace FinalProject.World
             return data;
         }
 
-        // Converts a Tiled image path to a ContentManager key.
-        // "../../Content/Sprites/Tilesets/TileMap.png" → "Sprites/Tilesets/TileMap"
-        // Resolves image paths relative to the map file location and converts them to
-        // ContentManager keys (path without extension, using forward slashes).
+        // Turns a Tiled image path into a ContentManager key. Tiled stores the
+        // path relative to the map file (e.g. "../../Content/Sprites/Tilesets/
+        // TileMap.png"); the key is the part after "Content/" with no extension
+        // ("Sprites/Tilesets/TileMap").
         private static string ImagePathToContentKey(string imagePath, string mapDir)
         {
-            // Resolve the image path relative to the map file's directory
             string fullPath = Path.GetFullPath(Path.Combine(mapDir ?? string.Empty, imagePath));
-            string normalized = fullPath.Replace('\\', '/');
+            string normalized = Path.ChangeExtension(fullPath, null).Replace('\\', '/');
 
-            // Find "Content/" and take everything after it as the key
-            int index = normalized.IndexOf("/Content/", StringComparison.OrdinalIgnoreCase);
+            // Take everything after the last "Content/" so a folder named
+            // Content earlier in the install path can't be picked by mistake.
+            int index = normalized.LastIndexOf("/Content/", StringComparison.OrdinalIgnoreCase);
             if (index >= 0)
-            {
-                string relative = normalized.Substring(index + "/Content/".Length);
-                // Ensure forward slashes and remove extension
-                string key = Path.ChangeExtension(relative, null).Replace('\\', '/');
-                // If the key still starts with an extra Content/ prefix, strip it
-                if (key.StartsWith("Content/", StringComparison.OrdinalIgnoreCase))
-                    key = key.Substring("Content/".Length);
-                if (key.StartsWith("/Content/", StringComparison.OrdinalIgnoreCase))
-                    key = key.Substring("/Content/".Length);
-                return key;
-            }
+                return normalized.Substring(index + "/Content/".Length);
 
-            // If we couldn't find Content/, fall back to using the filename without extension
-            string fallback = Path.GetFileNameWithoutExtension(imagePath);
-            if (fallback.StartsWith("Content/", StringComparison.OrdinalIgnoreCase))
-                fallback = fallback.Substring("Content/".Length);
-            return fallback;
+            // Path has no Content folder — fall back to just the file name.
+            return Path.GetFileNameWithoutExtension(imagePath);
         }
     }
 }

@@ -71,9 +71,9 @@ namespace FinalProject.Battle
                 Spritesheet boat = SpriteManager.GetSprite("boat");
 
                 Rectangle boatRect = new Rectangle(
-                    CurrentBox.Center.X - boat.Texture.Width * 3 / 2,
+                    CurrentBox.Center.X - boat.Texture.Width * 2 / 2,
                     CurrentBox.Bottom + 5,
-                    boat.Texture.Width * 3,
+                    boat.Texture.Width * 2,
                     boat.Texture.Height );
 
                 spriteBatch.Draw(boat.Texture, boatRect, boat[0, 0], Color.White);

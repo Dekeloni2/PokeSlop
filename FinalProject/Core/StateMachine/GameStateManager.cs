@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 
-namespace FinalProject.Core
+namespace FinalProject.Core.StateMachine
 {
     // Manages a stack of GameStates. Only the top state runs each frame.
     //

@@ -6,7 +6,11 @@ using System.Text.Json;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
+using FinalProject.Battle;
 using FinalProject.Core;
+using FinalProject.Core.Graphics;
+using FinalProject.Core.StateMachine;
+using FinalProject.Data;
 using FinalProject.Entities;
 using FinalProject.World;
 using FinalProject.Events;
@@ -19,13 +23,14 @@ namespace FinalProject.States
         public OverworldState(Game1 game, GameStateManager stateManager)
             : base(game, stateManager) { }
 
-        private static readonly Color BackgroundColor = new Color(20, 120, 20);
+        private static readonly Color BackgroundColor = Color.Black;
 
         private Player _player;
         private Camera _camera;
         private TileMap _map;
         private string  _currentAreaName;
         private List<MapTransition> _transitions  = new();
+        private List<MapWarp>       _warps        = new();
         private bool _transitioning = false; // prevents repeated trigger on failed load
 
         // Undertale-style textbox — owns input while open (see Update below).
@@ -62,6 +67,24 @@ namespace FinalProject.States
                 return;
             }
 
+#if DEBUG
+            // debug builds only - press B to start a test battle, remove once
+            // real encounter triggers exist
+            if (Game.Input.IsKeyPressed(Keys.B))
+            {
+                StartDebugBattle();
+                return;
+            }
+
+            // debug builds only - press O to open/close the elevator door layer
+            // (no effect on maps without an ElevatorDoor layer)
+            if (_map != null && _map.HasElevatorDoor && Game.Input.IsKeyPressed(Keys.O))
+            {
+                _map.ElevatorDoorVisible = !_map.ElevatorDoorVisible;
+                return;
+            }
+#endif
+
             if (_map == null) return;
 
             _player.Update(gameTime, _map);
@@ -75,6 +98,7 @@ namespace FinalProject.States
             // Teacher NPC, but that hookup doesn't exist yet).
 
             CheckTransitions();
+            CheckWarps();
         }
 
         public override void Draw(SpriteBatch spriteBatch)
@@ -95,11 +119,8 @@ namespace FinalProject.States
             spriteBatch.End();
         }
 
-        // Checks the tile the player is facing for an Interactable and, if
-        // there's one there, opens its Text in the dialogue box. This is also
-        // the natural place a Teacher-boss encounter would hook in later
-        // (e.g. an Interactable that starts a BattleState instead of/after
-        // showing dialogue) — not wired up yet.
+        // opens the dialogue box if the tile the player is facing has an
+        // interactable on it. Teacher encounters will probably hook in here too
         private void TryInteract()
         {
             if (_map == null) return;
@@ -110,7 +131,21 @@ namespace FinalProject.States
             if (interactable != null)
                 _dialogueBox.Open(interactable.Text);
         }
-        
+
+#if DEBUG
+        // builds a test teacher and starts a battle. Push (not Replace) so
+        // this state resumes when the battle pops itself
+        private void StartDebugBattle()
+        {
+            string teachersDir = Path.GetFullPath(
+                Path.Combine(AppContext.BaseDirectory, "..", "..", "..", "Content", "Teachers"));
+            TeacherStats stats = TeacherLoader.Load(Path.Combine(teachersDir, "substitute.json"));
+            var teacher = new Teacher(stats);
+
+            StateManager.Push(new BattleState(Game, StateManager, teacher));
+        }
+#endif
+
         // ── Transitions ──────────────────────────────────────────────────────
 
         private void CheckTransitions()
@@ -134,6 +169,25 @@ namespace FinalProject.States
                 {
                     _transitioning = true;
                     LoadMap(t.TargetMap, t.SpawnX, t.SpawnY);
+                    _transitioning = false;
+                    return;
+                }
+            }
+        }
+
+        // Fires an on-step warp when the player is standing on a trigger tile.
+        // Unlike edge transitions these are interior tiles (e.g. stepping into
+        // the elevator), so there's no facing/edge check — just position.
+        private void CheckWarps()
+        {
+            if (_player.IsMoving || _transitioning) return;
+
+            foreach (MapWarp w in _warps)
+            {
+                if (w.ContainsTile(_player.TilePosition.X, _player.TilePosition.Y))
+                {
+                    _transitioning = true;
+                    LoadMap(w.TargetMap, w.SpawnX, w.SpawnY);
                     _transitioning = false;
                     return;
                 }
@@ -169,8 +223,10 @@ namespace FinalProject.States
             }
 
             _map = loaded;
+            _player.SetTileSize(_map.TileWidth);
             _player.Teleport(spawnX, spawnY);
             _transitions = LoadTransitions(mapsDir, mapName);
+            _warps       = LoadWarps(mapsDir, mapName);
 
             EventBus.Instance.Publish(new AreaChangedEvent(_currentAreaName));
         }
@@ -192,6 +248,21 @@ namespace FinalProject.States
                     ?? new List<MapTransition>();
             }
             catch { return new List<MapTransition>(); }
+        }
+
+        private static List<MapWarp> LoadWarps(string mapsDir, string mapName)
+        {
+            string path = Path.Combine(mapsDir, mapName + ".warps.json");
+            if (!File.Exists(path)) return new List<MapWarp>();
+
+            try
+            {
+                string json = File.ReadAllText(path);
+                var options = new JsonSerializerOptions { PropertyNameCaseInsensitive = true };
+                return JsonSerializer.Deserialize<List<MapWarp>>(json, options)
+                    ?? new List<MapWarp>();
+            }
+            catch { return new List<MapWarp>(); }
         }
 
         private static void LogDebug(string message)

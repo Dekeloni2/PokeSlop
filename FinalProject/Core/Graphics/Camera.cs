@@ -1,10 +1,9 @@
 // Core/Camera.cs
-using System;
 using Microsoft.Xna.Framework;
 using FinalProject.Entities;
 using FinalProject.World;
 
-namespace FinalProject.Core
+namespace FinalProject.Core.Graphics
 {
     // Follows the player and produces a transform matrix that offsets
     // everything drawn so the player stays centered on screen.
@@ -12,15 +11,6 @@ namespace FinalProject.Core
     public class Camera
     {
         public Vector2 Position { get; private set; }
-
-        private readonly int _halfWidth;
-        private readonly int _halfHeight;
-
-        public Camera()
-        {
-            _halfWidth  = GameSettings.WindowWidth  / 2;
-            _halfHeight = GameSettings.WindowHeight / 2;
-        }
 
         // Call this every frame before drawing.
         // Pass the current map so the camera can clamp to its edges.
@@ -31,12 +21,16 @@ namespace FinalProject.Core
             float viewH = GameSettings.WindowHeight / GameSettings.Zoom;
 
             // Center the viewport on the player's tile
-            float x = player.WorldPosition.X - viewW / 2f + GameSettings.TileSize / 2f;
-            float y = player.WorldPosition.Y - viewH / 2f + GameSettings.TileSize / 2f;
+            float x = player.WorldPosition.X - viewW / 2f + map.TileWidth  / 2f;
+            float y = player.WorldPosition.Y - viewH / 2f + map.TileHeight / 2f;
 
-            // Clamp so we never reveal world space outside the map
-            x = MathHelper.Clamp(x, 0, Math.Max(0f, map.PixelWidth  - viewW));
-            y = MathHelper.Clamp(y, 0, Math.Max(0f, map.PixelHeight - viewH));
+            // If the map is smaller than the viewport on an axis, center it (the
+            // camera sits at a negative offset) instead of pinning it to the
+            // top-left corner. Otherwise clamp so we never scroll past the edges.
+            x = map.PixelWidth  <= viewW ? (map.PixelWidth  - viewW) / 2f
+                                         : MathHelper.Clamp(x, 0, map.PixelWidth  - viewW);
+            y = map.PixelHeight <= viewH ? (map.PixelHeight - viewH) / 2f
+                                         : MathHelper.Clamp(y, 0, map.PixelHeight - viewH);
 
             Position = new Vector2(x, y);
         }

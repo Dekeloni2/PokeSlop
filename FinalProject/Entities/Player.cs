@@ -1,12 +1,10 @@
-using System.Runtime.InteropServices.Swift;
-using System.Text.Json.Serialization;
-
 namespace FinalProject.Entities;
 
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Input;
 using Microsoft.Xna.Framework.Graphics;
 using FinalProject.Core;
+using FinalProject.Core.Graphics;
 using FinalProject.World;
 
 public class Player : Sprite
@@ -22,7 +20,10 @@ public class Player : Sprite
     private Vector2 _moveDestination;
     private int     _walkStep;
 
-    public int _health;
+    // pixel size of a tile on the CURRENT map. Maps can differ (16px vs 20px),
+    // so this follows the loaded map rather than a global constant — otherwise
+    // the player is positioned on a different pixel grid than the map is drawn on.
+    private int     _tileSize = GameSettings.TileSize;
 
     private readonly Game1 _game;
     
@@ -38,8 +39,8 @@ public class Player : Sprite
     {
         new Rectangle(3,  37, 19, 29),
         new Rectangle(26, 37, 19, 29),
-        new Rectangle(49, 37, 19, 29),
-        new Rectangle(72, 37, 19, 29),
+        new Rectangle(3,  37, 19, 29),
+        new Rectangle(26, 37, 19, 29),
     };
 
     private static readonly Rectangle[] UpFrames =
@@ -73,15 +74,15 @@ public class Player : Sprite
         TilePosition  = new Point(startTileX, startTileY);
         WorldPosition = TileToWorld(TilePosition);
         Facing        = Direction.Down;
-        _moveTime     = GameSettings.TileSize / GameSettings.PlayerSpeed;
+        _moveTime     = _tileSize / GameSettings.PlayerSpeed;
     }
 
     public void Update(GameTime gameTime, TileMap map)
     {
         if (IsMoving)
-            UpdateMovementWorld(gameTime);
+            UpdateMovement(gameTime);
         else
-            HandleInputWorld(map);
+            HandleInput(map);
     }
 
     public void Teleport(int tileX, int tileY)
@@ -92,16 +93,16 @@ public class Player : Sprite
         _moveTimer    = 0f;
     }
 
-    private void HandleInputBattle()
+    // Called by the overworld when a map loads, so world positioning and
+    // step timing match that map's tile size. Re-anchors the current tile.
+    public void SetTileSize(int tileSize)
     {
-        foreach (var (key, direction) in _keyBindings)
-            if (_game.Input.IsKeyPressed(key))
-            {
-                
-            }
+        _tileSize     = tileSize;
+        _moveTime     = _tileSize / GameSettings.PlayerSpeed;
+        WorldPosition = TileToWorld(TilePosition);
     }
-    
-    private void HandleInputWorld(TileMap map)
+
+    private void HandleInput(TileMap map)
     {
         Direction? input = null;
 
@@ -135,13 +136,13 @@ public class Player : Sprite
         _walkStep = (_walkStep + 1) % 4;
     }
 
-    private void UpdateMovementWorld(GameTime gameTime)
+    private void UpdateMovement(GameTime gameTime)
     {
         _moveTimer += (float)gameTime.ElapsedGameTime.TotalSeconds;
-        float t = MathHelper.Clamp(_moveTimer / _moveTime, 0f, 1f);
-        WorldPosition = Vector2.Lerp(_moveOrigin, _moveDestination, t);
+        float lerpProgress = MathHelper.Clamp(_moveTimer / _moveTime, 0f, 1f);
+        WorldPosition = Vector2.Lerp(_moveOrigin, _moveDestination, lerpProgress);
 
-        if (t >= 1f)
+        if (lerpProgress >= 1f)
         {
             WorldPosition = _moveDestination;
             IsMoving      = false;
@@ -157,7 +158,7 @@ public class Player : Sprite
         (Rectangle[] frames, bool flip) = GetFrameSet(Facing);
         Rectangle src = frames[frameIndex];
 
-        int yOffset = -(src.Height - GameSettings.TileSize);
+        int yOffset = -(src.Height - _tileSize);
         Vector2 drawPos = new Vector2((int)WorldPosition.X, (int)WorldPosition.Y + yOffset);
 
         SpriteEffects effects = flip ? SpriteEffects.FlipHorizontally : SpriteEffects.None;
@@ -174,7 +175,7 @@ public class Player : Sprite
         _               => (DownFrames, false)
     };
 
-    private static Vector2 TileToWorld(Point tile)
-        => new Vector2(tile.X * GameSettings.TileSize, tile.Y * GameSettings.TileSize);
+    private Vector2 TileToWorld(Point tile)
+        => new Vector2(tile.X * _tileSize, tile.Y * _tileSize);
 
 }

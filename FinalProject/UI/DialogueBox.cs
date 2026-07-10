@@ -5,6 +5,8 @@ using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
 using FinalProject.Core;
+using FinalProject.Core.Input;
+using FinalProject.Core.Text;
 
 namespace FinalProject.UI
 {
@@ -136,13 +138,13 @@ namespace FinalProject.UI
 
         private void DrawBorder(SpriteBatch spriteBatch)
         {
-            Rectangle r = _boxRect;
-            int t = BorderThickness;
+            Rectangle boxRect = _boxRect;
+            int thickness = BorderThickness;
 
-            spriteBatch.Draw(_pixel, new Rectangle(r.X, r.Y, r.Width, t), Color.White);            // top
-            spriteBatch.Draw(_pixel, new Rectangle(r.X, r.Bottom - t, r.Width, t), Color.White);    // bottom
-            spriteBatch.Draw(_pixel, new Rectangle(r.X, r.Y, t, r.Height), Color.White);            // left
-            spriteBatch.Draw(_pixel, new Rectangle(r.Right - t, r.Y, t, r.Height), Color.White);    // right
+            spriteBatch.Draw(_pixel, new Rectangle(boxRect.X, boxRect.Y, boxRect.Width, thickness), Color.White);            // top
+            spriteBatch.Draw(_pixel, new Rectangle(boxRect.X, boxRect.Bottom - thickness, boxRect.Width, thickness), Color.White);    // bottom
+            spriteBatch.Draw(_pixel, new Rectangle(boxRect.X, boxRect.Y, thickness, boxRect.Height), Color.White);            // left
+            spriteBatch.Draw(_pixel, new Rectangle(boxRect.Right - thickness, boxRect.Y, thickness, boxRect.Height), Color.White);    // right
         }
 
         // Word-wraps text to fit the box width, then groups the resulting lines
@@ -151,28 +153,7 @@ namespace FinalProject.UI
         private List<string> Paginate(string text)
         {
             int maxWidth = _boxRect.Width - PaddingX * 2;
-            var lines = new List<string>();
-
-            foreach (string paragraph in text.Split('\n'))
-            {
-                string[] words = paragraph.Split(' ', StringSplitOptions.RemoveEmptyEntries);
-                string currentLine = "";
-
-                foreach (string word in words)
-                {
-                    string candidate = currentLine.Length == 0 ? word : currentLine + " " + word;
-                    if (_font.MeasureString(candidate).X > maxWidth && currentLine.Length > 0)
-                    {
-                        lines.Add(currentLine);
-                        currentLine = word;
-                    }
-                    else
-                    {
-                        currentLine = candidate;
-                    }
-                }
-                lines.Add(currentLine);
-            }
+            List<string> lines = TextWrap.ToLines(_font, text, maxWidth);
 
             var pages = new List<string>();
             for (int i = 0; i < lines.Count; i += MaxLinesPerPage)

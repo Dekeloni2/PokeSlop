@@ -3,10 +3,8 @@ using System.Collections.Generic;
 using FinalProject.Data;
 namespace FinalProject.Battle;
 
-// A boss Teacher, built from a TeacherStats blueprint. This is the runtime
-// instance BattleState fights — tracks the mutable stuff (current HP,
-// whether it's been spared) while Stats holds the fixed blueprint (max HP,
-// attack, moves).
+// a boss during battle. TeacherStats holds the fixed data (loaded from JSON),
+// this tracks what changes during the fight - HP, spare progress etc.
 public class Teacher
 {
     public TeacherStats Stats { get; }
@@ -21,6 +19,10 @@ public class Teacher
     public bool IsSpared { get; private set; }
 
     public bool IsAlive => CurrentHp > 0;
+
+    // mercy progress built up by ACT options. BattleState checks this
+    // against Stats.SpareSuccessAt before calling Spare()
+    public int SparePercent { get; private set; }
 
     public Teacher(TeacherStats stats)
     {
@@ -37,8 +39,8 @@ public class Teacher
     public void Heal(int amount)
         => CurrentHp = Math.Min(MaxHp, CurrentHp + amount);
 
-    // TODO: real mercy logic — right now this just flags the boss as spared.
-    // Undertale-style Spare usually only succeeds after enough ACT progress;
-    // that gating isn't modeled yet (see BattleState).
+    public void IncreaseSparePercent(int amount)
+        => SparePercent = Math.Clamp(SparePercent + amount, 0, 100);
+
     public void Spare() => IsSpared = true;
 }

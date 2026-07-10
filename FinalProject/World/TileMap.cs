@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using FinalProject.Core;
+using FinalProject.Core.Graphics;
 
 namespace FinalProject.World
 {
@@ -22,13 +23,20 @@ namespace FinalProject.World
 
         private readonly List<TilesetInfo> _tilesets;
         private readonly TileLayer         _groundLayer;
-        private readonly TileLayer         _tallGrassLayer;
         private readonly TileLayer         _objectsLayer;
+        private readonly TileLayer         _elevatorDoorLayer;
         private readonly List<Interactable> _interactables;
+
+        // Optional overlay layer drawn on top of the map — the elevator door.
+        // Flip ElevatorDoorVisible to "close"/"open" it without swapping maps.
+        // HasElevatorDoor is false on maps that don't define the layer.
+        public bool ElevatorDoorVisible { get; set; } = false;
+        public bool HasElevatorDoor => _elevatorDoorLayer != null;
 
         public TileMap(int width, int height, int tileWidth, int tileHeight,
                        List<TilesetInfo> tilesets,
-                       TileLayer groundLayer, TileLayer tallGrassLayer, TileLayer objectsLayer,
+                       TileLayer groundLayer, TileLayer objectsLayer,
+                       TileLayer elevatorDoorLayer = null,
                        List<Interactable> interactables = null)
         {
             Width         = width;
@@ -37,8 +45,8 @@ namespace FinalProject.World
             TileHeight    = tileHeight;
             _tilesets     = tilesets;
             _groundLayer  = groundLayer;
-            _tallGrassLayer = tallGrassLayer;
             _objectsLayer = objectsLayer;
+            _elevatorDoorLayer = elevatorDoorLayer;
             _interactables = interactables ?? new List<Interactable>();
         }
 
@@ -69,20 +77,15 @@ namespace FinalProject.World
             int maxX = Math.Min(Width,  (int)((camera.Position.X + viewW) / TileWidth)  + 2);
             int maxY = Math.Min(Height, (int)((camera.Position.Y + viewH) / TileHeight) + 2);
 
-            // Draw order: ground, tall grass (if any), then objects
+            // Draw order: ground, then objects
             DrawLayer(_groundLayer,   spriteBatch, minX, minY, maxX, maxY);
-            if (_tallGrassLayer != null)
-                DrawLayer(_tallGrassLayer, spriteBatch, minX, minY, maxX, maxY);
             DrawLayer(_objectsLayer,  spriteBatch, minX, minY, maxX, maxY);
-        }
 
-        // Returns true if the given tile coordinate contains tall grass
-        public bool IsTallGrass(int tileX, int tileY)
-        {
-            if (_tallGrassLayer == null) return false;
-            if (!_tallGrassLayer.InBounds(tileX, tileY)) return false;
-            return _tallGrassLayer.HasTile(tileX, tileY);
+            // the elevator door sits on top of the map; hide it to "open" the door
+            if (_elevatorDoorLayer != null && ElevatorDoorVisible)
+                DrawLayer(_elevatorDoorLayer, spriteBatch, minX, minY, maxX, maxY);
         }
+        
 
         // Returns the interactable covering the given tile (e.g. the tile the
         // player is facing), or null if there isn't one there.

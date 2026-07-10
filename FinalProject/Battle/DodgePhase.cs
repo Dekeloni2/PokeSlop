@@ -3,6 +3,8 @@ using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using FinalProject.Core;
 using FinalProject.Core.Input;
+using FinalProject.Core.Graphics;
+using FinalProject.Battle.Patterns;
 
 namespace FinalProject.Battle
 {
@@ -61,14 +63,30 @@ namespace FinalProject.Battle
             _projectiles.RemoveAll(p => p.IsExpired);
         }
 
+        
         public void Draw(SpriteBatch spriteBatch, Texture2D pixel)
         {
+            if (_pattern is BoatPattern)
+            {
+                Spritesheet boat = SpriteManager.GetSprite("boat");
+
+                Rectangle boatRect = new Rectangle(
+                    CurrentBox.Center.X - boat.Texture.Width * 3 / 2,
+                    CurrentBox.Bottom + 5,
+                    boat.Texture.Width * 3,
+                    boat.Texture.Height );
+
+                spriteBatch.Draw(boat.Texture, boatRect, boat[0, 0], Color.White);
+            }
+            
             DrawBoxBorder(spriteBatch, pixel);
 
             foreach (Projectile p in _projectiles)
                 p.Draw(spriteBatch, pixel);
 
             _hitbox.Draw(spriteBatch);
+            
+            
         }
 
         // ── DodgeContext surface ─────────────────────────────────────────────

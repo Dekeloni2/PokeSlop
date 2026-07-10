@@ -6,6 +6,7 @@ namespace FinalProject.Battle.Patterns;
 
 public class BoatPattern : IBulletPattern
 {
+    
     public float Duration => 10f;
     
     private float _smokeSpawnTimer;

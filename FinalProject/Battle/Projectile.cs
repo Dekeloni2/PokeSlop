@@ -72,5 +72,6 @@ namespace FinalProject.Battle
                 
             spriteBatch.Draw(pixel, Bounds, renderColor);
         }
+        
     }
 }

@@ -1,6 +1,7 @@
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using FinalProject.Core;
+using FinalProject.Core.Graphics;
 
 namespace FinalProject.Battle
 {
@@ -8,7 +9,8 @@ namespace FinalProject.Battle
     public enum ProjectileType
     {
         Normal,
-        Smoke
+        Smoke, // ship attack
+        Laser // garlic gun
     }
     
     public class Projectile
@@ -22,11 +24,13 @@ namespace FinalProject.Battle
         public int ProjectileWidth => Type switch
         {
             ProjectileType.Smoke => 25,
+            ProjectileType.Laser => 20, 
             _ => GameSettings.DodgeProjectileSize // default size
         };
         
         public int ProjectileHeight => Type switch {
             ProjectileType.Smoke => 25,
+            ProjectileType.Laser => 50,
             _ => GameSettings.DodgeProjectileSize // default size
         }; 
         
@@ -42,13 +46,15 @@ namespace FinalProject.Battle
             Velocity = velocity;
             Type = type;
         }
+        
+        private float _lifeTime;
 
         // expires once it's fully outside the current box (plus a margin)
         public void Update(GameTime gameTime, Rectangle box)
         {
             float dt = (float)gameTime.ElapsedGameTime.TotalSeconds;
             Position += Velocity * dt;
-
+            
             Rectangle expireBounds = new Rectangle(
                 box.X - GameSettings.DodgeBoundsMargin,
                 box.Y - GameSettings.DodgeBoundsMargin,
@@ -64,6 +70,16 @@ namespace FinalProject.Battle
 
         public void Draw(SpriteBatch spriteBatch, Texture2D pixel)
         {
+            if (Type == ProjectileType.Laser)
+            {
+                var sheet = SpriteManager.GetSprite("garlicGun");
+                if (sheet != null)
+                {
+                    spriteBatch.Draw(sheet.Texture, Bounds, Color.White);
+                }
+                return;
+            }
+            
             Color renderColor = Type switch
             {
                 ProjectileType.Smoke => Color.Gray * 0.6f,

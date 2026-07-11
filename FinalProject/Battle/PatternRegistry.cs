@@ -10,10 +10,11 @@ namespace FinalProject.Battle
     {
         private static readonly Dictionary<string, Func<IBulletPattern>> Patterns = new()
         {
-            ["Rain"] = () => new RainPattern(), 
-            ["ExpandingBox"] = () => new ExpandingBoxPattern(), 
-            ["Boat"] = () => new BoatPattern(),
-            ["Napoleon"] = () => new NapoleonPattern(),
+            ["Rain"] = () => new GarlicGunPattern(), // RainPattern
+            ["ExpandingBox"] = () => new GarlicGunPattern(), // ExpandingBoxPattern
+            ["Boat"] = () => new GarlicGunPattern(), // BoatPattern
+            //["Napoleon"] = () => new NapoleonPattern(), // NapoleonPattern
+            ["Vegeta"] = () => new GarlicGunPattern(), // GarlicGunPattern
         };
 
         public static Func<IBulletPattern> Resolve(string name)

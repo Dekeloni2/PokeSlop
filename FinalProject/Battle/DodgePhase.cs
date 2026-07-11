@@ -79,6 +79,24 @@ namespace FinalProject.Battle
                 spriteBatch.Draw(boat.Texture, boatRect, boat[0, 0], Color.White);
             }
             
+            if (_pattern is GarlicGunPattern garlic && garlic.IsWarning)
+            {
+                Spritesheet vegeta = SpriteManager.GetSprite("vegeta");
+
+                int lane = garlic.CurrentWarningLane;
+
+                float laneHeight = CurrentBox.Height / 3f;
+                float y = CurrentBox.Top + (lane * laneHeight) + laneHeight / 2f;
+
+                Rectangle vegetaRect = new Rectangle(
+                    CurrentBox.Left - vegeta.Texture.Width,
+                    (int)y - vegeta.Texture.Height / 2,
+                    vegeta.Texture.Width,
+                    vegeta.Texture.Height);
+
+                spriteBatch.Draw(vegeta.Texture, vegetaRect, Color.White);
+            }
+            
             DrawBoxBorder(spriteBatch, pixel);
 
             foreach (Projectile p in _projectiles)

@@ -68,7 +68,7 @@ namespace FinalProject
             SpriteManager.AddSprite("attackBar", "Sprites/Battle/attack_target", 2, 1, 6);
             SpriteManager.AddSprite("boat", "Sprites/AttackPatterns/boat");
             SpriteManager.AddSprite("garlicGun", "Sprites/AttackPatterns/GarlicGun");
-            SpriteManager.AddSprite("vegeta", "Sprites/AttackPatterns/Vegeta");
+            SpriteManager.AddSprite("vegeta", "Sprites/AttackPatterns/Vegeta",5 , 1);
 
 #if DEBUG
             LoadStartingInventory();

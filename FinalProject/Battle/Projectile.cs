@@ -24,7 +24,7 @@ namespace FinalProject.Battle
         public int ProjectileWidth => Type switch
         {
             ProjectileType.Smoke => 25,
-            ProjectileType.Laser => 20, 
+            ProjectileType.Laser => 40, 
             _ => GameSettings.DodgeProjectileSize // default size
         };
         

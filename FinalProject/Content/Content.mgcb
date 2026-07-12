@@ -44,17 +44,17 @@
 /processorParam:TextureFormat=Color
 /build:Sprites/AttackPatterns/GarlicGun.png
 
-#begin Sprites/AttackPatterns/Vegeta.jpg
+#begin Sprites/AttackPatterns/Vegeta.png
 /importer:TextureImporter
 /processor:TextureProcessor
 /processorParam:ColorKeyColor=255,0,255,255
-/processorParam:ColorKeyEnabled=True
+/processorParam:ColorKeyEnabled=False
 /processorParam:GenerateMipmaps=False
 /processorParam:PremultiplyAlpha=True
 /processorParam:ResizeToPowerOfTwo=False
 /processorParam:MakeSquare=False
 /processorParam:TextureFormat=Color
-/build:Sprites/AttackPatterns/Vegeta.jpg
+/build:Sprites/AttackPatterns/Vegeta.png
 
 #begin Sprites/Battle/attack_minigame.png
 /importer:TextureImporter
@@ -103,6 +103,18 @@
 /processorParam:MakeSquare=False
 /processorParam:TextureFormat=Color
 /build:Sprites/Battle/Soul.png
+
+#begin Sprites/Battle/warning.png
+/importer:TextureImporter
+/processor:TextureProcessor
+/processorParam:ColorKeyColor=255,0,255,255
+/processorParam:ColorKeyEnabled=False
+/processorParam:GenerateMipmaps=False
+/processorParam:PremultiplyAlpha=True
+/processorParam:ResizeToPowerOfTwo=False
+/processorParam:MakeSquare=False
+/processorParam:TextureFormat=Color
+/build:Sprites/Battle/warning.png
 
 #begin Sprites/Player/student_world.png
 /importer:TextureImporter

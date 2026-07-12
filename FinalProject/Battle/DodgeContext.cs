@@ -18,6 +18,11 @@ namespace FinalProject.Battle
         public void SpawnProjectile(Vector2 position, Vector2 velocity, ProjectileType type = ProjectileType.Normal)
             => _phase.SpawnProjectile(position, velocity,  type);
 
+        // a persistent damaging beam. Returns a handle so the pattern can move
+        // or remove it; DodgePhase draws it and applies its continuous damage.
+        public Beam AddBeam(Rectangle bounds) => _phase.AddBeam(bounds);
+        public void RemoveBeam(Beam beam)     => _phase.RemoveBeam(beam);
+
         // resize the arena, DodgePhase animates the transition
         public void ResizeBoxTo(Rectangle target, float overSeconds)
             => _phase.ResizeBoxTo(target, overSeconds);

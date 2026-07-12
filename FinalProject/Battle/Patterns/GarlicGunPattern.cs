@@ -1,158 +1,194 @@
-using Microsoft.Xna.Framework;
 using System;
-using FinalProject.Core;
+using Microsoft.Xna.Framework;
 
 namespace FinalProject.Battle.Patterns;
 
+
 public class GarlicGunPattern : IBulletPattern
 {
-    public bool IsWarning => _stateA == BlasterState.Warning || _stateB == BlasterState.Warning;
+    public float Duration => 30f;
 
-    public float Duration => 10f;
-    
-    private enum BlasterState { Idle, Warning, Firing }
-    
-    // blaster A slot
-    private BlasterState _stateA = BlasterState.Idle; 
-    private int _laneA = -1;
-    private float _timerA;
-    private float _shotTimerA;
+    private enum State { Charging, Firing, Vanishing, Done }
 
-    // blaster B slot
-    private BlasterState _stateB = BlasterState.Idle;
-    private int _laneB = -1;
-    private float _timerB;
-    private float _shotTimerB;
-    
-    public int CurrentWarningLane
+    private State _state;
+    private float _timer;   // time spent in the current state
+
+    private int  _lane;          // 0 = top, 1 = middle, 2 = bottom
+    private bool _fromLeft;      // which side Vegeta stands on
+    private bool _isFeint;       // this cycle charges but never fires (a fake-out)
+
+    private Beam _beam;          // the live beam during Firing
+
+    // warning telegraph flash
+    private int   _warningFrame;
+    private float _warningFrameTimer;
+
+    // base cycle length, before the end-of-turn speed ramp is applied
+    private const float BaseChargeSeconds = 0.9f;
+    private const float BaseFireSeconds   = 1.1f;
+
+    // he shoots faster the closer the turn gets to its end: the cycle length
+    // scales from StartSpeedMul (slow) to EndSpeedMul (fast) as Elapsed
+    // progresses through Duration.
+    private const float StartSpeedMul = 1.0f;
+    private const float EndSpeedMul   = 0.22f;
+    private float _speedMul = StartSpeedMul;
+
+    private const float FeintChance         = 0.1f;  // fraction of charges that are fake-outs
+    private const float WarningFlashSeconds = 0.08f; // per warning frame
+    private const int   BeamThickness       = 30;
+    private const float BeamExtendSeconds   = 0.12f; // beam sweep-in time
+
+    // Vegeta's sprite is a one-shot per phase: each phase shows its first frame
+    // briefly then holds the second. FirstFrameSeconds is how long the first
+    // frame stays up before holding.
+    private const float FirstFrameSeconds = 0.12f;
+    // the flip-out pose (frame 4) holds this long before he teleports away
+    private const float VanishSeconds     = 0.22f;
+
+    // exposed for DodgePhase to draw Vegeta + the warning telegraph
+    public bool IsCharging  => _state == State.Charging;
+    public bool IsFiring    => _state == State.Firing;
+    public bool IsVanishing => _state == State.Vanishing;
+    public bool FromLeft    => _fromLeft;
+    public int  WarningFrame => _warningFrame;
+
+    // 0→1 through the charge phase, used to reveal the warning markers one by one
+    public float ChargeProgress => _state == State.Charging
+        ? MathHelper.Clamp(_timer / (BaseChargeSeconds * _speedMul), 0f, 1f)
+        : 1f;
+
+    // charge: frame 0 then hold 1 · fire: frame 2 then hold 3 · vanish: frame 4
+    public int VegetaFrame => _state switch
     {
-        get
-        {
-            if (_stateA == BlasterState.Warning)
-                return _laneA;
+        State.Charging  => _timer < FirstFrameSeconds ? 0 : 1,
+        State.Firing    => _timer < FirstFrameSeconds ? 2 : 3,
+        State.Vanishing => 4,
+        _               => 1
+    };
 
-            if (_stateB == BlasterState.Warning)
-                return _laneB;
-
-            return -1;
-        }
+    // the full lane strip — where the warning telegraph is drawn and where the
+    // beam ends up once it has finished sweeping across
+    public Rectangle LaneRect(Rectangle box)
+    {
+        float laneHeight = box.Height / 3f;
+        int centerY = (int)(box.Top + _lane * laneHeight + laneHeight / 2f);
+        return new Rectangle(box.Left, centerY - BeamThickness / 2, box.Width, BeamThickness);
     }
-    
-    // spawn settings
-    private float _globalSpawnTimer;
-    private float _spawnInterval = 1.0f; // time between each blaster slot
-    private int _lastChosenLane = -1;
-    
-    // duration settings
-    private const float WarningDuration = 0.8f;
-    private const float FireDuration = 0.6f;
-    
-    private const float LaserFireRate = 0.04f; // time between each cube (lower = denser beam)
-    private const float LaserSpeed = 650f; 
-    
+
     public void Start(DodgeContext context)
     {
-        _stateA = BlasterState.Idle;
-        _stateB = BlasterState.Idle;
-        _globalSpawnTimer = 0f;
-        _lastChosenLane = -1;
+        BeginCharge(context);
     }
 
     public void Update(GameTime gameTime, DodgeContext context)
     {
         float dt = (float)gameTime.ElapsedGameTime.TotalSeconds;
-        Rectangle box = context.CurrentBox;
+        _timer += dt;
 
-        if (context.Elapsed >= Duration)
-        {
-            if (_stateA == BlasterState.Idle && _stateB == BlasterState.Idle) return;
-        }
-        else
-        {
-            _globalSpawnTimer += dt;
-            if (_globalSpawnTimer >= _spawnInterval)
-            {
-                _globalSpawnTimer = 0f;
-                TryTriggerNextBlaster();
-            }
-        }
-        
-        // state manager
-        ProcessSlot(dt, context, box, ref _stateA, ref _timerA, ref _shotTimerA, _laneA);
-        ProcessSlot(dt, context, box, ref _stateB, ref _timerB, ref _shotTimerB, _laneB);
-    }
-    
-    private void TryTriggerNextBlaster()
-    {
-        // prevents picking the same line twice in a row
-        int chosenLane;
-        do
-        {
-            chosenLane = Random.Shared.Next(3);
-        } 
-        while (chosenLane == _lastChosenLane);
-        _lastChosenLane = chosenLane;
+        // ramp the cycle speed up as the turn nears its end. Squaring the
+        // progress eases it in — he stays slow through the early/mid turn, then
+        // the speedup concentrates in the final stretch for a frantic finish.
+        float progress = MathHelper.Clamp(context.Elapsed / Duration, 0f, 1f);
+        _speedMul = MathHelper.Lerp(StartSpeedMul, EndSpeedMul, progress * progress);
 
-        // activate which slot is currently idle
-        if (_stateA == BlasterState.Idle)
+        switch (_state)
         {
-            _laneA = chosenLane;
-            _timerA = 0f;
-            _stateA = BlasterState.Warning; // change state
-        }
-        else if (_stateB == BlasterState.Idle)
-        {
-            _laneB = chosenLane;
-            _timerB = 0f;
-            _stateB = BlasterState.Warning; // change state
-        }
-    }
-
-    private void ProcessSlot(float dt, DodgeContext context, Rectangle box, ref BlasterState state, ref float timer, ref float shotTimer, int lane)
-    {
-        if (state == BlasterState.Idle) return;
-
-        timer += dt;
-        float laneHeight = box.Height / 3f;
-        
-        // centered vertically within the lane tracking bounds
-        float laneCenterY = box.Top + (lane * laneHeight) + (laneHeight / 2f);
-
-        // position the sprite nicely off-screen to the left
-        Vector2 blasterPos = new Vector2(box.Left - 40f, laneCenterY);
-        
-        Vector2 streamSpawnOrigin = new Vector2(box.Left, laneCenterY);
-        Vector2 laserVelocity = new Vector2(LaserSpeed, 0f);
-
-        switch (state)
-        {
-            case BlasterState.Warning:
-                
-                if (timer >= WarningDuration)
+            case State.Charging:
+                _warningFrameTimer += dt;
+                if (_warningFrameTimer >= WarningFlashSeconds)
                 {
-                    timer = 0f;
-                    shotTimer = 0f;
-                    state = BlasterState.Firing;
+                    _warningFrameTimer -= WarningFlashSeconds;
+                    _warningFrame = (_warningFrame + 1) % 3;
+                }
+
+                if (_timer >= BaseChargeSeconds * _speedMul)
+                {
+                    if (_isFeint)
+                        BeginVanish(context); // charged up, but never fires
+                    else
+                        BeginFire(context);
                 }
                 break;
 
-            case BlasterState.Firing:
+            case State.Firing:
+                // the beam sweeps across from Vegeta's side, then holds full width
+                if (_beam != null)
+                    _beam.Bounds = BeamRect(context.CurrentBox, _timer);
 
-                shotTimer += dt;
-                
-                while (shotTimer >= LaserFireRate)
-                {
-                    context.SpawnProjectile(streamSpawnOrigin, laserVelocity, ProjectileType.Laser);
-                    shotTimer -= LaserFireRate;
-                }
+                if (_timer >= BaseFireSeconds * _speedMul)
+                    BeginVanish(context);
+                break;
 
-                if (timer >= FireDuration)
+            case State.Vanishing:
+                if (_timer >= VanishSeconds)
                 {
-                    timer = 0f;
-                    shotTimer = 0f;
-                    state = BlasterState.Idle;
+                    if (context.Elapsed < Duration)
+                        BeginCharge(context);
+                    else
+                        _state = State.Done;
                 }
                 break;
+
+            case State.Done:
+                break;
         }
+    }
+
+    private void BeginCharge(DodgeContext context)
+    {
+        _state = State.Charging;
+        _timer = 0f;
+        _warningFrame = 0;
+        _warningFrameTimer = 0f;
+
+        _fromLeft = Random.Shared.Next(2) == 0;
+        _isFeint  = Random.Shared.NextDouble() < FeintChance;
+
+        // aim at the lane the player is standing in right now — they have to
+        // move out of it during the charge to dodge
+        _lane = LaneOf(context.HitboxPosition.Y, context.CurrentBox);
+    }
+
+    private static int LaneOf(float y, Rectangle box)
+    {
+        int lane = (int)((y - box.Top) / (box.Height / 3f));
+        if (lane < 0) lane = 0;
+        if (lane > 2) lane = 2;
+        return lane;
+    }
+
+    private void BeginFire(DodgeContext context)
+    {
+        _state = State.Firing;
+        _timer = 0f;
+        _beam = context.AddBeam(BeamRect(context.CurrentBox, 0f));
+    }
+
+    private void BeginVanish(DodgeContext context)
+    {
+        EndFire(context);
+        _state = State.Vanishing;
+        _timer = 0f;
+    }
+
+    private void EndFire(DodgeContext context)
+    {
+        if (_beam != null)
+        {
+            context.RemoveBeam(_beam);
+            _beam = null;
+        }
+    }
+
+    // the beam grows from Vegeta's side across the box over BeamExtendSeconds,
+    // so it reads as a sweeping wave rather than snapping to full width
+    private Rectangle BeamRect(Rectangle box, float fireElapsed)
+    {
+        Rectangle lane = LaneRect(box);
+        float t = MathHelper.Clamp(fireElapsed / BeamExtendSeconds, 0f, 1f);
+        int width = (int)(box.Width * t);
+        int x = _fromLeft ? box.Left : box.Right - width;
+        return new Rectangle(x, lane.Y, width, lane.Height);
     }
 }

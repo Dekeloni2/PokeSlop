@@ -17,15 +17,17 @@ namespace FinalProject.Battle
         private readonly PlayerData     _playerData;
         private readonly PlayerHitbox   _hitbox;
         private readonly List<Projectile> _projectiles = new();
+        private readonly List<Beam>       _beams       = new();
 
         private readonly Rectangle   _baseBox;
         private readonly TweeningBox _box;
 
         private float _elapsed;
 
-        // wait for leftover bullets to clear the arena before ending the turn,
-        // otherwise the box starts shrinking back while bullets are still flying
-        public bool IsFinished => _elapsed >= _pattern.Duration && _projectiles.Count == 0;
+        // wait for leftover bullets/beams to clear the arena before ending the
+        // turn, otherwise the box starts shrinking back while hazards are live
+        public bool IsFinished => _elapsed >= _pattern.Duration
+                                  && _projectiles.Count == 0 && _beams.Count == 0;
         public Rectangle CurrentBox => _box.Current;
 
         internal float     Elapsed        => _elapsed;
@@ -59,6 +61,7 @@ namespace FinalProject.Battle
                 p.Update(gameTime, _box.Current);
 
             CheckCollisions();
+            CheckBeamDamage(dt);
 
             _projectiles.RemoveAll(p => p.IsExpired);
         }
@@ -79,25 +82,66 @@ namespace FinalProject.Battle
                 spriteBatch.Draw(boat.Texture, boatRect, boat[0, 0], Color.White);
             }
             
-            if (_pattern is GarlicGunPattern garlic && garlic.IsWarning)
+            if (_pattern is GarlicGunPattern garlic && (garlic.IsCharging || garlic.IsFiring || garlic.IsVanishing))
             {
+                Rectangle laneRect = garlic.LaneRect(CurrentBox);
+
+                // tile several "!" markers across the lane instead of stretching
+                // one, so it reads as a clear "danger here" strip, not a smear
+                if (garlic.IsCharging)
+                {
+                    Spritesheet warning = SpriteManager.GetSprite("warning");
+                    if (warning != null)
+                    {
+                        Rectangle frame = warning[garlic.WarningFrame, 0];
+
+                        // draw each marker at its native pixel size (1:1) so point
+                        // sampling stays crisp — scaling to a non-matching size is
+                        // what made them look warped. Space them evenly along the lane.
+                        int markerW = frame.Width;
+                        int markerH = frame.Height;
+                        int stride  = markerW + markerW / 3; // native width + a gap
+                        int count   = laneRect.Width / stride;
+                        if (count < 1) count = 1;
+                        float step = laneRect.Width / (float)count;
+                        int y = laneRect.Center.Y - markerH / 2;
+
+                        // reveal the markers one at a time across the charge, from
+                        // Vegeta's side outward (the way the beam will travel)
+                        int shown = (int)(count * garlic.ChargeProgress) + 1;
+                        if (shown > count) shown = count;
+
+                        for (int i = 0; i < count; i++)
+                        {
+                            bool revealed = garlic.FromLeft ? i < shown : i >= count - shown;
+                            if (!revealed) continue;
+
+                            int cx = laneRect.Left + (int)(i * step + (step - markerW) / 2f);
+                            spriteBatch.Draw(warning.Texture,
+                                new Rectangle(cx, y, markerW, markerH), frame, Color.White);
+                        }
+                    }
+                }
+
+                // Vegeta stands just off the firing side, facing inward
                 Spritesheet vegeta = SpriteManager.GetSprite("vegeta");
-
-                int lane = garlic.CurrentWarningLane;
-
-                float laneHeight = CurrentBox.Height / 3f;
-                float y = CurrentBox.Top + (lane * laneHeight) + laneHeight / 2f;
-
-                Rectangle vegetaRect = new Rectangle(
-                    CurrentBox.Left - vegeta.Texture.Width,
-                    (int)y - vegeta.Texture.Height / 2,
-                    vegeta.Texture.Width,
-                    vegeta.Texture.Height);
-
-                spriteBatch.Draw(vegeta.Texture, vegetaRect, Color.White);
+                if (vegeta != null)
+                {
+                    Rectangle src = vegeta[garlic.VegetaFrame % vegeta.Columns, 0];
+                    int w = src.Width * 2, h = src.Height * 2;
+                    int vy = laneRect.Center.Y - h / 2;
+                    Rectangle dst = garlic.FromLeft
+                        ? new Rectangle(CurrentBox.Left - w, vy, w, h)
+                        : new Rectangle(CurrentBox.Right, vy, w, h);
+                    SpriteEffects fx = garlic.FromLeft ? SpriteEffects.None : SpriteEffects.FlipHorizontally;
+                    spriteBatch.Draw(vegeta.Texture, dst, src, Color.White, 0f, Vector2.Zero, fx, 0f);
+                }
             }
-            
+
             DrawBoxBorder(spriteBatch, pixel);
+
+            foreach (Beam beam in _beams)
+                beam.Draw(spriteBatch, pixel);
 
             foreach (Projectile p in _projectiles)
                 p.Draw(spriteBatch, pixel);
@@ -111,6 +155,15 @@ namespace FinalProject.Battle
 
         internal void SpawnProjectile(Vector2 position, Vector2 velocity, ProjectileType type = ProjectileType.Normal)
             => _projectiles.Add(new Projectile(position, velocity,  type));
+
+        internal Beam AddBeam(Rectangle bounds)
+        {
+            var beam = new Beam(bounds);
+            _beams.Add(beam);
+            return beam;
+        }
+
+        internal void RemoveBeam(Beam beam) => _beams.Remove(beam);
 
         internal void ResizeBoxTo(Rectangle target, float overSeconds)
             => _box.ResizeTo(target, overSeconds);
@@ -129,6 +182,15 @@ namespace FinalProject.Battle
                     p.Expire(); // so the same bullet can't hit twice
                 }
             }
+        }
+
+        // beams don't expire on contact — they deal a flat 1 damage on a fixed
+        // cadence for as long as the soul stays inside them
+        private void CheckBeamDamage(float dt)
+        {
+            foreach (Beam beam in _beams)
+                if (beam.Tick(dt, _hitbox.Bounds))
+                    _playerData.TakeDamage(Beam.Damage);
         }
 
         private void DrawBoxBorder(SpriteBatch spriteBatch, Texture2D pixel)

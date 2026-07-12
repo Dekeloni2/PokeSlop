@@ -84,7 +84,7 @@ namespace FinalProject.Battle
             
             if (_pattern is GarlicGunPattern garlic && (garlic.IsCharging || garlic.IsFiring || garlic.IsVanishing))
             {
-                Rectangle laneRect = garlic.LaneRect(CurrentBox);
+                Rectangle laneRect = garlic.BeamStrip(CurrentBox);
 
                 // tile several "!" markers across the lane instead of stretching
                 // one, so it reads as a clear "danger here" strip, not a smear

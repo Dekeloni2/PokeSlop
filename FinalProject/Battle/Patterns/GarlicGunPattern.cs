@@ -13,9 +13,9 @@ public class GarlicGunPattern : IBulletPattern
     private State _state;
     private float _timer;   // time spent in the current state
 
-    private int  _lane;          // 0 = top, 1 = middle, 2 = bottom
-    private bool _fromLeft;      // which side Vegeta stands on
-    private bool _isFeint;       // this cycle charges but never fires (a fake-out)
+    private float _beamCenterY;  // world Y the beam is centered on (tracks player)
+    private bool  _fromLeft;     // which side Vegeta stands on
+    private bool  _isFeint;      // this cycle charges but never fires (a fake-out)
 
     private Beam _beam;          // the live beam during Firing
 
@@ -67,13 +67,12 @@ public class GarlicGunPattern : IBulletPattern
         _               => 1
     };
 
-    // the full lane strip — where the warning telegraph is drawn and where the
-    // beam ends up once it has finished sweeping across
-    public Rectangle LaneRect(Rectangle box)
+    // the strip the beam occupies — centered on the player's tracked Y, and
+    // where the warning telegraph is drawn.
+    public Rectangle BeamStrip(Rectangle box)
     {
-        float laneHeight = box.Height / 3f;
-        int centerY = (int)(box.Top + _lane * laneHeight + laneHeight / 2f);
-        return new Rectangle(box.Left, centerY - BeamThickness / 2, box.Width, BeamThickness);
+        int top = (int)(_beamCenterY - BeamThickness / 2f);
+        return new Rectangle(box.Left, top, box.Width, BeamThickness);
     }
 
     public void Start(DodgeContext context)
@@ -145,17 +144,12 @@ public class GarlicGunPattern : IBulletPattern
         _fromLeft = Random.Shared.Next(2) == 0;
         _isFeint  = Random.Shared.NextDouble() < FeintChance;
 
-        // aim at the lane the player is standing in right now — they have to
-        // move out of it during the charge to dodge
-        _lane = LaneOf(context.HitboxPosition.Y, context.CurrentBox);
-    }
-
-    private static int LaneOf(float y, Rectangle box)
-    {
-        int lane = (int)((y - box.Top) / (box.Height / 3f));
-        if (lane < 0) lane = 0;
-        if (lane > 2) lane = 2;
-        return lane;
+        // aim the beam straight at the player's current Y — they have to move
+        // clear of it during the charge to dodge. Clamped so the strip stays
+        // fully inside the box.
+        float half = BeamThickness / 2f;
+        _beamCenterY = MathHelper.Clamp(context.HitboxPosition.Y,
+            context.CurrentBox.Top + half, context.CurrentBox.Bottom - half);
     }
 
     private void BeginFire(DodgeContext context)
@@ -185,10 +179,10 @@ public class GarlicGunPattern : IBulletPattern
     // so it reads as a sweeping wave rather than snapping to full width
     private Rectangle BeamRect(Rectangle box, float fireElapsed)
     {
-        Rectangle lane = LaneRect(box);
+        Rectangle strip = BeamStrip(box);
         float t = MathHelper.Clamp(fireElapsed / BeamExtendSeconds, 0f, 1f);
         int width = (int)(box.Width * t);
         int x = _fromLeft ? box.Left : box.Right - width;
-        return new Rectangle(x, lane.Y, width, lane.Height);
+        return new Rectangle(x, strip.Y, width, strip.Height);
     }
 }

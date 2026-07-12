@@ -10,7 +10,7 @@ namespace FinalProject.Battle
     // the list of active beams; patterns add/remove them via DodgeContext.
     public class Beam
     {
-        public const int   Damage         = 1;
+        public const int   Damage         = 5;
         private const float DamageInterval = 0.25f; // seconds between damage ticks
 
         public Rectangle Bounds { get; set; }

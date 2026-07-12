@@ -24,8 +24,8 @@ public class GarlicGunPattern : IBulletPattern
     private float _warningFrameTimer;
 
     // base cycle length, before the end-of-turn speed ramp is applied
-    private const float BaseChargeSeconds = 0.9f;
-    private const float BaseFireSeconds   = 1.1f;
+    private const float BaseChargeSeconds = 0.6f;
+    private const float BaseFireSeconds   = 0.9f;
 
     // he shoots faster the closer the turn gets to its end: the cycle length
     // scales from StartSpeedMul (slow) to EndSpeedMul (fast) as Elapsed
@@ -36,7 +36,7 @@ public class GarlicGunPattern : IBulletPattern
 
     private const float FeintChance         = 0.1f;  // fraction of charges that are fake-outs
     private const float WarningFlashSeconds = 0.08f; // per warning frame
-    private const int   BeamThickness       = 30;
+    private const int   BeamThickness       = 40;
     private const float BeamExtendSeconds   = 0.12f; // beam sweep-in time
 
     // Vegeta's sprite is a one-shot per phase: each phase shows its first frame

@@ -5,11 +5,11 @@
   "baseAtk": 4,
   "moves": [
     {
-      "name": "Galick Gun",
+      "name": "Hex Field",
       "power": 1,
       "accuracy": 100,
-      "description": "Vegeta fires his galick gun.",
-      "pattern": "Vegeta"
+      "description": "Hexagons bloom across the arena.",
+      "pattern": "Hexagon"
     }
   ],
   "actOptions": [

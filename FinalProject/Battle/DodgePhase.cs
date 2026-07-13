@@ -18,16 +18,17 @@ namespace FinalProject.Battle
         private readonly PlayerHitbox   _hitbox;
         private readonly List<Projectile> _projectiles = new();
         private readonly List<Beam>       _beams       = new();
+        private readonly List<HexHazard>  _hexes       = new();
 
         private readonly Rectangle   _baseBox;
         private readonly TweeningBox _box;
 
         private float _elapsed;
 
-        // wait for leftover bullets/beams to clear the arena before ending the
-        // turn, otherwise the box starts shrinking back while hazards are live
+        // wait for leftover hazards to clear the arena before ending the turn,
+        // otherwise the box starts shrinking back while hazards are live
         public bool IsFinished => _elapsed >= _pattern.Duration
-                                  && _projectiles.Count == 0 && _beams.Count == 0;
+                                  && _projectiles.Count == 0 && _beams.Count == 0 && _hexes.Count == 0;
         public Rectangle CurrentBox => _box.Current;
 
         internal float     Elapsed        => _elapsed;
@@ -63,7 +64,12 @@ namespace FinalProject.Battle
             CheckCollisions();
             CheckBeamDamage(dt);
 
+            foreach (HexHazard hex in _hexes)
+                hex.Update(dt, _box.Current);
+            CheckHexDamage();
+
             _projectiles.RemoveAll(p => p.IsExpired);
+            _hexes.RemoveAll(h => h.IsFinished);
         }
 
         
@@ -143,6 +149,9 @@ namespace FinalProject.Battle
             foreach (Beam beam in _beams)
                 beam.Draw(spriteBatch, pixel);
 
+            foreach (HexHazard hex in _hexes)
+                hex.Draw(spriteBatch, pixel);
+
             foreach (Projectile p in _projectiles)
                 p.Draw(spriteBatch, pixel);
 
@@ -164,6 +173,12 @@ namespace FinalProject.Battle
         }
 
         internal void RemoveBeam(Beam beam) => _beams.Remove(beam);
+
+        internal int HexCount => _hexes.Count;
+
+        internal void SpawnHex(Vector2 center, float startRadius, float maxRadius,
+            float rotation, float growSeconds, float explodeSpeed)
+            => _hexes.Add(new HexHazard(center, startRadius, maxRadius, rotation, growSeconds, explodeSpeed));
 
         internal void ResizeBoxTo(Rectangle target, float overSeconds)
             => _box.ResizeTo(target, overSeconds);
@@ -191,6 +206,14 @@ namespace FinalProject.Battle
             foreach (Beam beam in _beams)
                 if (beam.Tick(dt, _hitbox.Bounds))
                     _playerData.TakeDamage(Beam.Damage);
+        }
+
+        // hexagon edges hurt continuously too, on their own damage cadence
+        private void CheckHexDamage()
+        {
+            foreach (HexHazard hex in _hexes)
+                if (hex.TickDamage(_hitbox.Bounds))
+                    _playerData.TakeDamage(HexHazard.Damage);
         }
 
         private void DrawBoxBorder(SpriteBatch spriteBatch, Texture2D pixel)

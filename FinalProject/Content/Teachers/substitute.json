@@ -32,7 +32,7 @@
       "name": "Joke",
       "description": "You make a funny joke about how clovers dont bite.",
       "extraMessages": [ "The Substitute doesn't seem to really get the joke." ],
-      "spareGain": 5
+      "spareGain": 50
     }
   ],
   "spareSuccessAt": 100,
@@ -46,5 +46,10 @@
     { "minPercent": 67, "text": " * The Substitute is annoyed with you and is preparing an attack." },
     { "minPercent": 34, "text": " * The Substitute grits their teeth and gets ready to strike back." },
     { "minPercent": 0,  "text": " * The Substitute, desperate, prepares one last attack." }
+  ],
+  "turnNarrationBySpare": [
+    { "minPercent": 0,  "text": " * The Substitute eyes you, unsure whether you're worth the trouble." },
+    { "minPercent": 50, "text": " * The Substitute is starting to consider letting you off." },
+    { "minPercent": 80, "text": " * The Substitute would rather end this peacefully now." }
   ]
 }

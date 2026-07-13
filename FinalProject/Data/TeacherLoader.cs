@@ -40,8 +40,12 @@ namespace FinalProject.Data
                 ? ToThresholds(data.SpareTextByPercent)
                 : null;
 
+            List<PercentThresholdText> turnNarrationBySpare = data.TurnNarrationBySpare != null && data.TurnNarrationBySpare.Count > 0
+                ? ToThresholds(data.TurnNarrationBySpare)
+                : null;
+
             return new TeacherStats(data.Name, data.SpriteName, data.BaseHp, data.BaseAtk, moves, actOptions,
-                turnNarration, data.SpareSuccessAt, data.SpareSuccessText, spareTextByPercent);
+                turnNarration, data.SpareSuccessAt, data.SpareSuccessText, spareTextByPercent, turnNarrationBySpare);
         }
 
         private static List<PercentThresholdText> ToThresholds(List<PercentThresholdTextJson> entries)
@@ -65,6 +69,7 @@ namespace FinalProject.Data
             public int SpareSuccessAt { get; set; } = 100;
             public string SpareSuccessText { get; set; }
             public List<PercentThresholdTextJson> SpareTextByPercent { get; set; }
+            public List<PercentThresholdTextJson> TurnNarrationBySpare { get; set; }
         }
 
         private class MoveJson

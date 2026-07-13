@@ -21,12 +21,17 @@ namespace FinalProject.Data
         public string SpareSuccessText { get; }
         public IReadOnlyList<PercentThresholdText> SpareTextByPercent { get; }
 
+        // optional narration keyed by spare%, shown instead of the HP narration
+        // when the spare% has overtaken the HP% (see BattleState.RefreshNarration)
+        public IReadOnlyList<PercentThresholdText> TurnNarrationBySpare { get; }
+
         public TeacherStats(
             string name, string spriteName, int baseHp, int baseAtk,
             IReadOnlyList<MoveData> moves, IReadOnlyList<ActOption> actOptions = null,
             IReadOnlyList<PercentThresholdText> turnNarration = null,
             int spareSuccessAt = 100, string spareSuccessText = null,
-            IReadOnlyList<PercentThresholdText> spareTextByPercent = null)
+            IReadOnlyList<PercentThresholdText> spareTextByPercent = null,
+            IReadOnlyList<PercentThresholdText> turnNarrationBySpare = null)
         {
             Name       = name;
             SpriteName = spriteName;
@@ -45,6 +50,9 @@ namespace FinalProject.Data
             {
                 new PercentThresholdText(0, $"{name} doesn't seem ready to be spared yet.")
             };
+
+            // optional; null means "always use the HP narration"
+            TurnNarrationBySpare = turnNarrationBySpare;
         }
     }
 }

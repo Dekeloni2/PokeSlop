@@ -70,6 +70,7 @@ namespace FinalProject
             SpriteManager.AddSprite("garlicGun", "Sprites/AttackPatterns/GarlicGun");
             SpriteManager.AddSprite("vegeta", "Sprites/AttackPatterns/Vegeta",5 , 1);
             SpriteManager.AddSprite("warning", "Sprites/Battle/warning", 3, 1);
+            SpriteManager.AddSprite("napoleon", "Sprites/AttackPatterns/napoleon");
 
 #if DEBUG
             LoadStartingInventory();

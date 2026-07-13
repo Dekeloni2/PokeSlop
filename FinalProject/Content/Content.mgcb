@@ -44,6 +44,18 @@
 /processorParam:TextureFormat=Color
 /build:Sprites/AttackPatterns/GarlicGun.png
 
+#begin Sprites/AttackPatterns/Napoleon.png
+/importer:TextureImporter
+/processor:TextureProcessor
+/processorParam:ColorKeyColor=255,0,255,255
+/processorParam:ColorKeyEnabled=True
+/processorParam:GenerateMipmaps=False
+/processorParam:PremultiplyAlpha=True
+/processorParam:ResizeToPowerOfTwo=False
+/processorParam:MakeSquare=False
+/processorParam:TextureFormat=Color
+/build:Sprites/AttackPatterns/Napoleon.png
+
 #begin Sprites/AttackPatterns/Vegeta.png
 /importer:TextureImporter
 /processor:TextureProcessor

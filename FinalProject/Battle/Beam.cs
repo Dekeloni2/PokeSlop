@@ -15,9 +15,24 @@ namespace FinalProject.Battle
 
         public Rectangle Bounds { get; set; }
 
+        public Texture2D CustomTexture { get; private set; }
+        public Color[]   ColorData     { get; private set; }
+        
         private float _damageCooldown; // <= 0 means "ready to hurt again"
 
         public Beam(Rectangle bounds) => Bounds = bounds;
+        
+        public Beam(Rectangle bounds, Texture2D customTexture)
+        {
+            Bounds = bounds;
+            CustomTexture = customTexture;
+
+            if (customTexture != null)
+            {
+                ColorData = new Color[customTexture.Width * customTexture.Height];
+                customTexture.GetData(ColorData);
+            }
+        }
 
         // Ticks the damage cadence. Returns true on the frames the player should
         // take a hit — hits immediately on entry, then once per DamageInterval
@@ -35,7 +50,13 @@ namespace FinalProject.Battle
 
         public void Draw(SpriteBatch spriteBatch, Texture2D pixel)
         {
-            spriteBatch.Draw(pixel, Bounds, new Color(40, 120, 255)); // galick-gun blue
+            if (CustomTexture != null) // for napoleon
+            {
+                spriteBatch.Draw(CustomTexture, Bounds, Color.White);
+                return; // Stop here to skip garlic gun
+            }
+            
+            spriteBatch.Draw(pixel, Bounds, new Color(128, 0, 128)); // galick-gun purple
 
             // brighter core line down the middle for a beam-y look
             int coreH = Math.Max(2, Bounds.Height / 3);

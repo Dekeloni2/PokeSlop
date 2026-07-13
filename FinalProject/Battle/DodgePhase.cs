@@ -5,6 +5,7 @@ using FinalProject.Core;
 using FinalProject.Core.Input;
 using FinalProject.Core.Graphics;
 using FinalProject.Battle.Patterns;
+using System;
 
 namespace FinalProject.Battle
 {
@@ -165,9 +166,9 @@ namespace FinalProject.Battle
         internal void SpawnProjectile(Vector2 position, Vector2 velocity, ProjectileType type = ProjectileType.Normal)
             => _projectiles.Add(new Projectile(position, velocity,  type));
 
-        internal Beam AddBeam(Rectangle bounds)
+        internal Beam AddBeam(Rectangle bounds, Texture2D texture = null)
         {
-            var beam = new Beam(bounds);
+            var beam = new Beam(bounds, texture);
             _beams.Add(beam);
             return beam;
         }
@@ -204,8 +205,72 @@ namespace FinalProject.Battle
         private void CheckBeamDamage(float dt)
         {
             foreach (Beam beam in _beams)
-                if (beam.Tick(dt, _hitbox.Bounds))
-                    _playerData.TakeDamage(Beam.Damage);
+            {
+                // 1. Quick check: Are they even touching the beam's overall box?
+                if (beam.Bounds.Intersects(_hitbox.Bounds))
+                {
+                    // 2. ONLY run pixel-perfect math if the active attack is the NapoleonPattern
+                    if (_pattern is NapoleonPattern)
+                    {
+                        // Precise check: Is the player touching a solid pixel?
+                        if (IntersectsPixel(beam.Bounds, beam.ColorData, _hitbox.Bounds))                        {
+                            if (beam.Tick(dt, _hitbox.Bounds))
+                                _playerData.TakeDamage(Beam.Damage);
+                        }
+                    }
+                    else
+                    {
+                        // Standard fast behavior for any other normal straight beams (like Garlic Gun)
+                        if (beam.Tick(dt, _hitbox.Bounds))
+                            _playerData.TakeDamage(Beam.Damage);
+                    }
+                }
+            }
+        }
+
+        private bool IntersectsPixel(Rectangle rectA, Color[] dataA, Rectangle rectB) // collision to white color only
+        {
+            // find the overlapping area
+            int left = Math.Max(rectA.Left, rectB.Left);
+            int right = Math.Min(rectA.Right, rectB.Right);
+            int top = Math.Max(rectA.Top, rectB.Top);
+            int bottom = Math.Min(rectA.Bottom, rectB.Bottom);
+
+            if (left >= right || top >= bottom)
+                return false;
+
+            // get texture size
+            var sprite = SpriteManager.GetSprite("napoleon");
+            if (sprite == null)
+                return false;
+
+            int texWidth = sprite.Texture.Width;
+            int texHeight = sprite.Texture.Height;
+
+            // check every overlapping pixel
+            for (int y = top; y < bottom; y++)
+            {
+                for (int x = left; x < right; x++)
+                {
+                    // convert screen position to texture position
+                    int texX = (x - rectA.Left) * texWidth / rectA.Width;
+                    int texY = (y - rectA.Top) * texHeight / rectA.Height;
+
+                    Color pixel = dataA[texX + texY * texWidth];
+
+                    // check if pixel is white
+                    bool isWhite =
+                        pixel.A > 0 &&
+                        pixel.R > 240 &&
+                        pixel.G > 240 &&
+                        pixel.B > 240;
+
+                    if (isWhite)
+                        return true;
+                }
+            }
+
+            return false;
         }
 
         // hexagon edges hurt continuously too, on their own damage cadence

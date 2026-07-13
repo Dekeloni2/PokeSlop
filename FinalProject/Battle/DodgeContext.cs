@@ -1,4 +1,5 @@
 using Microsoft.Xna.Framework;
+using Microsoft.Xna.Framework.Graphics;
 
 namespace FinalProject.Battle
 {
@@ -20,7 +21,7 @@ namespace FinalProject.Battle
 
         // a persistent damaging beam. Returns a handle so the pattern can move
         // or remove it; DodgePhase draws it and applies its continuous damage.
-        public Beam AddBeam(Rectangle bounds) => _phase.AddBeam(bounds);
+        public Beam AddBeam(Rectangle bounds, Texture2D texture = null) => _phase.AddBeam(bounds, texture);
         public void RemoveBeam(Beam beam)     => _phase.RemoveBeam(beam);
 
         // hexagon hazards — DodgePhase owns them, grows/draws them and applies

@@ -12,10 +12,10 @@ namespace FinalProject.Battle
         {
             ["Rain"] = () => new RainPattern(), // RainPattern
             ["ExpandingBox"] = () => new ExpandingBoxPattern(), // ExpandingBoxPattern
-            ["Boat"] = () => new BoatPattern(), // BoatPattern
-            //["Napoleon"] = () => new NapoleonPattern(), // NapoleonPattern
-            ["Vegeta"] = () => new GarlicGunPattern(), // GarlicGunPattern
-            ["Hexagon"] = () => new HexagonPattern(), // HexagonPattern
+            ["Boat"] = () => new NapoleonPattern(), // BoatPattern
+            ["Napoleon"] = () => new NapoleonPattern(), // NapoleonPattern
+            ["Vegeta"] = () => new NapoleonPattern(), // GarlicGunPattern
+            ["Hexagon"] = () => new NapoleonPattern(), // HexagonPattern
         };
 
         public static Func<IBulletPattern> Resolve(string name)

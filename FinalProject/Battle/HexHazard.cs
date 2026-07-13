@@ -11,7 +11,7 @@ namespace FinalProject.Battle
     // leaves the box. DodgePhase owns the list and applies the damage.
     public class HexHazard
     {
-        public const  int   Damage         = 5;
+        public const  int   Damage         = 6;
         private const float DamageInterval = 0.2f;  // seconds between damage ticks
         private const float FadeSeconds    = 0.35f; // telegraph — visible but harmless
         private const float LineThickness  = 4f;

@@ -11,12 +11,18 @@ namespace FinalProject.Battle
     // leaves the box. DodgePhase owns the list and applies the damage.
     public class HexHazard
     {
-        public const  int   Damage         = 1;
+        public const  int   Damage         = 5;
         private const float DamageInterval = 0.2f;  // seconds between damage ticks
         private const float FadeSeconds    = 0.35f; // telegraph — visible but harmless
         private const float LineThickness  = 4f;
 
-        private enum Phase { FadeIn, Grow, Explode, Done }
+        // Charge is the "about to explode" tell: at full size the hex holds
+        // briefly, shaking harder and pulsing redder as it builds, then blows.
+        private const float ChargeSeconds  = 0.5f;  // how long the wind-up lasts
+        private const float ShakeMagnitude = 3f;    // px of jitter at the peak of the charge
+        private const float PulseHz        = 8f;    // red-pulse cycles per second
+
+        private enum Phase { FadeIn, Grow, Charge, Explode, Done }
 
         private readonly Vector2 _center;
         private readonly float   _rotation;
@@ -25,11 +31,12 @@ namespace FinalProject.Battle
         private readonly float   _growSeconds;
         private readonly float   _explodeSpeed;
 
-        private Phase _phase = Phase.FadeIn;
-        private float _timer;
-        private float _radius;
-        private float _explodeDist;
-        private float _damageCooldown;
+        private Phase   _phase = Phase.FadeIn;
+        private float   _timer;
+        private float   _radius;
+        private float   _explodeDist;
+        private float   _damageCooldown;
+        private Vector2 _shakeOffset; // nonzero only during Charge; shifts the whole hex
 
         public bool IsFinished => _phase == Phase.Done;
 
@@ -59,7 +66,24 @@ namespace FinalProject.Battle
                 case Phase.Grow:
                     float t = MathHelper.Clamp(_timer / _growSeconds, 0f, 1f);
                     _radius = MathHelper.Lerp(_startRadius, _maxRadius, t);
-                    if (t >= 1f) { _phase = Phase.Explode; _timer = 0f; }
+                    if (t >= 1f) { _phase = Phase.Charge; _timer = 0f; }
+                    break;
+
+                case Phase.Charge:
+                    // Jitter builds from nothing to full magnitude over the
+                    // wind-up, so the shake ramps up as the explosion nears.
+                    float charge = MathHelper.Clamp(_timer / ChargeSeconds, 0f, 1f);
+                    float mag    = ShakeMagnitude * charge;
+                    _shakeOffset = new Vector2(
+                        ((float)Random.Shared.NextDouble() * 2f - 1f) * mag,
+                        ((float)Random.Shared.NextDouble() * 2f - 1f) * mag);
+
+                    if (_timer >= ChargeSeconds)
+                    {
+                        _phase       = Phase.Explode;
+                        _timer       = 0f;
+                        _shakeOffset = Vector2.Zero;
+                    }
                     break;
 
                 case Phase.Explode:
@@ -70,8 +94,9 @@ namespace FinalProject.Battle
             }
         }
 
-        // returns true on the frames the player should take a damage tick. The
-        // fade-in is a harmless telegraph; grow and explode both hurt.
+        // returns true on the frames the player should take a damage tick. Only
+        // the fade-in is harmless; grow, charge, and explode all hurt (the edges
+        // are solid the whole time — the charge is just a visual warning).
         public bool TickDamage(Rectangle hitbox)
         {
             if (_phase == Phase.FadeIn || _phase == Phase.Done) return false;
@@ -94,10 +119,24 @@ namespace FinalProject.Battle
 
         public void Draw(SpriteBatch sb, Texture2D pixel)
         {
-            float alpha = _phase == Phase.FadeIn
-                ? MathHelper.Clamp(_timer / FadeSeconds, 0f, 1f)
-                : 1f;
-            Color color = Color.White * alpha;
+            Color color;
+            if (_phase == Phase.FadeIn)
+            {
+                // harmless telegraph fading in
+                color = Color.White * MathHelper.Clamp(_timer / FadeSeconds, 0f, 1f);
+            }
+            else if (_phase == Phase.Charge)
+            {
+                // pulse toward red, and pulse deeper as the charge builds — the
+                // "about to blow" warning that pairs with the shake
+                float charge = MathHelper.Clamp(_timer / ChargeSeconds, 0f, 1f);
+                float pulse  = (MathF.Sin(_timer * PulseHz * MathHelper.TwoPi) + 1f) * 0.5f;
+                color = Color.Lerp(Color.White, Color.Red, pulse * charge);
+            }
+            else
+            {
+                color = Color.White;
+            }
 
             for (int i = 0; i < 6; i++)
             {
@@ -111,7 +150,9 @@ namespace FinalProject.Battle
         private Vector2 Vertex(int k)
         {
             float ang = _rotation + k * MathHelper.TwoPi / 6f;
-            return _center + new Vector2(MathF.Cos(ang), MathF.Sin(ang)) * _radius;
+            // _shakeOffset shifts the whole hex during Charge, so the drawn
+            // edges and the hurtbox stay in lockstep while it vibrates.
+            return _center + _shakeOffset + new Vector2(MathF.Cos(ang), MathF.Sin(ang)) * _radius;
         }
 
         // edge i as its two endpoints. Once exploding, the whole segment is

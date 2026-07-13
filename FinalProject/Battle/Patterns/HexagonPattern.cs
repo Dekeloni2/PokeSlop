@@ -14,7 +14,7 @@ public class HexagonPattern : IBulletPattern
     private const float BoxWidthScale     = 2f;   // arena gets this much wider
     private const float SpawnInterval      = 1.1f; // time between hexagons
     private const int   MaxConcurrent      = 3;
-    private const float OnPlayerChance     = 0.4f; // rest spawn at random
+    private const float OnPlayerChance     = 0.0f; // rest spawn at random
     private const float StopSpawningBefore = 3f;   // let the last hexes finish
 
     // per-hexagon tuning

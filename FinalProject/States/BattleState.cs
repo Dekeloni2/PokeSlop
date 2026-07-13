@@ -154,7 +154,15 @@ namespace FinalProject.States
         // turn), clear _lastNarrationText first.
         private void RefreshNarration()
         {
-            string narrationText = PercentThresholdText.Resolve(_teacher.Stats.TurnNarration, CurrentHpPercent());
+            // prefer the spare-based narration once mercy progress has overtaken
+            // the teacher's remaining HP%; otherwise use the HP-based narration
+            float hp      = CurrentHpPercent();
+            float spare   = _teacher.SparePercent;
+            var   bySpare = _teacher.Stats.TurnNarrationBySpare;
+
+            string narrationText = (bySpare != null && bySpare.Count > 0 && spare > hp)
+                ? PercentThresholdText.Resolve(bySpare, spare)
+                : PercentThresholdText.Resolve(_teacher.Stats.TurnNarration, hp);
             if (narrationText == _lastNarrationText) return;
 
             // bake the wrap in up front so the line breaks can't shift

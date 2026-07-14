@@ -76,17 +76,28 @@ namespace FinalProject.Battle
         
         public void Draw(SpriteBatch spriteBatch, Texture2D pixel)
         {
-            if (_pattern is BoatPattern)
+            if (_pattern is BoatPattern boatPattern)
             {
                 Spritesheet boat = SpriteManager.GetSprite("boat");
+                if (boat != null)
+                {
+                    int baseW = boat.Texture.Width * 2;
+                    int baseH = boat.Texture.Height;
 
-                Rectangle boatRect = new Rectangle(
-                    CurrentBox.Center.X - boat.Texture.Width * 2 / 2,
-                    CurrentBox.Bottom + 5,
-                    boat.Texture.Width * 2,
-                    boat.Texture.Height );
+                    // Squash vertically (anchored to the keel line so it squanches
+                    // down, not up) with a touch of widen for squash-&-stretch,
+                    // then offset by the wind-up shake. All from the pattern's state.
+                    float squash = boatPattern.SquashY;
+                    int h = (int)(baseH * squash);
+                    int w = (int)(baseW * (1f + (1f - squash) * 0.4f));
 
-                spriteBatch.Draw(boat.Texture, boatRect, boat[0, 0], Color.White);
+                    int keelY = CurrentBox.Bottom + 5 + baseH; // fixed bottom edge
+                    int x = CurrentBox.Center.X - w / 2 + (int)boatPattern.ShakeOffset.X;
+                    int y = keelY - h + (int)boatPattern.ShakeOffset.Y;
+
+                    Rectangle boatRect = new Rectangle(x, y, w, h);
+                    spriteBatch.Draw(boat.Texture, boatRect, boat[0, 0], boatPattern.BoatTint);
+                }
             }
             
             if (_pattern is GarlicGunPattern garlic && (garlic.IsCharging || garlic.IsFiring || garlic.IsVanishing))

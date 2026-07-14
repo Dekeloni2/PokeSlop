@@ -7,6 +7,7 @@ using FinalProject.Core;
 using FinalProject.Core.StateMachine;
 using FinalProject.Core.Text;
 using FinalProject.Data;
+using FinalProject.UI;
 
 namespace FinalProject.States
 {
@@ -28,6 +29,11 @@ namespace FinalProject.States
         // FIGHT's timing bar, its result is the damage UpdateTurnExecution applies
         private AttackMinigame _attackMinigame;
         private int _pendingAttackDamage;
+
+        // The HP readout. Owns its own EventBus subscription (see BattleHud) —
+        // it updates itself from PlayerHpChangedEvent, this state just creates
+        // it, draws it, and detaches it when the fight ends.
+        private BattleHud _hud;
 
         // only reset when the text actually changes, otherwise backing out of
         // a submenu would restart the typing animation
@@ -64,6 +70,18 @@ namespace FinalProject.States
             _lastNarrationText   = null;
             _attackMinigame      = null;
             _pendingAttackDamage = 0;
+
+            // The HUD subscribes to the EventBus itself; hand it the current HP
+            // to seed the display (the event only fires on a later change).
+            _hud = new BattleHud(Game.PlayerData.CurrentHp, Game.PlayerData.MaxHp);
+        }
+
+        // Detach the HUD from the bus when the battle is popped, so its handler
+        // (and this whole BattleState) can be garbage-collected instead of the
+        // EventBus keeping a finished fight alive.
+        public override void OnExit()
+        {
+            _hud.Unsubscribe();
         }
 
         public override void Update(GameTime gameTime)
@@ -106,7 +124,7 @@ namespace FinalProject.States
 
             spriteBatch.Begin(samplerState: SamplerState.PointClamp);
 
-            DrawHpStatus(spriteBatch);
+            _hud.Draw(spriteBatch, Game.DialogueFont, Game.PixelTexture);
 
             if (_phase == BattlePhase.Dodging)
             {
@@ -399,30 +417,6 @@ namespace FinalProject.States
             spriteBatch.Draw(Game.PixelTexture, new Rectangle(rect.X, rect.Bottom - borderThickness, rect.Width, borderThickness), Color.White);
             spriteBatch.Draw(Game.PixelTexture, new Rectangle(rect.X, rect.Y, borderThickness, rect.Height), Color.White);
             spriteBatch.Draw(Game.PixelTexture, new Rectangle(rect.Right - borderThickness, rect.Y, borderThickness, rect.Height), Color.White);
-        }
-        
-        // drawn in every phase so HP loss is always visible
-        private void DrawHpStatus(SpriteBatch spriteBatch)
-        {
-            const int x = 40;
-            const int   y = 390;
-            const float textScale = 2f;
-
-            spriteBatch.DrawString(Game.DialogueFont, "HP", new Vector2(x, y), Color.White,
-                0f, Vector2.Zero, textScale, SpriteEffects.None, 0f);
-
-            var barBg = new Rectangle(x + 60, y + 4, 100, 16);
-            spriteBatch.Draw(Game.PixelTexture, barBg, new Color(60, 20, 20));
-
-            float hpPercent = Game.PlayerData.MaxHp > 0
-                ? MathHelper.Clamp((float)Game.PlayerData.CurrentHp / Game.PlayerData.MaxHp, 0f, 1f)
-                : 0f;
-            var fill = new Rectangle(barBg.X, barBg.Y, (int)(barBg.Width * hpPercent), barBg.Height);
-            spriteBatch.Draw(Game.PixelTexture, fill, Color.Yellow);
-
-            string hpText = $"{Game.PlayerData.CurrentHp} / {Game.PlayerData.MaxHp}";
-            spriteBatch.DrawString(Game.DialogueFont, hpText, new Vector2(barBg.Right + 16, y), Color.White,
-                0f, Vector2.Zero, textScale, SpriteEffects.None, 0f);
         }
     }
 

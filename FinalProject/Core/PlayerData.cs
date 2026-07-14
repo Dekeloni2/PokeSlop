@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using FinalProject.Data;
+using FinalProject.Events;
 
 namespace FinalProject.Core
 {
@@ -17,7 +18,19 @@ namespace FinalProject.Core
 
         public bool IsAlive => CurrentHp > 0;
 
-        public void TakeDamage(int amount) => CurrentHp = Math.Max(0, CurrentHp - amount);
-        public void Heal(int amount)       => CurrentHp = Math.Min(MaxHp, CurrentHp + amount);
+        // HP is only changed through these two methods, so they're the single
+        // place that announces a change on the EventBus — any UI (the battle
+        // HUD) stays in sync by subscribing rather than polling every frame.
+        public void TakeDamage(int amount)
+        {
+            CurrentHp = Math.Max(0, CurrentHp - amount);
+            EventBus.Instance.Publish(new PlayerHpChangedEvent(CurrentHp, MaxHp));
+        }
+
+        public void Heal(int amount)
+        {
+            CurrentHp = Math.Min(MaxHp, CurrentHp + amount);
+            EventBus.Instance.Publish(new PlayerHpChangedEvent(CurrentHp, MaxHp));
+        }
     }
 }

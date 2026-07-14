@@ -3,8 +3,8 @@ using Microsoft.Xna.Framework;
 
 namespace FinalProject.Battle.Patterns;
 
-// The expanding-hexagon attack. The arena widens, then hexagons fade in (some
-// centered on the player, some at random), grow, and explode into 6 edges that
+// The hexagon attack. The arena widens, then hexagons fade in at random spots,
+// grow, briefly charge (shake + red pulse), then explode into 6 edges that
 // slide outward. Only the edges hurt, so a hexagon can grow right over you.
 public class HexagonPattern : IBulletPattern
 {

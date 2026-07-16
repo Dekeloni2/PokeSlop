@@ -165,6 +165,22 @@ public class Player : Sprite
         spriteBatch.Draw(Texture, drawPos, src, Color.White, 0f, Vector2.Zero, 1f, effects, 0f);
     }
 
+    // Draws the current frame in SCREEN space, centered on screenCenter and
+    // scaled — used by the battle intro to show the frozen player on black.
+    public void DrawFrozen(SpriteBatch spriteBatch, Vector2 screenCenter, float scale)
+    {
+        int frameIndex = IsMoving ? _walkStep : IdleFrame;
+        (Rectangle[] frames, bool flip) = GetFrameSet(Facing);
+        Rectangle src = frames[frameIndex];
+
+        int w = (int)(src.Width  * scale);
+        int h = (int)(src.Height * scale);
+        var dst = new Rectangle((int)screenCenter.X - w / 2, (int)screenCenter.Y - h / 2, w, h);
+
+        SpriteEffects effects = flip ? SpriteEffects.FlipHorizontally : SpriteEffects.None;
+        spriteBatch.Draw(Texture, dst, src, Color.White, 0f, Vector2.Zero, effects, 0f);
+    }
+
     // Right isn't drawn from the sheet — it's the Left row flipped horizontally.
     private static (Rectangle[] Frames, bool Flip) GetFrameSet(Direction facing) => facing switch
     {

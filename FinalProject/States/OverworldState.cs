@@ -142,7 +142,13 @@ namespace FinalProject.States
             TeacherStats stats = TeacherLoader.Load(Path.Combine(teachersDir, "substitute.json"));
             var teacher = new Teacher(stats);
 
-            StateManager.Push(new BattleState(Game, StateManager, teacher));
+            // the Undertale-style intro plays first, then hands off to the battle.
+            // Soul starts where the player is standing on screen (world → screen).
+            float tileSize = _map != null ? _map.TileWidth : GameSettings.TileSize;
+            Vector2 soulStart = Vector2.Transform(
+                _player.WorldPosition + new Vector2(tileSize / 2f, tileSize / 2f),
+                _camera.GetTransform());
+            StateManager.Push(new BattleTransition(Game, StateManager, teacher, _player, soulStart, GameSettings.Zoom));
         }
 #endif
 

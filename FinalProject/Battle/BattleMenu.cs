@@ -22,15 +22,28 @@ namespace FinalProject.Battle
 
         public BattleMenu()
         {
-            Spritesheet buttons = SpriteManager.GetSprite("battleButtons");
-            Rectangle cell = buttons[0, 0];
+            Rectangle cell = SpriteManager.GetSprite("battleButtons")[0, 0];
+            for (int i = 0; i < 4; i++)
+                _buttonBounds[i] = ButtonBounds(i, cell);
+        }
 
+        // shared button layout — also used by the battle-intro transition so the
+        // soul lands exactly on the FIGHT button (no pop when the battle starts)
+        private static Rectangle ButtonBounds(int index, Rectangle cell)
+        {
             int totalWidth = cell.Width * 4 + ButtonGap * 3;
             int startX = (GameSettings.WindowWidth - totalWidth) / 2;
             int y = GameSettings.WindowHeight - cell.Height - 16;
+            return new Rectangle(startX + index * (cell.Width + ButtonGap), y, cell.Width, cell.Height);
+        }
 
-            for (int i = 0; i < 4; i++)
-                _buttonBounds[i] = new Rectangle(startX + i * (cell.Width + ButtonGap), y, cell.Width, cell.Height);
+        // screen position the soul rests at on the FIGHT button (index 0)
+        public static Vector2 FightSoulPosition()
+        {
+            Rectangle cell    = SpriteManager.GetSprite("battleButtons")[0, 0];
+            Rectangle soulSrc = SpriteManager.GetSprite("soul")[0, 0];
+            Rectangle b = ButtonBounds(0, cell);
+            return new Vector2(b.X + 8 + soulSrc.Width / 2f, b.Y + b.Height / 2f);
         }
 
         // left/right moves the cursor, returns true with the choice on Z

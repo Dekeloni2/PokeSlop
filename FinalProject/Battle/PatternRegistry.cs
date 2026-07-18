@@ -10,7 +10,7 @@ namespace FinalProject.Battle
     {
         private static readonly Dictionary<string, Func<IBulletPattern>> Patterns = new()
         {
-            ["Hexagon"] = () => new HexagonPattern()
+            ["Napoleon"] = () => new NapoleonPattern()
         };
 
         public static Func<IBulletPattern> Resolve(string name)

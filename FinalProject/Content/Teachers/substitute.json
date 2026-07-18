@@ -5,11 +5,11 @@
   "baseAtk": 4,
   "moves": [
     {
-      "name": "Hex Field",
+      "name": "Napoleon",
       "power": 1,
       "accuracy": 100,
       "description": "Hexagons bloom across the arena.",
-      "pattern": "Hexagon"
+      "pattern": "Napoleon"
     }
   ],
   "actOptions": [

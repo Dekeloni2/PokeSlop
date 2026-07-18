@@ -18,8 +18,8 @@ public class NapoleonPattern : IBulletPattern
         
         // box size
         Rectangle hugeBox = new Rectangle(
-            context.BaseBox.X, context.BaseBox.Y,
-            context.BaseBox.Width, context.BaseBox.Height);
+            context.BaseBox.X - 80, context.BaseBox.Y - 50,
+            context.BaseBox.Width + 160, context.BaseBox.Height + 100);
 
         context.ResizeBoxTo(hugeBox, 0.8f);
     }
@@ -40,17 +40,17 @@ public class NapoleonPattern : IBulletPattern
             if (napoleonSprite != null)
             {
                 Texture2D tex = napoleonSprite.Texture;
-
-                int height = context.CurrentBox.Height;
-                int width = context.CurrentBox.Width + 400;
                 
-                int startingX = context.CurrentBox.Left;
+                int width = (int)(context.CurrentBox.Width * 1.6f);
+                int height = (int)(context.CurrentBox.Height * 1.3f);
+                
+                int startingX = context.CurrentBox.Right;
 
                 Rectangle startingBounds = new Rectangle(
                     startingX,
                     context.CurrentBox.Top,
-                    width + 100,
-                    height + 100);
+                    width,
+                    height);
                 
                 _activeBeam = context.AddBeam(startingBounds, tex);
             }

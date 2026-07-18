@@ -74,6 +74,12 @@
                  "id":6,
                  "name":"",
                  "opacity":1,
+                 "properties":[
+                        {
+                         "name":"Text",
+                         "type":"string",
+                         "value":"* (Placeholder) A patch of golden grass. Replace this text in Tiled's Properties panel."
+                        }],
                  "rotation":0,
                  "type":"",
                  "visible":true,

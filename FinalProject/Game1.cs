@@ -5,6 +5,7 @@ using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
 using FinalProject.Core;
+using FinalProject.Core.Audio;
 using FinalProject.Core.Graphics;
 using FinalProject.Core.Input;
 using FinalProject.Core.StateMachine;
@@ -71,6 +72,13 @@ namespace FinalProject
             SpriteManager.AddSprite("vegeta", "Sprites/AttackPatterns/Vegeta",5 , 1);
             SpriteManager.AddSprite("warning", "Sprites/Battle/warning", 3, 1);
             SpriteManager.AddSprite("napoleon", "Sprites/AttackPatterns/napoleon");
+
+            new SoundManager(Content);
+            // Register audio here once the files are imported into Content.mgcb.
+            // SFX = .wav ("Sound Effect" processor); music = .ogg/.mp3 ("Song").
+            // Then play from anywhere: SoundManager.Play("hit") / PlayMusic("battle").
+            // SoundManager.AddSound("hit",    "Audio/hit");
+            // SoundManager.AddSong ("battle", "Audio/battle_theme");
 
 #if DEBUG
             LoadStartingInventory();

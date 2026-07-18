@@ -13,16 +13,21 @@ namespace FinalProject.UI
     public class DialogueBox
     {
         private const float CharsPerSecond  = 40f;
-        private const int   MaxLinesPerPage = 3;
-        private const int   PaddingX        = 12;
-        private const int   PaddingY        = 10;
-        private const int   BorderThickness = 3;
+        private const int   PaddingX        = 16;  // match the battle box
+        private const int   PaddingY        = 16;
+        private const int   BorderThickness = 2;   // battle box uses a 2px border
+        private const float TextScale       = 2f;  // = BattleState.NarrationTextScale
+
+        // Match the battle box (BattleState.WideBoxRect) size exactly.
+        private const int   BoxWidth        = 550;
+        private const int   BoxHeight       = 118;
 
         private static readonly Keys[] AdvanceKeys = { Keys.Z, Keys.Enter, Keys.Space };
 
         private readonly Texture2D  _pixel;
         private readonly SpriteFont _font;
         private readonly Rectangle  _boxRect;
+        private readonly int        _maxLinesPerPage;
 
         private List<string> _pages = new();
         private int   _pageIndex;
@@ -38,11 +43,15 @@ namespace FinalProject.UI
             _pixel = pixelTexture;
             _font  = font;
 
-            int width  = GameSettings.WindowWidth - 32;
-            int height = 84;
-            int x      = 16;
-            int y      = GameSettings.WindowHeight - height - 16;
-            _boxRect = new Rectangle(x, y, width, height);
+            // Same size as the battle box, centered horizontally and anchored
+            // near the bottom of the screen.
+            int x = (GameSettings.WindowWidth - BoxWidth) / 2;
+            int y = GameSettings.WindowHeight - BoxHeight - 16;
+            _boxRect = new Rectangle(x, y, BoxWidth, BoxHeight);
+
+            // fit as many lines as the fixed height allows at the battle text scale
+            int lineHeight   = (int)(_font.LineSpacing * TextScale);
+            _maxLinesPerPage = Math.Max(1, (BoxHeight - PaddingY * 2) / lineHeight);
         }
 
         // Word-wraps and paginates the given text, then opens the box on page 1.
@@ -113,17 +122,19 @@ namespace FinalProject.UI
 
             string shown = _pages[_pageIndex].Substring(0, _visibleChars);
             var textPos  = new Vector2(_boxRect.X + PaddingX, _boxRect.Y + PaddingY);
-            spriteBatch.DrawString(_font, shown, textPos, Color.White);
+            spriteBatch.DrawString(_font, shown, textPos, Color.White,
+                0f, Vector2.Zero, TextScale, SpriteEffects.None, 0f);
 
             // Blink a "press to continue" arrow once the page has fully typed out.
             if (_pageFullyShown && (int)(_indicatorBlink * 2f) % 2 == 0)
             {
                 const string indicator = ">";
-                Vector2 size = _font.MeasureString(indicator);
+                Vector2 size = _font.MeasureString(indicator) * TextScale;
                 var pos = new Vector2(
                     _boxRect.Right  - PaddingX - size.X,
                     _boxRect.Bottom - PaddingY - size.Y);
-                spriteBatch.DrawString(_font, indicator, pos, Color.White);
+                spriteBatch.DrawString(_font, indicator, pos, Color.White,
+                    0f, Vector2.Zero, TextScale, SpriteEffects.None, 0f);
             }
         }
         
@@ -153,12 +164,12 @@ namespace FinalProject.UI
         private List<string> Paginate(string text)
         {
             int maxWidth = _boxRect.Width - PaddingX * 2;
-            List<string> lines = TextWrap.ToLines(_font, text, maxWidth);
+            List<string> lines = TextWrap.ToLines(_font, text, maxWidth, TextScale);
 
             var pages = new List<string>();
-            for (int i = 0; i < lines.Count; i += MaxLinesPerPage)
+            for (int i = 0; i < lines.Count; i += _maxLinesPerPage)
             {
-                int count = Math.Min(MaxLinesPerPage, lines.Count - i);
+                int count = Math.Min(_maxLinesPerPage, lines.Count - i);
                 pages.Add(string.Join("\n", lines.GetRange(i, count)));
             }
 

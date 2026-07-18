@@ -56,7 +56,7 @@ namespace FinalProject.Battle
             if (input.IsKeyPressed(Keys.Down)) _cursor = (_cursor + 1) % page.Count;
             if (input.IsKeyPressed(Keys.Up))   _cursor = (_cursor - 1 + page.Count) % page.Count;
 
-            if (allowCancel && input.IsKeyPressed(Keys.X) || input.IsKeyPressed(Keys.RightShift))
+            if (allowCancel && input.IsKeyPressed(Keys.X))
             {
                 _pages.Pop();
                 _cursor = 0;

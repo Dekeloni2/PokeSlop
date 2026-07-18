@@ -9,7 +9,7 @@
       "power": 1,
       "accuracy": 100,
       "description": "Hexagons bloom across the arena.",
-      "pattern": "Boat"
+      "pattern": "Hexagon"
     }
   ],
   "actOptions": [

@@ -1,4 +1,5 @@
 using System;
+using FinalProject.Core.Audio;
 
 namespace FinalProject.Core.Text
 {
@@ -28,7 +29,14 @@ namespace FinalProject.Core.Text
             if (IsFullyShown) return;
 
             _timer += dt;
-            _visibleChars = Math.Min((int)(_timer * CharsPerSecond), _text.Length);
+            int revealed = Math.Min((int)(_timer * CharsPerSecond), _text.Length);
+
+            // blip once per frame for each newly revealed non-space character
+            if (revealed > _visibleChars)
+            {
+                SoundManager.PlayTextBeep(_text, _visibleChars, revealed);
+                _visibleChars = revealed;
+            }
         }
 
         public void SkipToEnd() => _visibleChars = _text.Length;

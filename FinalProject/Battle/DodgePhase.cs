@@ -23,8 +23,29 @@ namespace FinalProject.Battle
 
         private readonly Rectangle   _baseBox;
         private readonly TweeningBox _box;
+        private readonly ParticleSystem _particles = new();
 
         private float _elapsed;
+
+        // ── Battle camera (DRAW ONLY) ────────────────────────────────────────
+        // Patterns pan/shake the view through DodgeContext; BattleState reads
+        // CameraOffset to build its draw transform. This never touches the
+        // simulation — beams, hexes and the soul all stay in untransformed
+        // coordinates, so panning can't desync a hitbox from what's on screen.
+        private Vector2 _cameraPan;
+        private Vector2 _shakeOffset;
+        private float   _shakeMagnitude;
+        private float   _shakeSeconds;
+        private float   _shakeLeft;
+
+        public Vector2 CameraOffset => _cameraPan + _shakeOffset;
+
+        // Patterns can hide the HP readout for the duration of their attack.
+        public bool HudHidden { get; private set; }
+
+        // ...and the arena outline, for attacks that fill the whole screen and
+        // don't want a visible box edge cutting across it.
+        public bool BoxBorderHidden { get; private set; }
 
         // wait for leftover hazards to clear the arena before ending the turn,
         // otherwise the box starts shrinking back while hazards are live
@@ -68,6 +89,9 @@ namespace FinalProject.Battle
             foreach (HexHazard hex in _hexes)
                 hex.Update(dt, _box.Current);
             CheckHexDamage();
+
+            _particles.Update(dt);
+            UpdateShake(dt);
 
             _projectiles.RemoveAll(p => p.IsExpired);
             _hexes.RemoveAll(h => h.IsFinished);
@@ -156,7 +180,11 @@ namespace FinalProject.Battle
                 }
             }
 
-            DrawBoxBorder(spriteBatch, pixel);
+            if (!BoxBorderHidden)
+                DrawBoxBorder(spriteBatch, pixel);
+
+            // decorative only, drawn under the hazards so bullets stay readable
+            _particles.Draw(spriteBatch, pixel);
 
             foreach (Beam beam in _beams)
                 beam.Draw(spriteBatch, pixel);
@@ -194,6 +222,44 @@ namespace FinalProject.Battle
 
         internal void ResizeBoxTo(Rectangle target, float overSeconds)
             => _box.ResizeTo(target, overSeconds);
+
+        internal void SpawnParticle(Vector2 position, Vector2 velocity, float lifeSeconds,
+                                    int size, Color color, float fadeInSeconds,
+                                    Texture2D texture)
+            => _particles.Spawn(position, velocity, lifeSeconds, size, color, fadeInSeconds, texture);
+
+        // Pan is absolute: the camera's offset from its resting position, in
+        // pixels. Positive X shifts the view right (content slides left).
+        internal void SetCameraPan(Vector2 pan) => _cameraPan = pan;
+
+        internal void ShakeScreen(float magnitude, float seconds)
+        {
+            _shakeMagnitude = magnitude;
+            _shakeSeconds   = seconds;
+            _shakeLeft      = seconds;
+        }
+
+        internal void SetHudHidden(bool hidden) => HudHidden = hidden;
+
+        internal void SetBoxBorderHidden(bool hidden) => BoxBorderHidden = hidden;
+
+        // Random jitter that decays to nothing over the shake's duration.
+        private void UpdateShake(float dt)
+        {
+            if (_shakeLeft <= 0f)
+            {
+                _shakeOffset = Vector2.Zero;
+                return;
+            }
+
+            _shakeLeft -= dt;
+            float falloff = _shakeSeconds > 0f ? MathHelper.Clamp(_shakeLeft / _shakeSeconds, 0f, 1f) : 0f;
+            float mag     = _shakeMagnitude * falloff;
+
+            _shakeOffset = new Vector2(
+                ((float)Random.Shared.NextDouble() * 2f - 1f) * mag,
+                ((float)Random.Shared.NextDouble() * 2f - 1f) * mag);
+        }
 
         // ── Helpers ──────────────────────────────────────────────────────────
 

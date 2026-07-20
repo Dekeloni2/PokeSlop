@@ -164,3 +164,21 @@
 /processorParam:TextureFormat=Color
 /build:Sprites/Tilesets/tiltan_tale_ruins.png
 
+#begin Sprites/AttackPatterns/smoke.png
+/importer:TextureImporter
+/processor:TextureProcessor
+/processorParam:ColorKeyColor=255,0,255,255
+/processorParam:ColorKeyEnabled=False
+/processorParam:GenerateMipmaps=False
+/processorParam:PremultiplyAlpha=True
+/processorParam:ResizeToPowerOfTwo=False
+/processorParam:MakeSquare=False
+/processorParam:TextureFormat=Color
+/build:Sprites/AttackPatterns/smoke.png
+
+#begin Audio/Music/beep_sound.wav
+/importer:WavImporter
+/processor:SoundEffectProcessor
+/processorParam:Quality=Best
+/build:Audio/Music/beep_sound.wav
+

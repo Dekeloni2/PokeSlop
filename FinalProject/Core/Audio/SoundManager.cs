@@ -60,6 +60,21 @@ namespace FinalProject.Core.Audio
                 sfx.Play(MathHelper.Clamp(volume * SfxVolume, 0f, 1f), pitch, pan);
         }
 
+        // The default "text blip" that plays as characters type onto the screen,
+        // Undertale-style. Registered under this key in Game1.LoadContent; it's
+        // the fallback cue for any on-screen text.
+        public const string TextBeepName = "beep";
+
+        public static void PlayTextBeep() => Play(TextBeepName);
+
+        // Plays the blip only if text[from..to) contains a visible glyph, so
+        // spaces and newlines stay silent (matches how the typewriters reveal).
+        public static void PlayTextBeep(string text, int from, int to)
+        {
+            for (int i = from; i < to; i++)
+                if (!char.IsWhiteSpace(text[i])) { Play(TextBeepName); return; }
+        }
+
         // Start a background track. Loops by default and replaces whatever's
         // currently playing.
         public static void PlayMusic(string name, bool loop = true)

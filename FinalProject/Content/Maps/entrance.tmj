@@ -78,7 +78,7 @@
                         {
                          "name":"Text",
                          "type":"string",
-                         "value":"* (Placeholder) A patch of golden grass. Replace this text in Tiled's Properties panel."
+                         "value":"* A bed of green clovers.|* You feel a little calmer looking at them.|* ... was that a whisper?"
                         }],
                  "rotation":0,
                  "type":"",

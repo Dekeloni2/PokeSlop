@@ -5,6 +5,7 @@ using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
 using FinalProject.Core;
+using FinalProject.Core.Audio;
 using FinalProject.Core.Input;
 using FinalProject.Core.Text;
 
@@ -13,6 +14,7 @@ namespace FinalProject.UI
     public class DialogueBox
     {
         private const float CharsPerSecond  = 40f;
+        private const char  PageBreak       = '|';  // in Text, forces a new page
         private const int   PaddingX        = 16;  // match the battle box
         private const int   PaddingY        = 16;
         private const int   BorderThickness = 2;   // battle box uses a 2px border
@@ -85,7 +87,15 @@ namespace FinalProject.UI
             if (!_pageFullyShown)
             {
                 _charTimer += (float)gameTime.ElapsedGameTime.TotalSeconds;
-                _visibleChars = Math.Min((int)(_charTimer * CharsPerSecond), current.Length);
+                int revealed = Math.Min((int)(_charTimer * CharsPerSecond), current.Length);
+
+                // blip once per frame for each newly revealed non-space character
+                if (revealed > _visibleChars)
+                {
+                    SoundManager.PlayTextBeep(current, _visibleChars, revealed);
+                    _visibleChars = revealed;
+                }
+
                 if (_visibleChars >= current.Length)
                     _pageFullyShown = true;
             }
@@ -158,19 +168,27 @@ namespace FinalProject.UI
             spriteBatch.Draw(_pixel, new Rectangle(boxRect.Right - thickness, boxRect.Y, thickness, boxRect.Height), Color.White);    // right
         }
 
-        // Word-wraps text to fit the box width, then groups the resulting lines
-        // into pages of MaxLinesPerPage lines (joined with '\n' — SpriteFont
-        // draws/measures embedded newlines natively).
+        // Splits the text into pages. A '|' in the source is an explicit page
+        // break authored on the interactable — each segment starts a fresh page.
+        // Within a segment, text is word-wrapped to the box width and, if it's
+        // still longer than fits, spills onto further pages automatically. '\n'
+        // forces a line break inside a page. Pages advance with the Z key.
         private List<string> Paginate(string text)
         {
             int maxWidth = _boxRect.Width - PaddingX * 2;
-            List<string> lines = TextWrap.ToLines(_font, text, maxWidth, TextScale);
-
             var pages = new List<string>();
-            for (int i = 0; i < lines.Count; i += _maxLinesPerPage)
+
+            foreach (string segment in text.Split(PageBreak))
             {
-                int count = Math.Min(_maxLinesPerPage, lines.Count - i);
-                pages.Add(string.Join("\n", lines.GetRange(i, count)));
+                string trimmed = segment.Trim();
+                if (trimmed.Length == 0) continue; // ignore empty/stray breaks
+
+                List<string> lines = TextWrap.ToLines(_font, trimmed, maxWidth, TextScale);
+                for (int i = 0; i < lines.Count; i += _maxLinesPerPage)
+                {
+                    int count = Math.Min(_maxLinesPerPage, lines.Count - i);
+                    pages.Add(string.Join("\n", lines.GetRange(i, count)));
+                }
             }
 
             if (pages.Count == 0)

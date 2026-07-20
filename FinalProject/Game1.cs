@@ -72,13 +72,13 @@ namespace FinalProject
             SpriteManager.AddSprite("vegeta", "Sprites/AttackPatterns/Vegeta",5 , 1);
             SpriteManager.AddSprite("warning", "Sprites/Battle/warning", 3, 1);
             SpriteManager.AddSprite("napoleon", "Sprites/AttackPatterns/napoleon");
+            SpriteManager.AddSprite("smoke", "Sprites/AttackPatterns/smoke");
 
             new SoundManager(Content);
-            // Register audio here once the files are imported into Content.mgcb.
-            // SFX = .wav ("Sound Effect" processor); music = .ogg/.mp3 ("Song").
-            // Then play from anywhere: SoundManager.Play("hit") / PlayMusic("battle").
-            // SoundManager.AddSound("hit",    "Audio/hit");
-            // SoundManager.AddSong ("battle", "Audio/battle_theme");
+            // Default text blip, played by the typewriters as characters appear.
+            SoundManager.AddSound(SoundManager.TextBeepName, "Audio/Music/beep_sound");
+            // Register more audio here once imported into Content.mgcb:
+            // SoundManager.AddSong("battle", "Audio/battle_theme");
 
 #if DEBUG
             LoadStartingInventory();

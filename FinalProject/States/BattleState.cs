@@ -122,9 +122,23 @@ namespace FinalProject.States
         {
             Game.GraphicsDevice.Clear(Color.Black);
 
-            spriteBatch.Begin(samplerState: SamplerState.PointClamp);
+            // The active attack can pan/shake the whole battle view. This is a
+            // draw-time transform only — every hitbox stays in untransformed
+            // coordinates, so the camera can never desync collision from what
+            // the player sees. Identity for attacks that don't touch it.
+            bool dodging = _phase == BattlePhase.Dodging && _dodgePhase != null;
+            Matrix view = Matrix.Identity;
+            if (dodging)
+            {
+                Vector2 cam = _dodgePhase.CameraOffset;
+                view = Matrix.CreateTranslation(-cam.X, -cam.Y, 0f);
+            }
 
-            _hud.Draw(spriteBatch, Game.DialogueFont, Game.PixelTexture);
+            spriteBatch.Begin(samplerState: SamplerState.PointClamp, transformMatrix: view);
+
+            // attacks can pull the HP readout off screen entirely (Napoleon does)
+            if (!dodging || !_dodgePhase.HudHidden)
+                _hud.Draw(spriteBatch, Game.DialogueFont, Game.PixelTexture);
 
             if (_phase == BattlePhase.Dodging)
             {

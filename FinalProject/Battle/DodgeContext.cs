@@ -34,5 +34,28 @@ namespace FinalProject.Battle
         // resize the arena, DodgePhase animates the transition
         public void ResizeBoxTo(Rectangle target, float overSeconds)
             => _phase.ResizeBoxTo(target, overSeconds);
+
+        // purely decorative specks — they never damage the player. Pass a
+        // texture to use a sprite (e.g. "smoke"); null draws a plain square.
+        public void SpawnParticle(Vector2 position, Vector2 velocity, float lifeSeconds,
+                                  int size, Color color, float fadeInSeconds = 0.3f,
+                                  Texture2D texture = null)
+            => _phase.SpawnParticle(position, velocity, lifeSeconds, size, color, fadeInSeconds, texture);
+
+        // ── Battle camera (visual only, never affects collision) ─────────────
+
+        // Absolute camera offset in pixels. Positive X shifts the view right,
+        // which slides the content left on screen.
+        public void SetCameraPan(Vector2 pan) => _phase.SetCameraPan(pan);
+
+        // One-shot screen shake that decays over its duration.
+        public void ShakeScreen(float magnitude, float seconds)
+            => _phase.ShakeScreen(magnitude, seconds);
+
+        // Hide the HP readout for the rest of this attack.
+        public void SetHudHidden(bool hidden) => _phase.SetHudHidden(hidden);
+
+        // Hide the arena outline — for attacks that fill the whole screen.
+        public void SetBoxBorderHidden(bool hidden) => _phase.SetBoxBorderHidden(hidden);
     }
 }

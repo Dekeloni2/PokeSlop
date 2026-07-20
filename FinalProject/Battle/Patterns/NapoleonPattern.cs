@@ -202,7 +202,14 @@ public class NapoleonPattern : IBulletPattern
         _smokeTimer = 0f;
 
         Rectangle b = _beam.Bounds;
-        int spread  = Math.Min(b.Width, GameSettings.WindowWidth);
+
+        // Billow along the bottom of the *visible* screen, across whatever part
+        // of Napoleon is on it. His own bottom edge sits ~50px below the view
+        // (he's taller than the screen), so anchoring to that would spawn every
+        // puff out of sight.
+        float left  = Math.Max(b.Left,  CameraPanX);
+        float right = Math.Min(b.Right, CameraPanX + GameSettings.WindowWidth);
+        if (right <= left) return;
 
         Spritesheet smoke = SpriteManager.GetSprite("smoke");
         Texture2D smokeTex = smoke?.Texture; // null falls back to a plain square
@@ -210,8 +217,8 @@ public class NapoleonPattern : IBulletPattern
         for (int i = 0; i < 3; i++)
         {
             var pos = new Vector2(
-                b.Left + (float)Random.Shared.NextDouble() * spread,
-                b.Bottom - 8 + (float)Random.Shared.NextDouble() * 16);
+                left + (float)Random.Shared.NextDouble() * (right - left),
+                GameSettings.WindowHeight - 50 + (float)Random.Shared.NextDouble() * 60);
 
             var vel = new Vector2(
                 ((float)Random.Shared.NextDouble() * 2f - 1f) * 20f,

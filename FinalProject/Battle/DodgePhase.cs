@@ -183,11 +183,13 @@ namespace FinalProject.Battle
             if (!BoxBorderHidden)
                 DrawBoxBorder(spriteBatch, pixel);
 
-            // decorative only, drawn under the hazards so bullets stay readable
-            _particles.Draw(spriteBatch, pixel);
-
             foreach (Beam beam in _beams)
                 beam.Draw(spriteBatch, pixel);
+
+            // decorative only. Drawn over the beams so smoke billows in front
+            // of a sprite-beam like Napoleon, but under the bullets and the
+            // soul below, so nothing gameplay-critical gets buried.
+            _particles.Draw(spriteBatch, pixel);
 
             foreach (HexHazard hex in _hexes)
                 hex.Draw(spriteBatch, pixel);

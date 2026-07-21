@@ -50,6 +50,13 @@ namespace FinalProject.World
             _interactables = interactables ?? new List<Interactable>();
         }
 
+        // true on the tiles the elevator door covers, used to catch the player
+        // walking out of the lift
+        public bool IsElevatorDoorTile(int tileX, int tileY)
+            => _elevatorDoorLayer != null
+               && _elevatorDoorLayer.InBounds(tileX, tileY)
+               && _elevatorDoorLayer.HasTile(tileX, tileY);
+
         public bool IsInBounds(int tileX, int tileY)
             => tileX >= 0 && tileY >= 0 && tileX < Width && tileY < Height;
 

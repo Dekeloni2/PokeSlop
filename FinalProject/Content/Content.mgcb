@@ -230,6 +230,24 @@
 /processorParam:Quality=Best
 /build:Audio/Music/beep_sound.wav
 
+#begin Audio/Music/mus_elevator.ogg
+/importer:OggImporter
+/processor:SongProcessor
+/processorParam:Quality=Best
+/build:Audio/Music/mus_elevator.ogg
+
+#begin Audio/SFX/snd_elecdoor_shut.wav
+/importer:WavImporter
+/processor:SoundEffectProcessor
+/processorParam:Quality=Best
+/build:Audio/SFX/snd_elecdoor_shut.wav
+
+#begin Audio/SFX/snd_bell.wav
+/importer:WavImporter
+/processor:SoundEffectProcessor
+/processorParam:Quality=Best
+/build:Audio/SFX/snd_bell.wav
+
 #begin Audio/SFX/snd_select.wav
 /importer:WavImporter
 /processor:SoundEffectProcessor

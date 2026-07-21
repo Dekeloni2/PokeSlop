@@ -82,6 +82,10 @@ namespace FinalProject
             new SoundManager(Content);
             // text blip, the typewriters play this per character
             SoundManager.AddSound(SoundManager.TextBeepName, "Audio/Music/beep_sound");
+            // elevator
+            SoundManager.AddSound("doorShut", "Audio/SFX/snd_elecdoor_shut");
+            SoundManager.AddSound("bell",     "Audio/SFX/snd_bell");
+            SoundManager.AddSong("elevator",  "Audio/Music/mus_elevator");
             // menus, shared by anything that has a cursor
             SoundManager.AddSound(SoundManager.MenuMove,   "Audio/SFX/snd_squeak");
             SoundManager.AddSound(SoundManager.MenuSelect, "Audio/SFX/snd_select");

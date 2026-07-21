@@ -60,7 +60,8 @@ namespace FinalProject.World
                 if (type == "objectgroup")
                 {
                     string groupName = layerEl.GetProperty("name").GetString();
-                    if (groupName == "Interactables")
+                    // both spellings, tiled maps here use either
+                    if (groupName == "Interactables" || groupName == "Interactable")
                         interactables.AddRange(ParseInteractables(layerEl, tileWidth, tileHeight));
                     continue;
                 }

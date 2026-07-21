@@ -85,6 +85,9 @@ public class Player : Sprite
             HandleInput(map);
     }
 
+    // turns him without input, for scripted moments like the elevator
+    public void Face(Direction direction) => Facing = direction;
+
     public void Teleport(int tileX, int tileY)
     {
         TilePosition  = new Point(tileX, tileY);

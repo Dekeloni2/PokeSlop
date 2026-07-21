@@ -54,8 +54,25 @@ namespace FinalProject.States
 
         // comes back up from black when a battle pops off the stack, picking up
         // where the battle's fade out left it
-        private const float FadeInSeconds = 0.3f;
+        private const float FadeInSeconds  = 0.3f;
+        private const float FadeOutSeconds = 0.3f;
         private float _fadeInLeft;
+
+        // map changes fade out, swap, then fade back in, same as leaving a battle
+        private float _fadeOut; // 0..1 while going to black
+        private (string Map, int X, int Y) _pendingLoad;
+        private bool _hasPendingLoad;
+
+        // everything that changes map goes through here so they all get the fade
+        private void BeginMapChange(string map, int spawnX, int spawnY)
+        {
+            if (_hasPendingLoad) return;
+
+            _pendingLoad    = (map, spawnX, spawnY);
+            _hasPendingLoad = true;
+            _transitioning  = true;
+            _fadeOut        = 0f;
+        }
 
         // ── elevator ─────────────────────────────────────────────────────────
         // the floors it can reach. a null map is one that isn't built yet, it
@@ -70,6 +87,7 @@ namespace FinalProject.States
         private const float DoorSeconds  = 0.7f; // shutting and opening again
         private const float RideSeconds  = 2.5f;
         private const float RideShake    = 2.5f; // px of judder while moving
+        private const float RideSettleSeconds = 0.8f; // it eases off over the last stretch
 
         private enum ElevatorPhase { None, Closing, Riding, Opening }
 
@@ -87,8 +105,25 @@ namespace FinalProject.States
 
         public override void Update(GameTime gameTime)
         {
-            if (_fadeInLeft > 0f)
-                _fadeInLeft -= (float)gameTime.ElapsedGameTime.TotalSeconds;
+            float dt = (float)gameTime.ElapsedGameTime.TotalSeconds;
+
+            if (_fadeInLeft > 0f) _fadeInLeft -= dt;
+
+            // holding still while the screen goes black, then swap and come back
+            if (_hasPendingLoad)
+            {
+                _fadeOut += dt / FadeOutSeconds;
+                if (_fadeOut < 1f) return;
+
+                (string map, int x, int y) = _pendingLoad;
+                _hasPendingLoad = false;
+                _transitioning  = false;
+                _fadeOut        = 0f;
+
+                LoadMap(map, x, y);
+                _fadeInLeft = FadeInSeconds;
+                return;
+            }
 
             // the lift owns everything while it's running, the player can't move
             if (_elevPhase != ElevatorPhase.None)
@@ -249,10 +284,8 @@ namespace FinalProject.States
             (int _, string _, string map, int x, int y) = Floors[_pendingFloor];
             if (map == null) return; // floor isn't built yet, nothing to walk into
 
-            _pendingFloor  = -1;
-            _transitioning = true;
-            LoadMap(map, x, y);
-            _transitioning = false;
+            _pendingFloor = -1;
+            BeginMapChange(map, x, y);
         }
 
         public override void Draw(SpriteBatch spriteBatch)
@@ -260,12 +293,19 @@ namespace FinalProject.States
             Game.GraphicsDevice.Clear(BackgroundColor);
 
             // the lift judders on the way between floors. screen space, applied
-            // after the camera so it shakes the view rather than the world
+            // after the camera so it shakes the view rather than the world.
+            // it settles over the last stretch so it isn't still rattling when
+            // the doors open
             Matrix view = _camera.GetTransform();
             if (_elevPhase == ElevatorPhase.Riding)
+            {
+                float left  = RideSeconds - _elevTimer;
+                float mag   = RideShake * MathHelper.Clamp(left / RideSettleSeconds, 0f, 1f);
+
                 view *= Matrix.CreateTranslation(
-                    ((float)_rng.NextDouble() * 2f - 1f) * RideShake,
-                    ((float)_rng.NextDouble() * 2f - 1f) * RideShake, 0f);
+                    ((float)_rng.NextDouble() * 2f - 1f) * mag,
+                    ((float)_rng.NextDouble() * 2f - 1f) * mag, 0f);
+            }
 
             spriteBatch.Begin(
                 samplerState: SamplerState.PointClamp,
@@ -280,11 +320,16 @@ namespace FinalProject.States
             _dialogueBox.Draw(spriteBatch);
             _floorMenu.Draw(spriteBatch);
 
-            // black lifting off after a battle, over everything else
-            if (_fadeInLeft > 0f)
+            // black going up for a map change, or lifting off after one (and
+            // after a battle). whichever is stronger wins
+            float black = Math.Max(
+                MathHelper.Clamp(_fadeOut, 0f, 1f),
+                MathHelper.Clamp(_fadeInLeft / FadeInSeconds, 0f, 1f));
+
+            if (black > 0f)
                 spriteBatch.Draw(Game.PixelTexture,
                     new Rectangle(0, 0, GameSettings.WindowWidth, GameSettings.WindowHeight),
-                    Color.Black * MathHelper.Clamp(_fadeInLeft / FadeInSeconds, 0f, 1f));
+                    Color.Black * black);
 
             spriteBatch.End();
         }
@@ -354,9 +399,7 @@ namespace FinalProject.States
 
                 if (facingExit && leavingMap && inRange)
                 {
-                    _transitioning = true;
-                    LoadMap(t.TargetMap, t.SpawnX, t.SpawnY);
-                    _transitioning = false;
+                    BeginMapChange(t.TargetMap, t.SpawnX, t.SpawnY);
                     return;
                 }
             }
@@ -373,9 +416,7 @@ namespace FinalProject.States
             {
                 if (w.ContainsTile(_player.TilePosition.X, _player.TilePosition.Y))
                 {
-                    _transitioning = true;
-                    LoadMap(w.TargetMap, w.SpawnX, w.SpawnY);
-                    _transitioning = false;
+                    BeginMapChange(w.TargetMap, w.SpawnX, w.SpawnY);
                     return;
                 }
             }

@@ -47,7 +47,17 @@ namespace FinalProject.Data
 
             return new TeacherStats(data.Name, data.SpriteName, data.BaseHp, data.BaseAtk, moves, actOptions,
                 turnNarration, data.SpareSuccessAt, data.SpareSuccessText, spareTextByPercent, turnNarrationBySpare,
-                ToSprite(data.Sprite));
+                ToSprite(data.Sprite), ToDialogue(data.BattleDialogue), data.GoldReward);
+        }
+
+        private static TeacherDialogue ToDialogue(DialogueJson json)
+        {
+            if (json == null) return null;
+
+            return new TeacherDialogue(
+                json.OnAttack, json.OnAct, json.OnItem, json.OnSpare,
+                json.ByHp != null && json.ByHp.Count > 0 ? ToThresholds(json.ByHp) : null,
+                json.OnDefeat, json.OnSpared);
         }
 
         // builds the multi part sprite from the "sprite" block. returns null if
@@ -103,6 +113,19 @@ namespace FinalProject.Data
             public List<PercentThresholdTextJson> SpareTextByPercent { get; set; }
             public List<PercentThresholdTextJson> TurnNarrationBySpare { get; set; }
             public SpriteJson Sprite { get; set; }
+            public DialogueJson BattleDialogue { get; set; }
+            public int GoldReward { get; set; }
+        }
+
+        private class DialogueJson
+        {
+            public List<string> OnAttack { get; set; }
+            public List<string> OnAct { get; set; }
+            public List<string> OnItem { get; set; }
+            public List<string> OnSpare { get; set; }
+            public List<PercentThresholdTextJson> ByHp { get; set; }
+            public string OnDefeat { get; set; }
+            public string OnSpared { get; set; }
         }
 
         private class SpriteJson

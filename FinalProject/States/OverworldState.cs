@@ -50,8 +50,18 @@ namespace FinalProject.States
             LoadMap("entrance", 6, 14);
         }
 
+        // comes back up from black when a battle pops off the stack, picking up
+        // where the battle's fade out left it
+        private const float FadeInSeconds = 0.3f;
+        private float _fadeInLeft;
+
+        public override void Resume() => _fadeInLeft = FadeInSeconds;
+
         public override void Update(GameTime gameTime)
         {
+            if (_fadeInLeft > 0f)
+                _fadeInLeft -= (float)gameTime.ElapsedGameTime.TotalSeconds;
+
             // The dialogue box owns input while a conversation is on screen —
             // updated (and testable) independent of whether the map loaded, so
             // it isn't blocked by the in-progress tileset rework.
@@ -116,6 +126,13 @@ namespace FinalProject.States
             // UI layer — screen space, unaffected by the world camera's zoom/scroll.
             spriteBatch.Begin(samplerState: SamplerState.PointClamp);
             _dialogueBox.Draw(spriteBatch);
+
+            // black lifting off after a battle, over everything else
+            if (_fadeInLeft > 0f)
+                spriteBatch.Draw(Game.PixelTexture,
+                    new Rectangle(0, 0, GameSettings.WindowWidth, GameSettings.WindowHeight),
+                    Color.Black * MathHelper.Clamp(_fadeInLeft / FadeInSeconds, 0f, 1f));
+
             spriteBatch.End();
         }
 

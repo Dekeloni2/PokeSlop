@@ -19,7 +19,7 @@ public static class GameSettings
 
     // ── Battle: attack minigame ─────────────────────────────────────────
     public const float AttackBarSpeed      = 480f; // px/sec sweep across the target zone
-    public const float AttackFlashSeconds  = 2f;   // how long the bar flashes after a hit
+    public const float AttackFlashSeconds  = 0.7f; // how long the bar flashes after a hit
     public const float AttackFlashInterval = 0.1f; // sec per white/black flash frame
 
     // ── Battle: dodge phase ─────────────────────────────────────────────

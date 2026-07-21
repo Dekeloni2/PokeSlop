@@ -18,8 +18,23 @@ namespace FinalProject.Battle
         private readonly TeacherSpriteData _data;
         private readonly Spritesheet       _sheet;
 
+        // defeated: the parts stop drifting and crumble downward while fading.
+        // spared: everything freezes where it is and just goes translucent
+        // the sprite gets sliced into horizontal bands that scatter sideways and
+        // drift up as they fade, starting at the head and working down, so he
+        // disintegrates instead of just dimming
+        private const float DustSeconds  = 1.714f; // matches snd_vaporized.wav
+        private const int   BandHeight   = 2;    // source px per slice
+        private const float DustSpread   = 34f;  // px a slice can slide sideways
+        private const float DustRise     = 26f;  // px slices drift upward
+        private const float TopDownDelay = 0.55f; // how much later the feet start
+        private const float SparedAlpha  = 0.35f;
+
         private float _time;
         private float _hurtLeft;
+        private float _dustLeft;
+        private bool  _dusting;
+        private bool  _spared;
 
         // assembled size in screen px, worked out from the parts and scaled.
         // BattleState uses it to centre him over the box
@@ -56,10 +71,70 @@ namespace FinalProject.Battle
         // shakes the whole body for a moment
         public void Hurt() => _hurtLeft = HurtSeconds;
 
+        // starts the crumble. IsDustFinished tells BattleState when it's over
+        public void Dust()
+        {
+            _dusting  = true;
+            _dustLeft = DustSeconds;
+            _hurtLeft = 0f;
+        }
+
+        // freezes him mid pose and makes him see through
+        public void Spare() => _spared = true;
+
+        public bool IsDustFinished => _dusting && _dustLeft <= 0f;
+
         public void Update(float dt)
         {
+            if (_spared) return; // frozen, nothing moves
+
+            if (_dusting)
+            {
+                if (_dustLeft > 0f) _dustLeft -= dt;
+                return; // stop the idle drift while he falls apart
+            }
+
             _time += dt;
             if (_hurtLeft > 0f) _hurtLeft -= dt;
+        }
+
+        // draws one part as a stack of horizontal slices. a slice's progress
+        // depends on how far down the body it is, so the head comes apart while
+        // the legs are still solid. each slice slides sideways, drifts up and
+        // fades on its own
+        private void DrawDissolved(SpriteBatch spriteBatch, Rectangle src, Vector2 pos,
+            float s, float dustT, float charTop, float charHeight)
+        {
+            for (int y = 0; y < src.Height; y += BandHeight)
+            {
+                int h = Math.Min(BandHeight, src.Height - y);
+                var bandSrc = new Rectangle(src.X, src.Y + y, src.Width, h);
+
+                float bandY = pos.Y + y * s;
+                float down  = charHeight > 0f
+                    ? MathHelper.Clamp((bandY - charTop) / charHeight, 0f, 1f)
+                    : 0f;
+
+                float p = MathHelper.Clamp((dustT - down * TopDownDelay) / (1f - TopDownDelay), 0f, 1f);
+
+                float drift = Hash(src.X + src.Y + y) * DustSpread * p * s;
+                float rise  = -DustRise * p * s;
+
+                spriteBatch.Draw(
+                    _sheet.Texture,
+                    new Rectangle((int)(pos.X + drift), (int)(bandY + rise),
+                                  (int)(src.Width * s), (int)(h * s)),
+                    bandSrc,
+                    Color.White * (1f - p));
+            }
+        }
+
+        // stable per slice so they spread apart steadily instead of flickering
+        private static float Hash(int n)
+        {
+            n = (n << 13) ^ n;
+            int m = (n * (n * n * 15731 + 789221) + 1376312589) & 0x7fffffff;
+            return 1f - m / 1073741824f;
         }
 
         public void Draw(SpriteBatch spriteBatch, Vector2 anchor)
@@ -78,6 +153,14 @@ namespace FinalProject.Battle
 
             float s = _data.Scale;
 
+            float dustT = _dusting ? 1f - MathHelper.Clamp(_dustLeft / DustSeconds, 0f, 1f) : 0f;
+            float alpha = _spared ? SparedAlpha : 1f;
+
+            // where the whole character starts and how tall he is, so the slices
+            // know how far down the body they are
+            float charTop    = anchor.Y + _data.Anchor.Y;
+            float charHeight = Size.Y;
+
             foreach (TeacherPartData part in _data.Parts)
             {
                 // Speed is cycles per second, Phase is 0..1 of a cycle
@@ -89,11 +172,17 @@ namespace FinalProject.Battle
 
                 Rectangle src = IsHurt && part.SrcHurt.HasValue ? part.SrcHurt.Value : part.Src;
 
+                if (_dusting)
+                {
+                    DrawDissolved(spriteBatch, src, pos, s, dustT, charTop, charHeight);
+                    continue;
+                }
+
                 spriteBatch.Draw(
                     _sheet.Texture,
                     new Rectangle((int)pos.X, (int)pos.Y, (int)(src.Width * s), (int)(src.Height * s)),
                     src,
-                    Color.White);
+                    Color.White * alpha);
             }
         }
     }

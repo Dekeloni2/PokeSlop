@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
+using Microsoft.Xna.Framework.Input;
 using FinalProject.Battle;
 using FinalProject.Core;
 using FinalProject.Core.Audio;
@@ -58,6 +59,23 @@ namespace FinalProject.States
         // set when an attack lands, spent once the slash finishes
         private bool _hurtQueued;
 
+        // what the teacher says. each action keeps its own place in its list, so
+        // attacking twice steps the attack lines regardless of ACTs in between
+        private readonly SpeechBubble _bubble = new();
+        private readonly Dictionary<PlayerMoveList, int> _dialogueIndex = new();
+
+        // which way the fight ended. the dust itself is the sprite coming apart,
+        // see TeacherSprite.Dust
+        private bool _endingSpared;
+        private bool _endingStarted;
+
+        // the win text in the box, then a fade to black on the way out
+        private const float FadeSeconds = 0.3f;
+        private readonly Typewriter _victoryTyper = new();
+        private bool  _victoryShown;
+        private bool  _fading;
+        private float _fadeT;
+
         // only reset when the text actually changes, otherwise backing out of
         // a submenu would restart the typing animation
         private readonly Typewriter _narrationTypewriter = new();
@@ -99,6 +117,11 @@ namespace FinalProject.States
             _hud = new BattleHud(Game.PlayerData.CurrentHp, Game.PlayerData.MaxHp);
             _teacherSprite = new TeacherSprite(_teacher.Stats.Sprite);
             _hurtQueued    = false;
+            _endingStarted = false;
+            _victoryShown  = false;
+            _fading        = false;
+            _fadeT         = 0f;
+            _dialogueIndex.Clear();
         }
 
         // Detach the HUD from the bus when the battle is popped, so its handler
@@ -109,7 +132,7 @@ namespace FinalProject.States
             _hud.Unsubscribe();
 
             // attack might have been cut off mid loop (player died while
-            // dodging), don't let it keep playing after the fight
+            // dodging)
             SoundManager.StopAllLoops();
         }
 
@@ -136,7 +159,7 @@ namespace FinalProject.States
                     UpdateTurnExecution();
                     break;
 
-                case BattlePhase.ShowingDamage:
+                case BattlePhase.TurnFeedback:
                     UpdateDamageDisplay(gameTime);
                     break;
 
@@ -146,6 +169,10 @@ namespace FinalProject.States
 
                 case BattlePhase.Dodging:
                     UpdateDodging(gameTime);
+                    break;
+
+                case BattlePhase.Ending:
+                    UpdateEnding(gameTime);
                     break;
 
                 case BattlePhase.BattleOver:
@@ -200,10 +227,30 @@ namespace FinalProject.States
                 if (_phase == BattlePhase.SelectingMove)
                     DrawTeacherNarration(spriteBatch);
 
+                // the win text takes the box over once the fight is decided
+                if (_phase == BattlePhase.Ending && _victoryShown)
+                {
+                    Rectangle box = _box.Current;
+                    spriteBatch.DrawString(Game.DialogueFont, _victoryTyper.VisibleText,
+                        new Vector2(box.X + 16, box.Y + 16), Color.White,
+                        0f, Vector2.Zero, NarrationTextScale, SpriteEffects.None, 0f);
+                }
+
+
+                // only up once he's actually been hit, it manages its own state
+                _bubble.Draw(spriteBatch, Game.DialogueFont,
+                    new Vector2(TeacherBounds.Right + 4, TeacherBounds.Top + 24));
+
                 // buttons stay on screen the whole time (they only disappear
                 // while dodging), the soul only sits on them while choosing
                 _menu.Draw(spriteBatch, showSoul: _phase == BattlePhase.SelectingMove);
             }
+
+            // over the top of everything on the way out to the overworld
+            if (_fading)
+                spriteBatch.Draw(Game.PixelTexture,
+                    new Rectangle(0, 0, GameSettings.WindowWidth, GameSettings.WindowHeight),
+                    Color.Black * MathHelper.Clamp(_fadeT, 0f, 1f));
 
             spriteBatch.End();
         }
@@ -387,11 +434,20 @@ namespace FinalProject.States
 
         private void UpdateTurnExecution()
         {
+            // his line depends on what the player just did, so it's picked here
+            // rather than before the choice was made
+            PrepareDialogue(_playerChoice ?? PlayerMoveList.Act);
+
             // an attack holds the turn while the slash/number/HP bar play out,
             // everything else goes straight to the enemy's turn
             if (_playerChoice == PlayerMoveList.Attack)
             {
                 _teacher.TakeDamage(_pendingAttackDamage);
+
+                // if that killed him his defeat line takes over, so drop the
+                // attack banter instead of saying both
+                if (!_teacher.IsAlive) _bubble.Clear();
+
                 _damageDisplay.Show(_pendingAttackDamage, _teacher.CurrentHp, _teacher.MaxHp,
                     TeacherBounds, WideBoxRect);
 
@@ -403,31 +459,50 @@ namespace FinalProject.States
                 _hurtQueued = true;
 
                 _playerChoice = null;
-                _phase = BattlePhase.ShowingDamage;
+                _phase = BattlePhase.TurnFeedback;
                 return;
             }
             // act/spare/item already did their thing in their Activate callbacks
 
             _playerChoice = null;
+
+            // same on a spare that actually worked, the farewell wins
+            if (IsBattleOver()) _bubble.Clear();
+
+            // he still gets his line on a turn where he wasn't hit. no damage
+            // display is running so TurnFeedback just waits on the bubble
+            if (_bubble.HasText)
+            {
+                _bubble.Begin();
+                _phase = BattlePhase.TurnFeedback;
+                return;
+            }
+
             BeginEnemyTurn();
         }
 
-        // ── Phase: ShowingDamage ─────────────────────────────────────────────
+        // ── Phase: TurnFeedback ─────────────────────────────────────────────
 
         // holds while the slash, number and HP bar play, then carries on
         private void UpdateDamageDisplay(GameTime gameTime)
         {
             _damageDisplay.Update((float)gameTime.ElapsedGameTime.TotalSeconds);
 
-            // hurt face + shake + the hit sound all fire the moment the slash ends
+            // hurt face + shake + the hit sound all fire the moment the slash ends,
+            // and that's when he starts talking, not before he's been hit
             if (_hurtQueued && _damageDisplay.SlashDone)
             {
                 _teacherSprite.Hurt();
                 SoundManager.Play("damage");
+                _bubble.Begin();
                 _hurtQueued = false;
             }
 
-            if (!_damageDisplay.IsFinished) return;
+            _bubble.Update(gameTime, Game.Input);
+
+            // waits for the numbers to finish AND for the player to close the
+            // bubble, so his line never gets cut off
+            if (!_damageDisplay.IsFinished || _bubble.IsActive) return;
 
             _damageDisplay.Hide();
             BeginEnemyTurn();
@@ -438,7 +513,9 @@ namespace FinalProject.States
         {
             if (IsBattleOver())
             {
-                _phase = BattlePhase.BattleOver;
+                // the player dying just exits, the teacher going down gets a scene
+                if (Game.PlayerData.IsAlive) BeginEnding();
+                else                         _phase = BattlePhase.BattleOver;
                 return;
             }
 
@@ -470,7 +547,9 @@ namespace FinalProject.States
             // stop early if the player died mid-dodge
             if (IsBattleOver())
             {
-                _phase = BattlePhase.BattleOver;
+                // the player dying just exits, the teacher going down gets a scene
+                if (Game.PlayerData.IsAlive) BeginEnding();
+                else                         _phase = BattlePhase.BattleOver;
                 return;
             }
 
@@ -494,6 +573,117 @@ namespace FinalProject.States
 
         private bool IsBattleOver()
             => !Game.PlayerData.IsAlive || !_teacher.IsAlive || _teacher.IsSpared;
+
+        // ── Phase: Ending ────────────────────────────────────────────────────
+
+        // his last words, then he either crumbles or freezes. the fight doesn't
+        // pop until that has played out
+        private void BeginEnding()
+        {
+            TeacherDialogue d = _teacher.Stats.Dialogue;
+            bool spared = _teacher.IsSpared || _teacher.IsAlive; // alive = mercy, not a kill
+
+            string line = spared ? d?.OnSpared : d?.OnDefeat;
+
+            _bubble.Prepare(line, Game.DialogueFont);
+            _bubble.Begin();
+
+            _endingSpared = spared;
+            _phase = BattlePhase.Ending;
+        }
+
+        private void UpdateEnding(GameTime gameTime)
+        {
+            _bubble.Update(gameTime, Game.Input);
+            if (_bubble.IsActive) return; // let him finish talking first
+
+            // kick the visual off once, then wait for it
+            if (!_endingStarted)
+            {
+                _endingStarted = true;
+
+                if (_endingSpared)
+                {
+                    _teacherSprite.Spare();
+                }
+                else
+                {
+                    // DustSeconds is set to this sound's length so they end together
+                    _teacherSprite.Dust();
+                    SoundManager.Play("vaporized");
+                }
+            }
+
+            // spared freezes instantly, a defeat waits for him to finish crumbling
+            if (!_endingSpared && !_teacherSprite.IsDustFinished) return;
+
+            // pay out once, then the win text
+            if (!_victoryShown)
+            {
+                _victoryShown = true;
+                Game.PlayerData.Money += _teacher.Stats.GoldReward;
+                _victoryTyper.SetText($"* YOU WON!\n* You earned {_teacher.Stats.GoldReward} gold.");
+            }
+
+            float dt = (float)gameTime.ElapsedGameTime.TotalSeconds;
+
+            if (_fading)
+            {
+                _fadeT += dt / FadeSeconds;
+                if (_fadeT >= 1f) _phase = BattlePhase.BattleOver;
+                return;
+            }
+
+            _victoryTyper.Update(dt);
+
+            if (!Game.Input.IsKeyPressed(Keys.Z)) return;
+
+            // first Z finishes the typing, second starts the fade out
+            if (!_victoryTyper.IsFullyShown) { _victoryTyper.SkipToEnd(); return; }
+
+            _fading = true;
+        }
+
+        // picks his line for whatever the player just did. an HP line overrides
+        // everything, otherwise it takes the next entry from that action's own
+        // list and advances only that one
+        private void PrepareDialogue(PlayerMoveList choice)
+        {
+            TeacherDialogue d = _teacher.Stats.Dialogue;
+            if (d == null) { _bubble.Clear(); return; }
+
+            // using an item counts as acting, same lines and same place in them,
+            // unless the teacher bothers to define its own item lines
+            if (choice == PlayerMoveList.Item && (d.OnItem == null || d.OnItem.Count == 0))
+                choice = PlayerMoveList.Act;
+
+            string line = null;
+
+            if (d.ByHp != null && d.ByHp.Count > 0)
+                line = PercentThresholdText.Resolve(d.ByHp, CurrentHpPercent());
+
+            if (string.IsNullOrEmpty(line))
+            {
+                IReadOnlyList<string> list = choice switch
+                {
+                    PlayerMoveList.Attack => d.OnAttack,
+                    PlayerMoveList.Act    => d.OnAct,
+                    PlayerMoveList.Item   => d.OnItem,
+                    PlayerMoveList.Spare  => d.OnSpare,
+                    _                     => null
+                };
+
+                if (list != null && list.Count > 0)
+                {
+                    _dialogueIndex.TryGetValue(choice, out int i);
+                    line = list[i % list.Count];
+                    _dialogueIndex[choice] = i + 1;
+                }
+            }
+
+            if (string.IsNullOrEmpty(line)) _bubble.Clear();
+            else                            _bubble.Prepare(line, Game.DialogueFont);
+        }
 
         private float CurrentHpPercent()
             => _teacher.MaxHp > 0 ? (float)_teacher.CurrentHp / _teacher.MaxHp * 100f : 0f;
@@ -521,5 +711,5 @@ namespace FinalProject.States
 
     public enum PlayerMoveList { Attack, Act, Item, Spare }
 
-    public enum BattlePhase { SelectingMove, ActionMenu, AttackMinigame, ExecutingTurn, ShowingDamage, BoxTransition, Dodging, BattleOver }
+    public enum BattlePhase { SelectingMove, ActionMenu, AttackMinigame, ExecutingTurn, TurnFeedback, BoxTransition, Dodging, Ending, BattleOver }
 }

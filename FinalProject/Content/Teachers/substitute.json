@@ -3,6 +3,7 @@
   "spriteName": "teacher_debug",
   "baseHp": 30,
   "baseAtk": 4,
+  "goldReward": 25,
   "sprite": {
     "sheet": "yakir",
     "anchor": [ 0, 0 ],
@@ -13,6 +14,23 @@
       { "name": "torso",    "src": [ 18, 0, 32, 68 ],  "offset": [ 14, 34 ], "bobX": 0, "bobY": 1, "speed": 0.45, "phase": 0.00 },
       { "name": "head",     "src": [ 72, 7, 32, 42 ],  "srcHurt": [ 108, 7, 32, 42 ], "offset": [ 14, 0 ], "bobX": 0, "bobY": 1, "speed": 0.45, "phase": 0.00 }
     ]
+  },
+  "battleDialogue": {
+    "onAttack": [
+      "Stop trying to attack me! This is not how students behave.",
+      "You are going to regret raising your hand at me.",
+      "Detention. For the rest of your natural life."
+    ],
+    "onAct": [
+      "This lesson will be your last. Fight me like a man!",
+      "Students who usually come to my lessons don't come out alive....|This time won't be an exception!",
+      "Flattery will not raise your grade."
+    ],
+    "onSpare": [
+      "Mercy? I don't recall teaching that unit."
+    ],
+    "onDefeat": "I cannot believe...|I was defeated....|Like this....",
+    "onSpared": "...Fine.|Class dismissed."
   },
   "moves": [
     {

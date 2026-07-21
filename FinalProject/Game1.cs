@@ -77,11 +77,16 @@ namespace FinalProject
             SpriteManager.AddSprite("attackSlash", "Sprites/Battle/attack", 6, 1);
             // digits aren't a even grid ("1" is narrower), DamageDisplay has the rects
             SpriteManager.AddSprite("damageNumbers", "Sprites/Battle/damage");
+            SpriteManager.AddSprite("textBubble", "Sprites/Battle/text_bubble");
 
             new SoundManager(Content);
             // text blip, the typewriters play this per character
             SoundManager.AddSound(SoundManager.TextBeepName, "Audio/Music/beep_sound");
+            // menus, shared by anything that has a cursor
+            SoundManager.AddSound(SoundManager.MenuMove,   "Audio/SFX/snd_squeak");
+            SoundManager.AddSound(SoundManager.MenuSelect, "Audio/SFX/snd_select");
             // attacking the teacher
+            SoundManager.AddSound("vaporized", "Audio/SFX/snd_vaporized");
             SoundManager.AddSound("slash",  "Audio/SFX/snd_slash");
             SoundManager.AddSound("damage", "Audio/SFX/snd_damage");
             // napoleon sfx

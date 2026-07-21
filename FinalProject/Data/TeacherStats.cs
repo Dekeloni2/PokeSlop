@@ -28,6 +28,12 @@ namespace FinalProject.Data
         // the multi part sprite, null if the teacher's JSON has no "sprite" block
         public TeacherSpriteData Sprite { get; }
 
+        // what he says in the speech bubble, keyed by what the player did
+        public TeacherDialogue Dialogue { get; }
+
+        // handed to the player when the fight is won, either way it ended
+        public int GoldReward { get; }
+
         public TeacherStats(
             string name, string spriteName, int baseHp, int baseAtk,
             IReadOnlyList<MoveData> moves, IReadOnlyList<ActOption> actOptions = null,
@@ -35,9 +41,12 @@ namespace FinalProject.Data
             int spareSuccessAt = 100, string spareSuccessText = null,
             IReadOnlyList<PercentThresholdText> spareTextByPercent = null,
             IReadOnlyList<PercentThresholdText> turnNarrationBySpare = null,
-            TeacherSpriteData sprite = null)
+            TeacherSpriteData sprite = null,
+            TeacherDialogue dialogue = null, int goldReward = 0)
         {
-            Sprite = sprite;
+            Sprite     = sprite;
+            Dialogue   = dialogue;
+            GoldReward = goldReward;
             Name       = name;
             SpriteName = spriteName;
             BaseHp     = baseHp;

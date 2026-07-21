@@ -176,6 +176,18 @@
 /processorParam:TextureFormat=Color
 /build:Sprites/Battle/attack.png
 
+#begin Sprites/Battle/text_bubble.png
+/importer:TextureImporter
+/processor:TextureProcessor
+/processorParam:ColorKeyColor=255,0,255,255
+/processorParam:ColorKeyEnabled=False
+/processorParam:GenerateMipmaps=False
+/processorParam:PremultiplyAlpha=True
+/processorParam:ResizeToPowerOfTwo=False
+/processorParam:MakeSquare=False
+/processorParam:TextureFormat=Color
+/build:Sprites/Battle/text_bubble.png
+
 #begin Sprites/Battle/damage.png
 /importer:TextureImporter
 /processor:TextureProcessor
@@ -217,6 +229,24 @@
 /processor:SoundEffectProcessor
 /processorParam:Quality=Best
 /build:Audio/Music/beep_sound.wav
+
+#begin Audio/SFX/snd_select.wav
+/importer:WavImporter
+/processor:SoundEffectProcessor
+/processorParam:Quality=Best
+/build:Audio/SFX/snd_select.wav
+
+#begin Audio/SFX/snd_squeak.wav
+/importer:WavImporter
+/processor:SoundEffectProcessor
+/processorParam:Quality=Best
+/build:Audio/SFX/snd_squeak.wav
+
+#begin Audio/SFX/snd_vaporized.wav
+/importer:WavImporter
+/processor:SoundEffectProcessor
+/processorParam:Quality=Best
+/build:Audio/SFX/snd_vaporized.wav
 
 #begin Audio/SFX/snd_slash.wav
 /importer:WavImporter

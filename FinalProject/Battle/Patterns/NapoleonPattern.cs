@@ -19,7 +19,7 @@ public class NapoleonPattern : IBulletPattern
     private const float ExpandSeconds = 1.0f; // box grows out from the player
     private const float HoldSeconds   = 0.4f; // small pause before the camera moves
     private const float PanSeconds    = 1.2f; // camera slides over
-    private const float RiseSeconds   = 2.0f; // napoleon comes up into place
+    private const float RiseSeconds   = 2.0f; // napoleon road comes up into place
     private const float QuakeSeconds  = 0.6f; // screen shake when he lands
 
     // box is bigger than the screen on purpose, that way its edges (and the

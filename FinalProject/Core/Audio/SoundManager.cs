@@ -54,6 +54,10 @@ namespace FinalProject.Core.Audio
         // default blip for text typing out, undertale style
         public const string TextBeepName = "beep";
 
+        // shared menu cues, used by the battle menus and anything else later
+        public const string MenuMove   = "menuMove";   // moving the cursor
+        public const string MenuSelect = "menuSelect"; // confirming an option
+
         public static void PlayTextBeep() => Play(TextBeepName);
 
         // only blips if text[from..to) has an actual character in it, so

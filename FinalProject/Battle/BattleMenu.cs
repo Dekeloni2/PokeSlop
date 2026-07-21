@@ -1,6 +1,7 @@
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
+using FinalProject.Core.Audio;
 using FinalProject.Core;
 using FinalProject.Core.Graphics;
 using FinalProject.Core.Input;
@@ -49,11 +50,17 @@ namespace FinalProject.Battle
         // left/right moves the cursor, returns true with the choice on Z
         public bool Update(InputManager input, out PlayerMoveList choice)
         {
+            if (input.IsKeyPressed(Keys.Left) || input.IsKeyPressed(Keys.Right))
+                SoundManager.Play(SoundManager.MenuMove);
+
             if (input.IsKeyPressed(Keys.Left))  _selectedIndex = (_selectedIndex + 3) % 4;
             if (input.IsKeyPressed(Keys.Right)) _selectedIndex = (_selectedIndex + 1) % 4;
 
             choice = (PlayerMoveList)_selectedIndex;
-            return input.IsKeyPressed(Keys.Z) || input.IsKeyPressed(Keys.Enter);
+            if (!input.IsKeyPressed(Keys.Z) && !input.IsKeyPressed(Keys.Enter)) return false;
+
+            SoundManager.Play(SoundManager.MenuSelect);
+            return true;
         }
 
         // showSoul is false once the player is inside a submenu - the soul

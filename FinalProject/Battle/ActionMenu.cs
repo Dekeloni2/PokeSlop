@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
+using FinalProject.Core.Audio;
 using FinalProject.Core.Graphics;
 using FinalProject.Core.Input;
 using FinalProject.Core.Text;
@@ -53,6 +54,9 @@ namespace FinalProject.Battle
             if (typewriter)
                 _typewriter.Update((float)gameTime.ElapsedGameTime.TotalSeconds);
 
+            if (page.Count > 1 && (input.IsKeyPressed(Keys.Down) || input.IsKeyPressed(Keys.Up)))
+                SoundManager.Play(SoundManager.MenuMove);
+
             if (input.IsKeyPressed(Keys.Down)) _cursor = (_cursor + 1) % page.Count;
             if (input.IsKeyPressed(Keys.Up))   _cursor = (_cursor - 1 + page.Count) % page.Count;
 
@@ -67,9 +71,14 @@ namespace FinalProject.Battle
             {
                 // first Z finishes the typing, second Z actually confirms
                 if (typewriter && !_typewriter.IsFullyShown)
+                {
                     _typewriter.SkipToEnd();
+                }
                 else
+                {
+                    SoundManager.Play(SoundManager.MenuSelect);
                     page[_cursor].Activate();
+                }
             }
 
             return true;

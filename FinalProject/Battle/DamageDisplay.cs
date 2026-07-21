@@ -7,7 +7,7 @@ namespace FinalProject.Battle
     // the feedback right after you hit the teacher: the slash animation over
     // them, the damage number, and their HP bar. undertale only shows the
     // enemy's health in this moment instead of the whole fight.
-    // BattleState holds it in the ShowingDamage phase so the turn waits for it
+    // BattleState holds it in the TurnFeedback phase so the turn waits for it
     public class DamageDisplay
     {
         private const float Duration      = 2.6f;  // how long the whole thing lasts

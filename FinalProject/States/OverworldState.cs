@@ -161,7 +161,7 @@ namespace FinalProject.States
                 return;
             }
 
-            if (Game.Input.IsKeyPressed(Keys.Z))
+            if (Game.Input.IsKeyPressed(Keys.Z) || Game.Input.IsKeyPressed(Keys.Enter))
             {
                 TryInteract();
                 return;

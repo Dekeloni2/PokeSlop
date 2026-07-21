@@ -18,8 +18,12 @@ namespace FinalProject.Battle
         private const float FlashInterval = 0.08f; // how fast the digits swap
         private const int   DigitSpacing  = 2;
 
-        private const int BarWidth  = 180;
-        private const int BarHeight = 18;
+        private const int BarWidth    = 180;
+        private const int BarHeight   = 18;
+        private const int BarGap      = 4; // between the bar and the top of his head
+        private const int BarOutline  = 2;
+        private const int BarMinY     = 2; // he sits high, this keeps it on screen
+
 
         // the two sets of digits on damage.png. they flash between each other,
         // set B is a couple px bigger because of the heavier outline.
@@ -117,11 +121,13 @@ namespace FinalProject.Battle
         {
             // centred on the teacher and sitting just above his head
             int x = _target.Center.X - BarWidth / 2;
-            int y = _target.Top - BarHeight - 4;
-            if (y < 2) y = 2;
+            int y = _target.Top - BarHeight - BarGap;
+            if (y < BarMinY) y = BarMinY;
 
             // dark outline so it reads against whatever is behind it
-            spriteBatch.Draw(pixel, new Rectangle(x - 2, y - 2, BarWidth + 4, BarHeight + 4), Color.Black);
+            spriteBatch.Draw(pixel, new Rectangle(
+                x - BarOutline, y - BarOutline,
+                BarWidth + BarOutline * 2, BarHeight + BarOutline * 2), Color.Black);
             spriteBatch.Draw(pixel, new Rectangle(x, y, BarWidth, BarHeight), new Color(80, 20, 20));
 
             float pct = _maxHp > 0 ? MathHelper.Clamp((float)_hp / _maxHp, 0f, 1f) : 0f;

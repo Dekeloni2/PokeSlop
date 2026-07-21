@@ -1,5 +1,6 @@
 namespace FinalProject.Entities;
 
+using System;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Input;
 using Microsoft.Xna.Framework.Graphics;
@@ -93,11 +94,13 @@ public class Player : Sprite
             TryMove(new Vector2(step.X, 0f), map);
             TryMove(new Vector2(0f, step.Y), map);
 
+            // carries the remainder over instead of zeroing, otherwise the step
+            // timing drifts a little every frame and the walk cycle stutters
             _animTimer += dt;
-            if (_animTimer >= WalkFrameSeconds)
+            while (_animTimer >= WalkFrameSeconds)
             {
-                _animTimer = 0f;
-                _walkStep  = (_walkStep + 1) % 4;
+                _animTimer -= WalkFrameSeconds;
+                _walkStep   = (_walkStep + 1) % 4;
             }
         }
         else
@@ -188,7 +191,14 @@ public class Player : Sprite
         Rectangle src = frames[frameIndex];
 
         int yOffset = -(src.Height - _tileSize);
-        Vector2 drawPos = new Vector2((int)WorldPosition.X, (int)WorldPosition.Y + yOffset);
+
+        // snapped to the same 1/Zoom grid the camera uses. rounding him to whole
+        // world pixels while the camera sits on halves makes him jitter against
+        // the background by a pixel as he walks, which reads as choppy movement
+        float snap = GameSettings.Zoom;
+        Vector2 drawPos = new Vector2(
+            MathF.Round(WorldPosition.X * snap) / snap,
+            MathF.Round((WorldPosition.Y + yOffset) * snap) / snap);
 
         SpriteEffects effects = flip ? SpriteEffects.FlipHorizontally : SpriteEffects.None;
         spriteBatch.Draw(Texture, drawPos, src, Color.White, 0f, Vector2.Zero, 1f, effects, 0f);

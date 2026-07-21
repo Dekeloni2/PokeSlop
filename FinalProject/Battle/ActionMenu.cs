@@ -110,7 +110,7 @@ namespace FinalProject.Battle
             float y = box.Y + 16;
             for (int i = 0; i < page.Count; i++)
             {
-                Color color = Color.White;
+                Color color = page[i].Color;
                 float optionStartY = y;
 
                 bool isTyping = typewriter && i == 0;

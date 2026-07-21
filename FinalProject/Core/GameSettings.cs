@@ -13,7 +13,9 @@ public static class GameSettings
     
     public const float Zoom = 2f;
 
-    public const float PlayerSpeed = 128f;
+    // undertale moves 2px per frame at 30fps, so 60px/sec. ours is time based
+    // rather than per frame, so it stays the same at any framerate
+    public const float PlayerSpeed = 100f;
 
     public const float WildEncounterChance = 0.10f;
 

@@ -68,6 +68,13 @@ namespace FinalProject.States
         // which way the fight ended. a defeat is the sprite coming apart (see
         // TeacherSprite.Dust), a spare is a burst of smoke over a frozen pose
         private const float SpareSmokeSeconds = 1.714f; // matches snd_vaporized
+        private const float SpareSmokeMinSpeed = 60f;   // px/sec outward
+        private const float SpareSmokeSpeedRange = 120f;
+        private const float SpareSmokeSpread   = 0.3f;  // of his size, where puffs start
+        private const float SpareSmokeLife     = 1.4f;
+        private const float SpareSmokeFadeIn   = 0.15f;
+        private const int   SpareSmokeMinSize  = 14;
+        private const int   SpareSmokeSizeRange = 20;
         private readonly ParticleSystem _spareSmoke = new();
         private float _spareLeft;
 
@@ -375,10 +382,19 @@ namespace FinalProject.States
                 PlayerMoveList.Item);
         }
 
-        private List<MenuOption> BuildSpareRootPage() => new()
+        // his name goes yellow once sparing him would actually work, so the
+        // player can tell without having to try it
+        private List<MenuOption> BuildSpareRootPage()
         {
-            new MenuOption(_teacher.Name, () => _actionMenu.Push(BuildSpareConfirmPage()))
-        };
+            bool sparable = _teacher.SparePercent >= _teacher.Stats.SpareSuccessAt;
+
+            return new List<MenuOption>
+            {
+                new MenuOption(_teacher.Name,
+                    () => _actionMenu.Push(BuildSpareConfirmPage()),
+                    sparable ? Color.Yellow : Color.White)
+            };
+        }
 
         private List<MenuOption> BuildSpareConfirmPage() => new()
         {
@@ -679,19 +695,22 @@ namespace FinalProject.States
             Rectangle b = TeacherBounds;
             Spritesheet smoke = SpriteManager.GetSprite("smoke");
             Texture2D tex = smoke?.Texture;
+            int smokeAmount = 30;
 
-            for (int i = 0; i < 40; i++)
+            for (int i = 0; i < smokeAmount; i++)
             {
                 float angle = (float)(_rng.NextDouble() * MathHelper.TwoPi);
-                float speed = 60f + (float)_rng.NextDouble() * 120f;
+                float speed = SpareSmokeMinSpeed + (float)_rng.NextDouble() * SpareSmokeSpeedRange;
 
                 var pos = new Vector2(
-                    b.Center.X + ((float)_rng.NextDouble() * 2f - 1f) * b.Width  * 0.3f,
-                    b.Center.Y + ((float)_rng.NextDouble() * 2f - 1f) * b.Height * 0.3f);
+                    b.Center.X + ((float)_rng.NextDouble() * 2f - 1f) * b.Width  * SpareSmokeSpread,
+                    b.Center.Y + ((float)_rng.NextDouble() * 2f - 1f) * b.Height * SpareSmokeSpread);
 
                 var vel = new Vector2(MathF.Cos(angle), MathF.Sin(angle)) * speed;
 
-                _spareSmoke.Spawn(pos, vel, 1.4f, 14 + _rng.Next(20), Color.White, 0.15f, tex);
+                _spareSmoke.Spawn(pos, vel, SpareSmokeLife,
+                    SpareSmokeMinSize + _rng.Next(SpareSmokeSizeRange),
+                    Color.White, SpareSmokeFadeIn, tex);
             }
         }
 

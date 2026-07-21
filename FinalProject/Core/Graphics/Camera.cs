@@ -1,4 +1,5 @@
 // Core/Camera.cs
+using System;
 using Microsoft.Xna.Framework;
 using FinalProject.Entities;
 using FinalProject.World;
@@ -31,6 +32,14 @@ namespace FinalProject.Core.Graphics
                                          : MathHelper.Clamp(x, 0, map.PixelWidth  - viewW);
             y = map.PixelHeight <= viewH ? (map.PixelHeight - viewH) / 2f
                                          : MathHelper.Clamp(y, 0, map.PixelHeight - viewH);
+
+            // Snap to whole screen pixels. Without this the camera sits on
+            // fractions of a pixel and every tile gets rounded on its own, which
+            // leaves thin seams along the grid where they don't quite meet.
+            // Snapping to 1/Zoom keeps the movement as smooth as the screen can
+            // actually show while landing tiles on exact pixels.
+            x = MathF.Round(x * GameSettings.Zoom) / GameSettings.Zoom;
+            y = MathF.Round(y * GameSettings.Zoom) / GameSettings.Zoom;
 
             Position = new Vector2(x, y);
         }

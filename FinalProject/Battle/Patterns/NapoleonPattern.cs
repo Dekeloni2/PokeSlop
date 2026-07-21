@@ -34,6 +34,16 @@ public class NapoleonPattern : IBulletPattern
     private const float RiseShake      = 4f;   // px of sprite jitter while rising
     private const float SweepSpeed     = 120f; // px/sec of the final pass
     private const float SmokeInterval  = 0.04f;
+    private const int   SmokePerBurst  = 3;    // puffs spawned each interval
+    private const float SmokeDrift     = 20f;  // px/sec sideways wander
+    private const float SmokeRiseMin   = 20f;  // px/sec upward
+    private const float SmokeRiseRange = 30f;
+    private const float SmokeLife      = 1.5f;
+    private const float SmokeFadeIn    = 0.4f;
+    private const int   SmokeMinSize   = 12;   // the art is 16x16, varied a bit
+    private const int   SmokeSizeRange = 14;
+    private const int   SmokeBandHeight = 60;  // vertical scatter at the spawn line
+    private const int   SmokeBandOffset = 50;  // px up from the bottom of the screen
 
     // how far across he parks. higher = more room on the left to dodge
     private const float RestXFraction  = 0.55f;
@@ -212,19 +222,20 @@ public class NapoleonPattern : IBulletPattern
         Spritesheet smoke = SpriteManager.GetSprite("smoke");
         Texture2D smokeTex = smoke?.Texture; // null just draws a plain square
 
-        for (int i = 0; i < 3; i++)
+        for (int i = 0; i < SmokePerBurst; i++)
         {
             var pos = new Vector2(
                 left + (float)Random.Shared.NextDouble() * (right - left),
-                GameSettings.WindowHeight - 50 + (float)Random.Shared.NextDouble() * 60);
+                GameSettings.WindowHeight - SmokeBandOffset
+                    + (float)Random.Shared.NextDouble() * SmokeBandHeight);
 
             var vel = new Vector2(
-                ((float)Random.Shared.NextDouble() * 2f - 1f) * 20f,
-                -20f - (float)Random.Shared.NextDouble() * 30f);
+                ((float)Random.Shared.NextDouble() * 2f - 1f) * SmokeDrift,
+                -SmokeRiseMin - (float)Random.Shared.NextDouble() * SmokeRiseRange);
 
-            int size = 12 + Random.Shared.Next(14); // 16x16 art, drawn a bit varied
+            int size = SmokeMinSize + Random.Shared.Next(SmokeSizeRange);
 
-            context.SpawnParticle(pos, vel, 1.5f, size, Color.White, 0.4f, smokeTex);
+            context.SpawnParticle(pos, vel, SmokeLife, size, Color.White, SmokeFadeIn, smokeTex);
         }
     }
 }

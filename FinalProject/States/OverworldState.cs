@@ -278,7 +278,9 @@ namespace FinalProject.States
         // floor that was picked
         private void CheckElevatorExit()
         {
-            if (_pendingFloor < 0 || _player.IsMoving || _transitioning) return;
+            // no IsMoving check now that movement is free, he's walking when he
+            // crosses the door and would never trigger otherwise
+            if (_pendingFloor < 0 || _transitioning) return;
             if (_map == null || !_map.IsElevatorDoorTile(_player.TilePosition.X, _player.TilePosition.Y)) return;
 
             (int _, string _, string map, int x, int y) = Floors[_pendingFloor];
@@ -382,7 +384,7 @@ namespace FinalProject.States
 
         private void CheckTransitions()
         {
-            if (_player.IsMoving || _transitioning) return;
+            if (_transitioning) return; // free movement, so no IsMoving gate
 
             foreach (MapTransition t in _transitions)
             {
@@ -410,7 +412,7 @@ namespace FinalProject.States
         // the elevator), so there's no facing/edge check — just position.
         private void CheckWarps()
         {
-            if (_player.IsMoving || _transitioning) return;
+            if (_transitioning) return; // free movement, so no IsMoving gate
 
             foreach (MapWarp w in _warps)
             {

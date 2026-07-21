@@ -9,16 +9,26 @@ using FinalProject.World;
 
 public class Player : Sprite
 {
-    public Point   TilePosition  { get; private set; }
+    // free movement, not locked to the grid. WorldPosition is the real position
+    // and TilePosition is worked out from it, so anything that still thinks in
+    // tiles (warps, interactables, transitions) keeps working
     public Vector2 WorldPosition { get; private set; }
     public Direction Facing      { get; private set; }
     public bool    IsMoving      { get; private set; }
 
-    private float   _moveTime;
-    private float   _moveTimer;
-    private Vector2 _moveOrigin;
-    private Vector2 _moveDestination;
-    private int     _walkStep;
+    public Point TilePosition => new Point(
+        FloorDiv((int)(WorldPosition.X + _tileSize / 2f), _tileSize),
+        FloorDiv((int)(WorldPosition.Y + _tileSize / 2f), _tileSize));
+
+    // he only collides with his lower body, like undertale. the sprite's head
+    // and shoulders can overlap walls, which is what makes it feel loose
+    private const int FootInsetX = 3;  // px in from each side
+    private const float FootHeightFrac = 0.45f; // of a tile, measured up from his feet
+
+    private const float WalkFrameSeconds = 0.12f;
+
+    private float _animTimer;
+    private int   _walkStep;
 
     // pixel size of a tile on the CURRENT map. Maps can differ (16px vs 20px),
     // so this follows the loaded map rather than a global constant — otherwise
@@ -55,15 +65,6 @@ public class Player : Sprite
     // active. Tweak this if a different pose reads better once in-game.
     private const int IdleFrame = 0;
 
-    // Maps keyboard keys to movement directions — add/remap bindings here
-    private static readonly (Keys Key, Direction Dir)[] _keyBindings =
-    {
-        (Keys.Up,    Direction.Up),
-        (Keys.Down,  Direction.Down),
-        (Keys.Left,  Direction.Left),
-        (Keys.Right, Direction.Right),
-    };
-
     // The student_world spritesheet itself is registered once in
     // Game1.LoadContent via SpriteManager — Player only ever refers to it by
     // name, it doesn't know the content path.
@@ -71,85 +72,110 @@ public class Player : Sprite
         : base("student_world")
     {
         _game         = game;
-        TilePosition  = new Point(startTileX, startTileY);
-        WorldPosition = TileToWorld(TilePosition);
+        WorldPosition = TileToWorld(new Point(startTileX, startTileY));
         Facing        = Direction.Down;
-        _moveTime     = _tileSize / GameSettings.PlayerSpeed;
     }
 
     public void Update(GameTime gameTime, TileMap map)
     {
+        float dt = (float)gameTime.ElapsedGameTime.TotalSeconds;
+
+        Vector2 input = ReadInput();
+        IsMoving = input != Vector2.Zero;
+
         if (IsMoving)
-            UpdateMovement(gameTime);
+        {
+            FaceAlong(input);
+
+            // each axis is tried on its own so running into a wall diagonally
+            // slides along it instead of stopping dead
+            Vector2 step = input * GameSettings.PlayerSpeed * dt;
+            TryMove(new Vector2(step.X, 0f), map);
+            TryMove(new Vector2(0f, step.Y), map);
+
+            _animTimer += dt;
+            if (_animTimer >= WalkFrameSeconds)
+            {
+                _animTimer = 0f;
+                _walkStep  = (_walkStep + 1) % 4;
+            }
+        }
         else
-            HandleInput(map);
+        {
+            _animTimer = 0f;
+        }
     }
+
+    private Vector2 ReadInput()
+    {
+        var move = Vector2.Zero;
+
+        if (_game.Input.IsKeyDown(Keys.Left))  move.X -= 1f;
+        if (_game.Input.IsKeyDown(Keys.Right)) move.X += 1f;
+        if (_game.Input.IsKeyDown(Keys.Up))    move.Y -= 1f;
+        if (_game.Input.IsKeyDown(Keys.Down))  move.Y += 1f;
+
+        // so diagonals aren't faster than walking straight
+        if (move != Vector2.Zero) move.Normalize();
+        return move;
+    }
+
+    // horizontal wins when it's clearly the bigger push, otherwise face up/down
+    private void FaceAlong(Vector2 move)
+    {
+        if (System.Math.Abs(move.X) > System.Math.Abs(move.Y))
+            Facing = move.X > 0f ? Direction.Right : Direction.Left;
+        else if (move.Y != 0f)
+            Facing = move.Y > 0f ? Direction.Down : Direction.Up;
+    }
+
+    private void TryMove(Vector2 delta, TileMap map)
+    {
+        if (delta == Vector2.Zero) return;
+
+        Vector2 target = WorldPosition + delta;
+        if (IsFootprintClear(target, map)) WorldPosition = target;
+    }
+
+    // the box under his feet has to sit entirely on walkable tiles
+    private bool IsFootprintClear(Vector2 position, TileMap map)
+    {
+        int height = (int)(_tileSize * FootHeightFrac);
+
+        int left   = (int)position.X + FootInsetX;
+        int right  = (int)position.X + _tileSize - FootInsetX - 1;
+        int bottom = (int)position.Y + _tileSize - 1;
+        int top    = bottom - height + 1;
+
+        for (int y = FloorDiv(top, _tileSize); y <= FloorDiv(bottom, _tileSize); y++)
+            for (int x = FloorDiv(left, _tileSize); x <= FloorDiv(right, _tileSize); x++)
+                if (!map.IsWalkable(x, y)) return false;
+
+        return true;
+    }
+
+    // normal integer division truncates toward zero, which breaks the tile
+    // lookup for anything left of or above the map
+    private static int FloorDiv(int value, int divisor)
+        => value >= 0 ? value / divisor : (value - divisor + 1) / divisor;
 
     // turns him without input, for scripted moments like the elevator
     public void Face(Direction direction) => Facing = direction;
 
     public void Teleport(int tileX, int tileY)
     {
-        TilePosition  = new Point(tileX, tileY);
-        WorldPosition = TileToWorld(TilePosition);
+        WorldPosition = TileToWorld(new Point(tileX, tileY));
         IsMoving      = false;
-        _moveTimer    = 0f;
+        _animTimer    = 0f;
     }
 
-    // Called by the overworld when a map loads, so world positioning and
-    // step timing match that map's tile size. Re-anchors the current tile.
+    // Called by the overworld when a map loads, so world positioning matches
+    // that map's tile size. Re-anchors him on the tile he's standing on.
     public void SetTileSize(int tileSize)
     {
+        Point tile    = TilePosition; // read before the size changes under it
         _tileSize     = tileSize;
-        _moveTime     = _tileSize / GameSettings.PlayerSpeed;
-        WorldPosition = TileToWorld(TilePosition);
-    }
-
-    private void HandleInput(TileMap map)
-    {
-        Direction? input = null;
-
-        // Prefer a freshly pressed key over one already held — this way the most
-        // recently pressed direction always wins when two keys are held at once,
-        // preventing the facing/movement mismatch bug.
-        foreach (var (key, direction) in _keyBindings)
-            if (_game.Input.IsKeyPressed(key)) { input = direction; break; }
-
-        if (input == null)
-            foreach (var (key, direction) in _keyBindings)
-                if (_game.Input.IsKeyDown(key)) { input = direction; break; }
-
-        if (input == null) return;
-
-        Facing = input.Value;
-
-        Point next = input.Value.GetNeighbour(TilePosition);
-        if (!map.IsWalkable(next.X, next.Y)) return;
-
-        StartMoving(next);
-    }
-
-    private void StartMoving(Point destination)
-    {
-        IsMoving         = true;
-        _moveTimer       = 0f;
-        _moveOrigin      = WorldPosition;
-        _moveDestination = TileToWorld(destination);
-        TilePosition     = destination;
-        _walkStep = (_walkStep + 1) % 4;
-    }
-
-    private void UpdateMovement(GameTime gameTime)
-    {
-        _moveTimer += (float)gameTime.ElapsedGameTime.TotalSeconds;
-        float lerpProgress = MathHelper.Clamp(_moveTimer / _moveTime, 0f, 1f);
-        WorldPosition = Vector2.Lerp(_moveOrigin, _moveDestination, lerpProgress);
-
-        if (lerpProgress >= 1f)
-        {
-            WorldPosition = _moveDestination;
-            IsMoving      = false;
-        }
+        WorldPosition = TileToWorld(tile);
     }
 
     public override void Draw(SpriteBatch spriteBatch)

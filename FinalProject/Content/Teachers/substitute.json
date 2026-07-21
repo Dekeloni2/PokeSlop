@@ -49,7 +49,7 @@
         { "minPercent": 34, "text": "Substitute - HP 30, ATK 4. They seem to be annoyed with you." },
         { "minPercent": 0,  "text": "Substitute - HP 30, ATK 4. They seem to be annoyed with you" }
       ],
-      "spareGain": 10
+      "spareGain": 0
     },
     {
       "name": "Compliment",
@@ -61,7 +61,7 @@
       "name": "Joke",
       "description": "You make a funny joke about how clovers dont bite.",
       "extraMessages": [ "The Substitute doesn't seem to really get the joke." ],
-      "spareGain": 50
+      "spareGain": 100
     }
   ],
   "spareSuccessAt": 100,

@@ -6,6 +6,7 @@ using Microsoft.Xna.Framework.Input;
 using FinalProject.Battle;
 using FinalProject.Core;
 using FinalProject.Core.Audio;
+using FinalProject.Core.Graphics;
 using FinalProject.Core.StateMachine;
 using FinalProject.Core.Text;
 using FinalProject.Data;
@@ -64,8 +65,12 @@ namespace FinalProject.States
         private readonly SpeechBubble _bubble = new();
         private readonly Dictionary<PlayerMoveList, int> _dialogueIndex = new();
 
-        // which way the fight ended. the dust itself is the sprite coming apart,
-        // see TeacherSprite.Dust
+        // which way the fight ended. a defeat is the sprite coming apart (see
+        // TeacherSprite.Dust), a spare is a burst of smoke over a frozen pose
+        private const float SpareSmokeSeconds = 1.714f; // matches snd_vaporized
+        private readonly ParticleSystem _spareSmoke = new();
+        private float _spareLeft;
+
         private bool _endingSpared;
         private bool _endingStarted;
 
@@ -121,7 +126,9 @@ namespace FinalProject.States
             _victoryShown  = false;
             _fading        = false;
             _fadeT         = 0f;
+            _spareLeft     = 0f;
             _dialogueIndex.Clear();
+            _spareSmoke.Clear();
         }
 
         // Detach the HUD from the bus when the battle is popped, so its handler
@@ -236,6 +243,9 @@ namespace FinalProject.States
                         0f, Vector2.Zero, NarrationTextScale, SpriteEffects.None, 0f);
                 }
 
+
+                // over him, he stays frozen underneath while it clears
+                _spareSmoke.Draw(spriteBatch, Game.PixelTexture);
 
                 // only up once he's actually been hit, it manages its own state
                 _bubble.Draw(spriteBatch, Game.DialogueFont,
@@ -608,20 +618,34 @@ namespace FinalProject.States
             {
                 _endingStarted = true;
 
+                // both endings vanish him, so both play it. the animations are
+                // timed to this sound's length either way
+                SoundManager.Play("vaporized");
+
                 if (_endingSpared)
                 {
                     _teacherSprite.Spare();
+                    SpawnSpareSmoke();
+                    _spareLeft = SpareSmokeSeconds;
                 }
                 else
                 {
-                    // DustSeconds is set to this sound's length so they end together
                     _teacherSprite.Dust();
-                    SoundManager.Play("vaporized");
                 }
             }
 
-            // spared freezes instantly, a defeat waits for him to finish crumbling
-            if (!_endingSpared && !_teacherSprite.IsDustFinished) return;
+            float dt = (float)gameTime.ElapsedGameTime.TotalSeconds;
+            _spareSmoke.Update(dt);
+
+            // wait for the smoke to clear, or for him to finish crumbling
+            if (_endingSpared)
+            {
+                if (_spareLeft > 0f) { _spareLeft -= dt; return; }
+            }
+            else if (!_teacherSprite.IsDustFinished)
+            {
+                return;
+            }
 
             // pay out once, then the win text
             if (!_victoryShown)
@@ -630,8 +654,6 @@ namespace FinalProject.States
                 Game.PlayerData.Money += _teacher.Stats.GoldReward;
                 _victoryTyper.SetText($"* YOU WON!\n* You earned {_teacher.Stats.GoldReward} gold.");
             }
-
-            float dt = (float)gameTime.ElapsedGameTime.TotalSeconds;
 
             if (_fading)
             {
@@ -648,6 +670,29 @@ namespace FinalProject.States
             if (!_victoryTyper.IsFullyShown) { _victoryTyper.SkipToEnd(); return; }
 
             _fading = true;
+        }
+
+        // a puff of smoke bursting outward from him when he's spared. spreads in
+        // every direction, drifts apart and fades while he stays frozen underneath
+        private void SpawnSpareSmoke()
+        {
+            Rectangle b = TeacherBounds;
+            Spritesheet smoke = SpriteManager.GetSprite("smoke");
+            Texture2D tex = smoke?.Texture;
+
+            for (int i = 0; i < 40; i++)
+            {
+                float angle = (float)(_rng.NextDouble() * MathHelper.TwoPi);
+                float speed = 60f + (float)_rng.NextDouble() * 120f;
+
+                var pos = new Vector2(
+                    b.Center.X + ((float)_rng.NextDouble() * 2f - 1f) * b.Width  * 0.3f,
+                    b.Center.Y + ((float)_rng.NextDouble() * 2f - 1f) * b.Height * 0.3f);
+
+                var vel = new Vector2(MathF.Cos(angle), MathF.Sin(angle)) * speed;
+
+                _spareSmoke.Spawn(pos, vel, 1.4f, 14 + _rng.Next(20), Color.White, 0.15f, tex);
+            }
         }
 
         // picks his line for whatever the player just did. an HP line overrides

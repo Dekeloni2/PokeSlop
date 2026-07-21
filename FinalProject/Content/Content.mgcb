@@ -182,3 +182,15 @@
 /processorParam:Quality=Best
 /build:Audio/Music/beep_sound.wav
 
+#begin Audio/SFX/rumble.wav
+/importer:WavImporter
+/processor:SoundEffectProcessor
+/processorParam:Quality=Best
+/build:Audio/SFX/rumble.wav
+
+#begin Audio/SFX/thud.wav
+/importer:WavImporter
+/processor:SoundEffectProcessor
+/processorParam:Quality=Best
+/build:Audio/SFX/thud.wav
+

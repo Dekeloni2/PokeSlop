@@ -4,10 +4,10 @@ using Microsoft.Xna.Framework.Graphics;
 
 namespace FinalProject.Battle
 {
-    // Owns a pool of decorative particles and drives them. Whoever runs a scene
-    // keeps one of these — DodgePhase for attack effects, and later BattleState
-    // for the teacher's death dust. Deliberately not a global/static manager, so
-    // each owner draws its particles in its own coordinate space.
+    // holds a list of particles and updates/draws them. whatever is running the
+    // scene keeps one, DodgePhase for attacks and later BattleState for the
+    // teacher death dust. not a static manager on purpose so each one draws in
+    // its own coordinate space
     public class ParticleSystem
     {
         private readonly List<Particle> _particles = new();

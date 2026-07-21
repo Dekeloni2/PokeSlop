@@ -4,9 +4,9 @@ using FinalProject.Core;
 
 namespace FinalProject.Battle.Patterns;
 
-// The boat attack. The box shrinks and the boat settles into place, then it
-// repeats a "rev" cycle: squanch down + flush red + shake, spring back up, and
-// belch one burst of smoke on the release. One windup per puff.
+// the boat attack. box shrinks, boat settles in place, then it repeats a cycle
+// of squashing down + going red + shaking, springing back up, and letting out
+// one burst of smoke when it springs. one windup per puff
 public class BoatPattern : IBulletPattern
 {
     public float Duration => 10f;
@@ -38,8 +38,8 @@ public class BoatPattern : IBulletPattern
 
     public void Start(DodgeContext context)
     {
-        // shrinking the box — LeadInSeconds must match this duration so the
-        // first windup waits until the boat is settled in place
+        // shrinking the box. LeadInSeconds has to match this number so the
+        // first windup waits until the boat is actually in place
         Rectangle box = context.CurrentBox;
         Rectangle tinyBox = new Rectangle(box.X + 30, box.Y, box.Width - 60, box.Height - 60);
         context.ResizeBoxTo(tinyBox, 0.8f);
@@ -98,8 +98,8 @@ public class BoatPattern : IBulletPattern
                 break;
 
             case Phase.Rest:
-                // don't start another rev if it can't finish and fire in time —
-                // no point squashing for a puff that never comes
+                // don't start another rev if there isn't time to finish it, no
+                // point squashing for a puff that never happens
                 SetIdle();
                 if (_phaseTimer >= RestSeconds)
                     Advance(HasTimeForAnotherRev(context.Elapsed) ? Phase.Windup : Phase.Done);
@@ -112,9 +112,8 @@ public class BoatPattern : IBulletPattern
         }
     }
 
-    // A rev is only worth starting if the windup and spring can both finish
-    // before the turn's time runs out; otherwise the boat would squash for a
-    // burst that Update would cut off before it ever spawns.
+    // only worth starting a rev if the windup and spring both fit before the
+    // turn ends, otherwise Update cuts it off before the smoke ever spawns
     private bool HasTimeForAnotherRev(float elapsed)
         => elapsed + WindupSeconds + SpringSeconds <= Duration;
 

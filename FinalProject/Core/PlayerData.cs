@@ -18,9 +18,9 @@ namespace FinalProject.Core
 
         public bool IsAlive => CurrentHp > 0;
 
-        // HP is only changed through these two methods, so they're the single
-        // place that announces a change on the EventBus — any UI (the battle
-        // HUD) stays in sync by subscribing rather than polling every frame.
+        // HP only changes through these two, so this is the one place that fires
+        // the event. the battle HUD subscribes to it instead of reading the value
+        // every frame
         public void TakeDamage(int amount)
         {
             CurrentHp = Math.Max(0, CurrentHp - amount);

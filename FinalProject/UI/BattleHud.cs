@@ -5,10 +5,9 @@ using FinalProject.Events;
 
 namespace FinalProject.UI
 {
-    // The battle HP readout. A UI element that keeps itself in sync by
-    // subscribing to PlayerHpChangedEvent on the EventBus, instead of the
-    // battle screen reading PlayerData every frame. Call Unsubscribe() when the
-    // battle ends so the handler doesn't outlive the HUD.
+    // the battle HP bar. keeps itself updated by subscribing to
+    // PlayerHpChangedEvent instead of BattleState reading PlayerData every
+    // frame. call Unsubscribe() when the fight ends or the handler sticks around
     public class BattleHud
     {
         private const int   BarX      = 40;
@@ -18,8 +17,8 @@ namespace FinalProject.UI
         private int _currentHp;
         private int _maxHp;
 
-        // Seeded from the current stats because the event only fires on a
-        // *change* — without this the bar would read 0 until the first hit.
+        // set from the current stats first, the event only fires when HP changes
+        // so without this the bar would show 0 until you get hit
         public BattleHud(int currentHp, int maxHp)
         {
             _currentHp = currentHp;
@@ -27,8 +26,7 @@ namespace FinalProject.UI
             EventBus.Instance.Subscribe<PlayerHpChangedEvent>(OnHpChanged);
         }
 
-        // Detach from the bus so this HUD (and its handler) can be collected
-        // once the battle it belongs to is gone.
+        // unhook from the bus so the handler doesn't outlive the fight
         public void Unsubscribe()
             => EventBus.Instance.Unsubscribe<PlayerHpChangedEvent>(OnHpChanged);
 
@@ -38,7 +36,7 @@ namespace FinalProject.UI
             _maxHp     = e.MaxHp;
         }
 
-        // Drawn in every battle phase so HP loss is always visible.
+        // drawn in every phase so you always see HP loss
         public void Draw(SpriteBatch spriteBatch, SpriteFont font, Texture2D pixel)
         {
             spriteBatch.DrawString(font, "HP", new Vector2(BarX, BarY), Color.White,

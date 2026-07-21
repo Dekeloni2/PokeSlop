@@ -3,16 +3,16 @@ using Microsoft.Xna.Framework.Graphics;
 
 namespace FinalProject.Battle
 {
-    // A short-lived decorative speck. Unlike Projectile/Beam/HexHazard this
-    // never damages the player — it just drifts, fades and expires. Fades in
-    // over its first moments and back out at the end of its life.
+    // small visual speck. unlike Projectile/Beam/HexHazard it never damages the
+    // player, it just drifts and fades out. fades in at the start of its life
+    // and back out at the end
     public class Particle
     {
         private readonly float     _maxLife;
         private readonly float     _fadeIn;
         private readonly int       _size;
         private readonly Color     _color;
-        private readonly Texture2D _texture; // null = plain square from the 1x1 pixel
+        private readonly Texture2D _texture; // null = plain square from the 1x1 pixel texture
 
         private Vector2 _position;
         private Vector2 _velocity;
@@ -42,7 +42,7 @@ namespace FinalProject.Battle
 
         public void Draw(SpriteBatch spriteBatch, Texture2D pixel)
         {
-            // ramp up over _fadeIn, then back down over the last 30% of life
+            // fade up over _fadeIn, then back down over the last 30% of its life
             float elapsed = _maxLife - _life;
             float alpha   = _fadeIn > 0f ? MathHelper.Clamp(elapsed / _fadeIn, 0f, 1f) : 1f;
 

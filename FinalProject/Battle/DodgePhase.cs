@@ -27,11 +27,11 @@ namespace FinalProject.Battle
 
         private float _elapsed;
 
-        // ── Battle camera (DRAW ONLY) ────────────────────────────────────────
-        // Patterns pan/shake the view through DodgeContext; BattleState reads
-        // CameraOffset to build its draw transform. This never touches the
-        // simulation — beams, hexes and the soul all stay in untransformed
-        // coordinates, so panning can't desync a hitbox from what's on screen.
+        // ── camera, DRAW ONLY ────────────────────────────────────────────────
+        // patterns pan/shake through DodgeContext and BattleState reads
+        // CameraOffset for its draw transform. it never touches the actual
+        // positions, beams/hexes/soul all stay in normal coords, so the camera
+        // can't make a hitbox end up somewhere different from what you see
         private Vector2 _cameraPan;
         private Vector2 _shakeOffset;
         private float   _shakeMagnitude;
@@ -40,11 +40,10 @@ namespace FinalProject.Battle
 
         public Vector2 CameraOffset => _cameraPan + _shakeOffset;
 
-        // Patterns can hide the HP readout for the duration of their attack.
+        // patterns can hide the HP bar for their attack
         public bool HudHidden { get; private set; }
 
-        // ...and the arena outline, for attacks that fill the whole screen and
-        // don't want a visible box edge cutting across it.
+        // and the box outline, for attacks that take over the whole screen
         public bool BoxBorderHidden { get; private set; }
 
         // wait for leftover hazards to clear the arena before ending the turn,
@@ -186,9 +185,8 @@ namespace FinalProject.Battle
             foreach (Beam beam in _beams)
                 beam.Draw(spriteBatch, pixel);
 
-            // decorative only. Drawn over the beams so smoke billows in front
-            // of a sprite-beam like Napoleon, but under the bullets and the
-            // soul below, so nothing gameplay-critical gets buried.
+            // drawn after the beams so smoke shows in front of napoleon, but
+            // before the bullets and the soul so those stay readable
             _particles.Draw(spriteBatch, pixel);
 
             foreach (HexHazard hex in _hexes)
@@ -230,8 +228,7 @@ namespace FinalProject.Battle
                                     Texture2D texture)
             => _particles.Spawn(position, velocity, lifeSeconds, size, color, fadeInSeconds, texture);
 
-        // Pan is absolute: the camera's offset from its resting position, in
-        // pixels. Positive X shifts the view right (content slides left).
+        // absolute offset from the resting position in px, + X moves the view right
         internal void SetCameraPan(Vector2 pan) => _cameraPan = pan;
 
         internal void ShakeScreen(float magnitude, float seconds)
@@ -245,7 +242,7 @@ namespace FinalProject.Battle
 
         internal void SetBoxBorderHidden(bool hidden) => BoxBorderHidden = hidden;
 
-        // Random jitter that decays to nothing over the shake's duration.
+        // random jitter that dies down over the shake duration
         private void UpdateShake(float dt)
         {
             if (_shakeLeft <= 0f)

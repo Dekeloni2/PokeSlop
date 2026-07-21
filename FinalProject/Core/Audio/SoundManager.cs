@@ -6,16 +6,11 @@ using Microsoft.Xna.Framework.Media;
 
 namespace FinalProject.Core.Audio
 {
-    // Central registry + playback for audio, mirroring SpriteManager: assets are
-    // registered once by name in Game1.LoadContent, then played by name from
-    // anywhere via SoundManager.Play(...) / PlayMusic(...).
-    //
-    // Short one-shot cues (hits, menu blips) are SoundEffects; looping background
-    // tracks are Songs, driven by MonoGame's global MediaPlayer.
-    //
-    // Missing assets are skipped rather than thrown, so a not-yet-imported sound
-    // can't crash the game — Play simply no-ops until the file exists in the
-    // content pipeline.
+    // audio registry, same idea as SpriteManager. register by name in
+    // Game1.LoadContent, then play by name from anywhere.
+    // short cues are SoundEffects, background tracks are Songs (MediaPlayer).
+    // files that aren't imported yet get skipped instead of throwing, so a
+    // missing sound just stays silent
     public class SoundManager
     {
         private static readonly Dictionary<string, SoundEffect> _sounds = new();
@@ -23,60 +18,53 @@ namespace FinalProject.Core.Audio
 
         private static ContentManager _content;
 
-        // 0..1 multipliers applied at play time, so the whole mix can be
-        // balanced or muted from one place (e.g. an options menu later).
+        // 0..1, applied when something plays (options menu later?)
         public static float SfxVolume   { get; set; } = 1f;
         public static float MusicVolume { get; set; } = 1f;
 
         public SoundManager(ContentManager content) => _content = content;
 
-        // ── Registration (call these in Game1.LoadContent) ────────────────────
+        // ── registration (called from Game1.LoadContent) ──────────────────────
 
-        // Register a short sound effect. fileName is its content key
-        // (a .wav imported with the "Sound Effect" processor).
+        // fileName is the content key, a .wav built with the Sound Effect processor
         public static void AddSound(string name, string fileName)
         {
             if (_content == null) return;
             try   { _sounds[name] = _content.Load<SoundEffect>(fileName); }
-            catch { /* not imported yet — leave unregistered so Play() no-ops */ }
+            catch { /* not built yet, leave it out so Play does nothing */ }
         }
 
-        // Register a background/looping track. fileName is its content key
-        // (an .ogg/.mp3 imported with the "Song" processor).
+        // same but for background tracks, .ogg/.mp3 built as Song
         public static void AddSong(string name, string fileName)
         {
             if (_content == null) return;
             try   { _songs[name] = _content.Load<Song>(fileName); }
-            catch { /* not imported yet — leave unregistered so PlayMusic() no-ops */ }
+            catch { /* not built yet */ }
         }
 
-        // ── Playback ──────────────────────────────────────────────────────────
+        // ── playback ──────────────────────────────────────────────────────────
 
-        // Fire-and-forget one-shot. volume is scaled by SfxVolume; pitch and pan
-        // are -1..1 (0 = default) for quick variation.
+        // one-shot, can't be stopped. pitch/pan are -1..1, 0 is normal
         public static void Play(string name, float volume = 1f, float pitch = 0f, float pan = 0f)
         {
             if (_sounds.TryGetValue(name, out SoundEffect sfx))
                 sfx.Play(MathHelper.Clamp(volume * SfxVolume, 0f, 1f), pitch, pan);
         }
 
-        // The default "text blip" that plays as characters type onto the screen,
-        // Undertale-style. Registered under this key in Game1.LoadContent; it's
-        // the fallback cue for any on-screen text.
+        // default blip for text typing out, undertale style
         public const string TextBeepName = "beep";
 
         public static void PlayTextBeep() => Play(TextBeepName);
 
-        // Plays the blip only if text[from..to) contains a visible glyph, so
-        // spaces and newlines stay silent (matches how the typewriters reveal).
+        // only blips if text[from..to) has an actual character in it, so
+        // spaces and newlines stay quiet
         public static void PlayTextBeep(string text, int from, int to)
         {
             for (int i = from; i < to; i++)
                 if (!char.IsWhiteSpace(text[i])) { Play(TextBeepName); return; }
         }
 
-        // Start a background track. Loops by default and replaces whatever's
-        // currently playing.
+        // starts a track, loops by default and replaces whatever is playing
         public static void PlayMusic(string name, bool loop = true)
         {
             if (!_songs.TryGetValue(name, out Song song)) return;
@@ -89,5 +77,46 @@ namespace FinalProject.Core.Audio
         public static void StopMusic()   => MediaPlayer.Stop();
         public static void PauseMusic()  => MediaPlayer.Pause();
         public static void ResumeMusic() => MediaPlayer.Resume();
+
+        // ── loops ─────────────────────────────────────────────────────────────
+        // Play() can't be stopped, so anything that runs while something is
+        // happening (the napoleon rumble) needs a live instance. kept by name
+        // so callers just do StartLoop("rumble") / StopLoop("rumble")
+
+        private static readonly Dictionary<string, SoundEffectInstance> _loops = new();
+
+        public static void StartLoop(string name, float volume = 1f)
+        {
+            if (_loops.ContainsKey(name)) return; // already going
+            if (!_sounds.TryGetValue(name, out SoundEffect sfx)) return;
+
+            SoundEffectInstance instance = sfx.CreateInstance();
+            instance.IsLooped = true;
+            instance.Volume   = MathHelper.Clamp(volume * SfxVolume, 0f, 1f);
+            instance.Play();
+
+            _loops[name] = instance;
+        }
+
+        public static void StopLoop(string name)
+        {
+            if (!_loops.TryGetValue(name, out SoundEffectInstance instance)) return;
+
+            instance.Stop();
+            instance.Dispose();
+            _loops.Remove(name);
+        }
+
+        // in case a fight ends while a loop is still going (player dies mid
+        // attack), otherwise it just keeps playing
+        public static void StopAllLoops()
+        {
+            foreach (SoundEffectInstance instance in _loops.Values)
+            {
+                instance.Stop();
+                instance.Dispose();
+            }
+            _loops.Clear();
+        }
     }
 }

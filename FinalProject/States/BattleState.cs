@@ -4,6 +4,7 @@ using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using FinalProject.Battle;
 using FinalProject.Core;
+using FinalProject.Core.Audio;
 using FinalProject.Core.StateMachine;
 using FinalProject.Core.Text;
 using FinalProject.Data;
@@ -30,9 +31,8 @@ namespace FinalProject.States
         private AttackMinigame _attackMinigame;
         private int _pendingAttackDamage;
 
-        // The HP readout. Owns its own EventBus subscription (see BattleHud) —
-        // it updates itself from PlayerHpChangedEvent, this state just creates
-        // it, draws it, and detaches it when the fight ends.
+        // the HP bar. it handles its own EventBus subscription (see BattleHud),
+        // this state just makes it, draws it and unhooks it when the fight ends
         private BattleHud _hud;
 
         // only reset when the text actually changes, otherwise backing out of
@@ -82,6 +82,10 @@ namespace FinalProject.States
         public override void OnExit()
         {
             _hud.Unsubscribe();
+
+            // attack might have been cut off mid loop (player died while
+            // dodging), don't let it keep playing after the fight
+            SoundManager.StopAllLoops();
         }
 
         public override void Update(GameTime gameTime)
@@ -122,10 +126,9 @@ namespace FinalProject.States
         {
             Game.GraphicsDevice.Clear(Color.Black);
 
-            // The active attack can pan/shake the whole battle view. This is a
-            // draw-time transform only — every hitbox stays in untransformed
-            // coordinates, so the camera can never desync collision from what
-            // the player sees. Identity for attacks that don't touch it.
+            // the current attack can pan/shake the view. draw time only, the
+            // hitboxes never move, so collision always matches what you see.
+            // stays identity for attacks that don't use it
             bool dodging = _phase == BattlePhase.Dodging && _dodgePhase != null;
             Matrix view = Matrix.Identity;
             if (dodging)
@@ -136,7 +139,7 @@ namespace FinalProject.States
 
             spriteBatch.Begin(samplerState: SamplerState.PointClamp, transformMatrix: view);
 
-            // attacks can pull the HP readout off screen entirely (Napoleon does)
+            // attacks can hide the HP bar completely (napoleon does)
             if (!dodging || !_dodgePhase.HudHidden)
                 _hud.Draw(spriteBatch, Game.DialogueFont, Game.PixelTexture);
 

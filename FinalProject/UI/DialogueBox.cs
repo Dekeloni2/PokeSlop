@@ -168,11 +168,10 @@ namespace FinalProject.UI
             spriteBatch.Draw(_pixel, new Rectangle(boxRect.Right - thickness, boxRect.Y, thickness, boxRect.Height), Color.White);    // right
         }
 
-        // Splits the text into pages. A '|' in the source is an explicit page
-        // break authored on the interactable — each segment starts a fresh page.
-        // Within a segment, text is word-wrapped to the box width and, if it's
-        // still longer than fits, spills onto further pages automatically. '\n'
-        // forces a line break inside a page. Pages advance with the Z key.
+        // splits the text into pages. a '|' in the interactable's text forces a
+        // new page. inside a segment the text wraps to the box width and spills
+        // onto more pages if it's too long. '\n' is a line break inside a page.
+        // pages advance with Z
         private List<string> Paginate(string text)
         {
             int maxWidth = _boxRect.Width - PaddingX * 2;

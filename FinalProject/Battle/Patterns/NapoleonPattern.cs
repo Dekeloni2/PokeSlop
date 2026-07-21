@@ -2,49 +2,48 @@ using System;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using FinalProject.Core;
+using FinalProject.Core.Audio;
 using FinalProject.Core.Graphics;
 
 namespace FinalProject.Battle.Patterns;
 
-// Napoleon. The arena swells to swallow the whole screen (including the HP
-// readout, which is hidden outright for the attack), the camera pans over, then
-// Napoleon grinds up from below in a cloud of smoke, the screen quakes as he
-// lands, and finally he sweeps left across the arena.
-//
-// Only his WHITE pixels hurt — DodgePhase.CheckBeamDamage runs a per-pixel test
-// for this pattern specifically, so the dark areas are safe to sit in.
+// the napoleon attack. box grows over the whole screen (HP bar gets hidden),
+// camera pans, then napoleon rises up from the bottom with smoke, screen shakes
+// when he lands, then he sweeps left.
+// only the white pixels of the sprite hurt, see DodgePhase.CheckBeamDamage
 public class NapoleonPattern : IBulletPattern
 {
     public float Duration => 18f;
 
     // ── timing ───────────────────────────────────────────────────────────────
-    private const float ExpandSeconds = 1.0f; // arena swells out from the player
-    private const float HoldSeconds   = 0.4f; // beat once it's open, before the pan
+    private const float ExpandSeconds = 1.0f; // box grows out from the player
+    private const float HoldSeconds   = 0.4f; // small pause before the camera moves
     private const float PanSeconds    = 1.2f; // camera slides over
-    private const float RiseSeconds   = 2.0f; // Napoleon grinds up into place
-    private const float QuakeSeconds  = 0.6f; // everything shakes once he lands
+    private const float RiseSeconds   = 2.0f; // napoleon comes up into place
+    private const float QuakeSeconds  = 0.6f; // screen shake when he lands
 
-    // The arena is deliberately bigger than the screen so its edges — and the
-    // walls that clamp the soul — stay off-screen for every camera position.
-    // The player never meets an invisible wall inside the visible area.
-    private const float ArenaWidthScale  = 1.7f; // × screen width
-    private const float ArenaHeightScale = 1.5f; // × screen height
+    // box is bigger than the screen on purpose, that way its edges (and the
+    // walls that stop the soul) are never on screen no matter where the camera
+    // is. otherwise you bump into an invisible wall in the middle of nowhere
+    private const float ArenaWidthScale  = 1.7f; // x screen width
+    private const float ArenaHeightScale = 1.5f; // x screen height
 
-    // ── look / feel ──────────────────────────────────────────────────────────
-    private const float CameraPanX     = 160f; // + shifts the view right (content left)
+    // ── look ─────────────────────────────────────────────────────────────────
+    private const float CameraPanX     = 160f; // + moves the view right
     private const float QuakeMagnitude = 14f;  // px of screen shake on landing
-    private const float RiseShake      = 4f;   // px of sprite judder while rising
+    private const float RiseShake      = 4f;   // px of sprite jitter while rising
     private const float SweepSpeed     = 120f; // px/sec of the final pass
     private const float SmokeInterval  = 0.04f;
 
-    // Where Napoleon parks, as a fraction across the arena. Higher = further
-    // right = more room on the left for the player to dodge into.
+    // how far across he parks. higher = more room on the left to dodge
     private const float RestXFraction  = 0.55f;
 
-    // His footprint, as multiples of the screen. Wider also means a longer
-    // sweep, since he has to fully clear the arena before the turn can end.
+    // his size as multiples of the screen. wider also means a longer sweep
     private const float SpriteWidthScale  = 2.2f;
     private const float SpriteHeightScale = 1.1f;
+
+    private const string RumbleSound = "rumble"; // loops while rising
+    private const string ThudSound   = "thud";   // one shot when he lands
 
     private enum Phase { Expand, Hold, Pan, Rise, Quake, Sweep, Done }
     private Phase _phase = Phase.Expand;
@@ -56,10 +55,8 @@ public class NapoleonPattern : IBulletPattern
 
     public void Start(DodgeContext context)
     {
-        // Swell outward from wherever the soul is standing, so the arena opens
-        // up around the player. It ends up larger than the screen on purpose —
-        // see ArenaWidthScale — so its edges stay out of view once the camera
-        // pans, and the player never runs into an unseen wall.
+        // grow out from wherever the soul is so the box opens around the player.
+        // ends up bigger than the screen on purpose, see ArenaWidthScale
         Vector2 soul = context.HitboxPosition;
         int w = (int)(GameSettings.WindowWidth  * ArenaWidthScale);
         int h = (int)(GameSettings.WindowHeight * ArenaHeightScale);
@@ -68,9 +65,8 @@ public class NapoleonPattern : IBulletPattern
 
         context.ResizeBoxTo(arena, ExpandSeconds);
 
-        // The arena swallows the HP bar by design. The outline stays visible
-        // while the box swells — that growth is part of the show — and is
-        // dropped once it has settled (see the Open→Rise transition).
+        // box covers the HP bar on purpose, so just hide it. the outline stays
+        // on while it grows and gets hidden after (see the Expand case below)
         context.SetHudHidden(true);
     }
 
@@ -84,15 +80,15 @@ public class NapoleonPattern : IBulletPattern
             case Phase.Expand:
                 if (_phaseTimer >= ExpandSeconds)
                 {
-                    // fully open (and its edges are off-screen by now anyway) —
-                    // drop the outline so nothing frames the attack
+                    // done growing, hide the outline (its edges are off screen
+                    // by now anyway)
                     context.SetBoxBorderHidden(true);
                     Advance(Phase.Hold);
                 }
                 break;
 
             case Phase.Hold:
-                // let the wide-open arena land before the camera moves
+                // small pause before the camera moves
                 if (_phaseTimer >= HoldSeconds) Advance(Phase.Pan);
                 break;
 
@@ -102,6 +98,7 @@ public class NapoleonPattern : IBulletPattern
                 if (p >= 1f)
                 {
                     SpawnNapoleon(context);
+                    SoundManager.StartLoop(RumbleSound);
                     Advance(Phase.Rise);
                 }
                 break;
@@ -111,13 +108,16 @@ public class NapoleonPattern : IBulletPattern
                 if (_phaseTimer >= RiseSeconds)
                 {
                     SettleAtRest();
+                    // rumble stops the moment he lands, thud + shake same frame
+                    SoundManager.StopLoop(RumbleSound);
+                    SoundManager.Play(ThudSound);
                     context.ShakeScreen(QuakeMagnitude, QuakeSeconds);
                     Advance(Phase.Quake);
                 }
                 break;
 
             case Phase.Quake:
-                // DodgePhase decays the shake on its own; just hold here
+                // DodgePhase fades the shake out by itself, just wait here
                 if (_phaseTimer >= QuakeSeconds) Advance(Phase.Sweep);
                 break;
 
@@ -136,22 +136,22 @@ public class NapoleonPattern : IBulletPattern
     private void SpawnNapoleon(DodgeContext context)
     {
         Spritesheet sheet = SpriteManager.GetSprite("napoleon");
-        if (sheet == null) return; // asset missing — the attack just plays empty
+        if (sheet == null) return; // no sprite, attack just plays empty
 
         int width  = (int)(GameSettings.WindowWidth  * SpriteWidthScale);
         int height = (int)(GameSettings.WindowHeight * SpriteHeightScale);
 
-        // Park him toward the right of the *visible screen* so the left stays
-        // dodgeable. Measured off the camera pan rather than the arena, since
-        // the arena deliberately runs well off-screen.
+        // park him on the right side of the visible screen so the left is still
+        // dodgeable. based off the camera pan and not the box, the box goes way
+        // off screen
         _restX  = (int)CameraPanX + (int)(GameSettings.WindowWidth * RestXFraction);
         _restY  = 0;
-        _startY = GameSettings.WindowHeight + 40; // just below the screen
+        _startY = GameSettings.WindowHeight + 40; // just under the screen
 
         _beam = context.AddBeam(new Rectangle(_restX, _startY, width, height), sheet.Texture);
     }
 
-    // Grinds upward into place, juddering, trailing smoke from its base.
+    // comes up into place, jittering, with smoke
     private void UpdateRise(DodgeContext context, float dt)
     {
         if (_beam == null) return;
@@ -183,8 +183,8 @@ public class NapoleonPattern : IBulletPattern
         Rectangle b = _beam.Bounds;
         _beam.Bounds = new Rectangle(b.X - (int)(SweepSpeed * dt), b.Y, b.Width, b.Height);
 
-        // done once he's fully past the left edge of the visible screen — the
-        // arena extends further left than that, so don't wait for it
+        // done once he's past the left edge of the screen. the box goes further
+        // left than that so don't wait for it
         if (_beam.Bounds.Right < CameraPanX)
         {
             context.RemoveBeam(_beam);
@@ -193,8 +193,7 @@ public class NapoleonPattern : IBulletPattern
         }
     }
 
-    // Smoke boiling off the bottom edge of the sprite as it rises. Decorative
-    // only — particles never damage the player.
+    // smoke while he rises. particles don't do damage, they're just visual
     private void EmitSmoke(DodgeContext context, float dt)
     {
         _smokeTimer += dt;
@@ -203,16 +202,15 @@ public class NapoleonPattern : IBulletPattern
 
         Rectangle b = _beam.Bounds;
 
-        // Billow along the bottom of the *visible* screen, across whatever part
-        // of Napoleon is on it. His own bottom edge sits ~50px below the view
-        // (he's taller than the screen), so anchoring to that would spawn every
-        // puff out of sight.
+        // spawn along the bottom of the screen, across whatever part of him is
+        // visible. his own bottom edge is ~50px under the screen since he's
+        // taller than it, so spawning there would put every puff off screen
         float left  = Math.Max(b.Left,  CameraPanX);
         float right = Math.Min(b.Right, CameraPanX + GameSettings.WindowWidth);
         if (right <= left) return;
 
         Spritesheet smoke = SpriteManager.GetSprite("smoke");
-        Texture2D smokeTex = smoke?.Texture; // null falls back to a plain square
+        Texture2D smokeTex = smoke?.Texture; // null just draws a plain square
 
         for (int i = 0; i < 3; i++)
         {

@@ -75,9 +75,11 @@ namespace FinalProject
             SpriteManager.AddSprite("smoke", "Sprites/AttackPatterns/smoke");
 
             new SoundManager(Content);
-            // Default text blip, played by the typewriters as characters appear.
+            // text blip, the typewriters play this per character
             SoundManager.AddSound(SoundManager.TextBeepName, "Audio/Music/beep_sound");
-            // Register more audio here once imported into Content.mgcb:
+            // napoleon sfx
+            SoundManager.AddSound("rumble", "Audio/SFX/rumble");
+            SoundManager.AddSound("thud",   "Audio/SFX/thud");
             // SoundManager.AddSong("battle", "Audio/battle_theme");
 
 #if DEBUG

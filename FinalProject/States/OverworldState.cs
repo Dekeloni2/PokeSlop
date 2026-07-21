@@ -190,12 +190,8 @@ namespace FinalProject.States
             _player.Update(gameTime, _map);
             _camera.Follow(_player, _map);
 
-            // NOTE: there used to be a wild-encounter check here (random
-            // creature battles in tall grass). This is an Undertale-style
-            // game — Teachers are specific bosses, not a random wild-catch
-            // pool — so that's gone. However a boss battle actually starts is
-            // still TBD (probably via TryInteract below, walking up to a
-            // Teacher NPC, but that hookup doesn't exist yet).
+            // TODO: teacher fights still only start from the debug key. they'll
+            // hook in around here or through TryInteract once encounters exist
 
             CheckTransitions();
             CheckWarps();

@@ -17,7 +17,6 @@ public static class GameSettings
     // rather than per frame, so it stays the same at any framerate
     public const float PlayerSpeed = 100f;
 
-    public const float WildEncounterChance = 0.10f;
 
     // ── Battle: attack minigame ─────────────────────────────────────────
     public const float AttackBarSpeed      = 480f; // px/sec sweep across the target zone

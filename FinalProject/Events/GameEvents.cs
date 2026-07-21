@@ -42,7 +42,7 @@ namespace FinalProject.Events
     }
 
     
-    // Fired when the player's creature HP changes.
+    // Fired when the player's HP changes.
     // Listeners: BattleHUD
     public class PlayerHpChangedEvent : GameEvent
     {
@@ -56,7 +56,8 @@ namespace FinalProject.Events
     }
 
     
-    // Fired when the player reaches the gym. Triggers end game sequence.
+    // Fired when the player reaches a teacher's classroom. Triggers the end
+    // game sequence.
     public class ClassReachedEvent : GameEvent
     {
         public string ClassName { get; }

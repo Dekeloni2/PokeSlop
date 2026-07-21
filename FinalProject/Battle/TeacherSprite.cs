@@ -12,8 +12,13 @@ namespace FinalProject.Battle
     public class TeacherSprite
     {
         // how long the hurt face + shake last after taking a hit
+        // side to side wobble when hit. the killing blow shakes him harder and
+        // for longer, and BattleState waits for it before his last words
         private const float HurtSeconds   = 0.35f;
-        private const float ShakeStrength = 3f; // px
+        private const float HurtShake     = 3f;  // px
+        private const float DeathSeconds  = 0.9f;
+        private const float DeathShake    = 9f;  // px
+        private const float ShakeHz       = 14f; // wobbles per second
 
         private readonly TeacherSpriteData _data;
         private readonly Spritesheet       _sheet;
@@ -32,9 +37,12 @@ namespace FinalProject.Battle
 
         private float _time;
         private float _hurtLeft;
+        private float _hurtSpan;
+        private float _shakeStrength;
         private float _dustLeft;
         private bool  _dusting;
         private bool  _spared;
+        private bool  _frozen;
 
         // assembled size in screen px, worked out from the parts and scaled.
         // BattleState uses it to centre him over the box
@@ -69,7 +77,16 @@ namespace FinalProject.Battle
 
         // called when the teacher takes damage, swaps to the hurt face and
         // shakes the whole body for a moment
-        public void Hurt() => _hurtLeft = HurtSeconds;
+        // fatal is the killing blow, a bigger and longer wobble
+        public void Hurt(bool fatal = false)
+        {
+            _hurtLeft      = fatal ? DeathSeconds : HurtSeconds;
+            _hurtSpan      = _hurtLeft;
+            _shakeStrength = fatal ? DeathShake : HurtShake;
+        }
+
+        // true while the wobble is still going
+        public bool IsShaking => _hurtLeft > 0f;
 
         // starts the crumble. IsDustFinished tells BattleState when it's over
         public void Dust()
@@ -84,15 +101,23 @@ namespace FinalProject.Battle
 
         public bool IsDustFinished => _dusting && _dustLeft <= 0f;
 
+        // holds him still without changing how he looks, for his last words
+        public void Freeze()
+        {
+            _frozen   = true;
+            _hurtLeft = 0f; // otherwise he'd keep juddering while he talks
+        }
+
         public void Update(float dt)
         {
-            if (_spared) return; // frozen, nothing moves
-
+            // the crumble still has to tick even though he's stopped moving
             if (_dusting)
             {
                 if (_dustLeft > 0f) _dustLeft -= dt;
-                return; // stop the idle drift while he falls apart
+                return;
             }
+
+            if (_spared || _frozen) return; // held still
 
             _time += dt;
             if (_hurtLeft > 0f) _hurtLeft -= dt;
@@ -142,13 +167,13 @@ namespace FinalProject.Battle
             if (!IsReady) return;
 
             // the whole character jitters while hurt, dies down as it wears off
+            // sideways only, and it's an oscillation rather than random jitter so
+            // it reads as him rocking rather than vibrating. dies down as it ends
             Vector2 shake = Vector2.Zero;
-            if (IsHurt)
+            if (IsHurt && _hurtSpan > 0f)
             {
-                float mag = ShakeStrength * (_hurtLeft / HurtSeconds);
-                shake = new Vector2(
-                    ((float)Random.Shared.NextDouble() * 2f - 1f) * mag,
-                    ((float)Random.Shared.NextDouble() * 2f - 1f) * mag);
+                float mag = _shakeStrength * (_hurtLeft / _hurtSpan);
+                shake = new Vector2(MathF.Sin(_hurtLeft * ShakeHz * MathHelper.TwoPi) * mag, 0f);
             }
 
             float s = _data.Scale;

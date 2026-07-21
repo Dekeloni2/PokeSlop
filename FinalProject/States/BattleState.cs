@@ -492,7 +492,8 @@ namespace FinalProject.States
             // and that's when he starts talking, not before he's been hit
             if (_hurtQueued && _damageDisplay.SlashDone)
             {
-                _teacherSprite.Hurt();
+                // the killing blow rocks him harder and for longer
+                _teacherSprite.Hurt(fatal: !_teacher.IsAlive);
                 SoundManager.Play("damage");
                 _bubble.Begin();
                 _hurtQueued = false;
@@ -500,9 +501,10 @@ namespace FinalProject.States
 
             _bubble.Update(gameTime, Game.Input);
 
-            // waits for the numbers to finish AND for the player to close the
-            // bubble, so his line never gets cut off
-            if (!_damageDisplay.IsFinished || _bubble.IsActive) return;
+            // waits for the numbers, for the player to close the bubble, and for
+            // the wobble to settle. that last one keeps the death shake from
+            // being cut short by his final words starting
+            if (!_damageDisplay.IsFinished || _bubble.IsActive || _teacherSprite.IsShaking) return;
 
             _damageDisplay.Hide();
             BeginEnemyTurn();
@@ -587,6 +589,10 @@ namespace FinalProject.States
 
             _bubble.Prepare(line, Game.DialogueFont);
             _bubble.Begin();
+
+            // he stops moving the moment the fight is decided, so he isn't
+            // bobbing away while delivering his last words
+            _teacherSprite.Freeze();
 
             _endingSpared = spared;
             _phase = BattlePhase.Ending;

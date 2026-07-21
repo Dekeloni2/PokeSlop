@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Text.Json;
+using Microsoft.Xna.Framework;
 using FinalProject.Battle;
 
 namespace FinalProject.Data
@@ -45,7 +46,38 @@ namespace FinalProject.Data
                 : null;
 
             return new TeacherStats(data.Name, data.SpriteName, data.BaseHp, data.BaseAtk, moves, actOptions,
-                turnNarration, data.SpareSuccessAt, data.SpareSuccessText, spareTextByPercent, turnNarrationBySpare);
+                turnNarration, data.SpareSuccessAt, data.SpareSuccessText, spareTextByPercent, turnNarrationBySpare,
+                ToSprite(data.Sprite));
+        }
+
+        // builds the multi part sprite from the "sprite" block. returns null if
+        // the teacher doesn't have one so it just draws nothing
+        private static TeacherSpriteData ToSprite(SpriteJson json)
+        {
+            if (json == null || json.Parts == null || json.Parts.Count == 0) return null;
+
+            var parts = new List<TeacherPartData>();
+            foreach (PartJson p in json.Parts)
+            {
+                if (p.Src == null || p.Src.Length < 4) continue; // bad entry, skip it
+
+                var src = new Rectangle(p.Src[0], p.Src[1], p.Src[2], p.Src[3]);
+                var offset = p.Offset != null && p.Offset.Length >= 2
+                    ? new Vector2(p.Offset[0], p.Offset[1])
+                    : Vector2.Zero;
+
+                Rectangle? srcHurt = p.SrcHurt != null && p.SrcHurt.Length >= 4
+                    ? new Rectangle(p.SrcHurt[0], p.SrcHurt[1], p.SrcHurt[2], p.SrcHurt[3])
+                    : (Rectangle?)null;
+
+                parts.Add(new TeacherPartData(p.Name, src, offset, p.BobX, p.BobY, p.Speed, p.Phase, srcHurt));
+            }
+
+            var anchor = json.Anchor != null && json.Anchor.Length >= 2
+                ? new Vector2(json.Anchor[0], json.Anchor[1])
+                : Vector2.Zero;
+
+            return new TeacherSpriteData(json.Sheet, anchor, json.Scale, parts);
         }
 
         private static List<PercentThresholdText> ToThresholds(List<PercentThresholdTextJson> entries)
@@ -70,6 +102,27 @@ namespace FinalProject.Data
             public string SpareSuccessText { get; set; }
             public List<PercentThresholdTextJson> SpareTextByPercent { get; set; }
             public List<PercentThresholdTextJson> TurnNarrationBySpare { get; set; }
+            public SpriteJson Sprite { get; set; }
+        }
+
+        private class SpriteJson
+        {
+            public string Sheet { get; set; }
+            public float[] Anchor { get; set; }   // x,y nudge from the default spot
+            public float Scale { get; set; } = 1f;
+            public List<PartJson> Parts { get; set; }
+        }
+
+        private class PartJson
+        {
+            public string Name { get; set; }
+            public int[] Src { get; set; }        // x,y,w,h on the sheet
+            public int[] SrcHurt { get; set; }    // optional, used while hurt
+            public float[] Offset { get; set; }   // x,y from the anchor
+            public float BobX { get; set; }
+            public float BobY { get; set; }
+            public float Speed { get; set; } = 1f;
+            public float Phase { get; set; }
         }
 
         private class MoveJson

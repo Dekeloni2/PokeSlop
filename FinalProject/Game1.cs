@@ -73,6 +73,10 @@ namespace FinalProject
             SpriteManager.AddSprite("warning", "Sprites/Battle/warning", 3, 1);
             SpriteManager.AddSprite("napoleon", "Sprites/AttackPatterns/napoleon");
             SpriteManager.AddSprite("smoke", "Sprites/AttackPatterns/smoke");
+            SpriteManager.AddSprite("yakir", "Sprites/BattleTeachers/yakir");
+            SpriteManager.AddSprite("attackSlash", "Sprites/Battle/attack", 6, 1);
+            // digits aren't a even grid ("1" is narrower), DamageDisplay has the rects
+            SpriteManager.AddSprite("damageNumbers", "Sprites/Battle/damage");
 
             new SoundManager(Content);
             // text blip, the typewriters play this per character

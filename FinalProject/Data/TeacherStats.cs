@@ -25,14 +25,19 @@ namespace FinalProject.Data
         // when the spare% has overtaken the HP% (see BattleState.RefreshNarration)
         public IReadOnlyList<PercentThresholdText> TurnNarrationBySpare { get; }
 
+        // the multi part sprite, null if the teacher's JSON has no "sprite" block
+        public TeacherSpriteData Sprite { get; }
+
         public TeacherStats(
             string name, string spriteName, int baseHp, int baseAtk,
             IReadOnlyList<MoveData> moves, IReadOnlyList<ActOption> actOptions = null,
             IReadOnlyList<PercentThresholdText> turnNarration = null,
             int spareSuccessAt = 100, string spareSuccessText = null,
             IReadOnlyList<PercentThresholdText> spareTextByPercent = null,
-            IReadOnlyList<PercentThresholdText> turnNarrationBySpare = null)
+            IReadOnlyList<PercentThresholdText> turnNarrationBySpare = null,
+            TeacherSpriteData sprite = null)
         {
+            Sprite = sprite;
             Name       = name;
             SpriteName = spriteName;
             BaseHp     = baseHp;

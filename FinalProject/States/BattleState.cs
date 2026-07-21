@@ -35,6 +35,29 @@ namespace FinalProject.States
         // this state just makes it, draws it and unhooks it when the fight ends
         private BattleHud _hud;
 
+        // the teacher's multi part sprite, built from its JSON. null-safe, if the
+        // teacher has no sprite block it just draws nothing
+        private TeacherSprite _teacherSprite;
+
+        // centred over the battle box and sitting just above it, undertale style.
+        // worked out from his assembled size so it stays right at any scale.
+        // the gap is small on purpose, it leaves room above his head for the
+        // HP bar that shows when he's hit
+        private Vector2 TeacherAnchor => new Vector2(
+            WideBoxRect.Center.X - _teacherSprite.Size.X / 2f,
+            WideBoxRect.Y - _teacherSprite.Size.Y - 2f);
+
+        // his rect on screen, the damage display hangs the slash/number/bar off it
+        private Rectangle TeacherBounds => new Rectangle(
+            (int)TeacherAnchor.X, (int)TeacherAnchor.Y,
+            (int)_teacherSprite.Size.X, (int)_teacherSprite.Size.Y);
+
+        // slash + damage number + the teacher's HP bar, shown right after a hit
+        private readonly DamageDisplay _damageDisplay = new();
+
+        // set when an attack lands, spent once the slash finishes
+        private bool _hurtQueued;
+
         // only reset when the text actually changes, otherwise backing out of
         // a submenu would restart the typing animation
         private readonly Typewriter _narrationTypewriter = new();
@@ -74,6 +97,8 @@ namespace FinalProject.States
             // The HUD subscribes to the EventBus itself; hand it the current HP
             // to seed the display (the event only fires on a later change).
             _hud = new BattleHud(Game.PlayerData.CurrentHp, Game.PlayerData.MaxHp);
+            _teacherSprite = new TeacherSprite(_teacher.Stats.Sprite);
+            _hurtQueued    = false;
         }
 
         // Detach the HUD from the bus when the battle is popped, so its handler
@@ -90,6 +115,9 @@ namespace FinalProject.States
 
         public override void Update(GameTime gameTime)
         {
+            // keeps drifting in every phase so the teacher never freezes
+            _teacherSprite.Update((float)gameTime.ElapsedGameTime.TotalSeconds);
+
             switch (_phase)
             {
                 case BattlePhase.SelectingMove:
@@ -106,6 +134,10 @@ namespace FinalProject.States
 
                 case BattlePhase.ExecutingTurn:
                     UpdateTurnExecution();
+                    break;
+
+                case BattlePhase.ShowingDamage:
+                    UpdateDamageDisplay(gameTime);
                     break;
 
                 case BattlePhase.BoxTransition:
@@ -149,6 +181,13 @@ namespace FinalProject.States
             }
             else
             {
+                // not drawn while dodging, attacks like napoleon take over the
+                // whole screen and it would just clash
+                _teacherSprite.Draw(spriteBatch, TeacherAnchor);
+
+                // slash/number/HP bar, only alive right after a hit
+                _damageDisplay.Draw(spriteBatch, Game.PixelTexture);
+
                 DrawBoxBorder(spriteBatch, _box.Current);
 
                 if (_phase == BattlePhase.ActionMenu)
@@ -348,12 +387,50 @@ namespace FinalProject.States
 
         private void UpdateTurnExecution()
         {
+            // an attack holds the turn while the slash/number/HP bar play out,
+            // everything else goes straight to the enemy's turn
             if (_playerChoice == PlayerMoveList.Attack)
+            {
                 _teacher.TakeDamage(_pendingAttackDamage);
+                _damageDisplay.Show(_pendingAttackDamage, _teacher.CurrentHp, _teacher.MaxHp,
+                    TeacherBounds, WideBoxRect);
+
+                // he reacts once the slash lands, not while it's still swinging
+                _hurtQueued = true;
+
+                _playerChoice = null;
+                _phase = BattlePhase.ShowingDamage;
+                return;
+            }
             // act/spare/item already did their thing in their Activate callbacks
 
             _playerChoice = null;
+            BeginEnemyTurn();
+        }
 
+        // ── Phase: ShowingDamage ─────────────────────────────────────────────
+
+        // holds while the slash, number and HP bar play, then carries on
+        private void UpdateDamageDisplay(GameTime gameTime)
+        {
+            _damageDisplay.Update((float)gameTime.ElapsedGameTime.TotalSeconds);
+
+            // hurt face + shake fire the moment the slash finishes
+            if (_hurtQueued && _damageDisplay.SlashDone)
+            {
+                _teacherSprite.Hurt();
+                _hurtQueued = false;
+            }
+
+            if (!_damageDisplay.IsFinished) return;
+
+            _damageDisplay.Hide();
+            BeginEnemyTurn();
+        }
+
+        // picks the teacher's attack and shrinks the box down for it
+        private void BeginEnemyTurn()
+        {
             if (IsBattleOver())
             {
                 _phase = BattlePhase.BattleOver;
@@ -439,5 +516,5 @@ namespace FinalProject.States
 
     public enum PlayerMoveList { Attack, Act, Item, Spare }
 
-    public enum BattlePhase { SelectingMove, ActionMenu, AttackMinigame, ExecutingTurn, BoxTransition, Dodging, BattleOver }
+    public enum BattlePhase { SelectingMove, ActionMenu, AttackMinigame, ExecutingTurn, ShowingDamage, BoxTransition, Dodging, BattleOver }
 }

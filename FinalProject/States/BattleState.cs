@@ -395,6 +395,10 @@ namespace FinalProject.States
                 _damageDisplay.Show(_pendingAttackDamage, _teacher.CurrentHp, _teacher.MaxHp,
                     TeacherBounds, WideBoxRect);
 
+                // the slash sound is the same length as the animation so they
+                // run together
+                SoundManager.Play("slash");
+
                 // he reacts once the slash lands, not while it's still swinging
                 _hurtQueued = true;
 
@@ -415,10 +419,11 @@ namespace FinalProject.States
         {
             _damageDisplay.Update((float)gameTime.ElapsedGameTime.TotalSeconds);
 
-            // hurt face + shake fire the moment the slash finishes
+            // hurt face + shake + the hit sound all fire the moment the slash ends
             if (_hurtQueued && _damageDisplay.SlashDone)
             {
                 _teacherSprite.Hurt();
+                SoundManager.Play("damage");
                 _hurtQueued = false;
             }
 

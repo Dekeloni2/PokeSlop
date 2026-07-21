@@ -81,6 +81,9 @@ namespace FinalProject
             new SoundManager(Content);
             // text blip, the typewriters play this per character
             SoundManager.AddSound(SoundManager.TextBeepName, "Audio/Music/beep_sound");
+            // attacking the teacher
+            SoundManager.AddSound("slash",  "Audio/SFX/snd_slash");
+            SoundManager.AddSound("damage", "Audio/SFX/snd_damage");
             // napoleon sfx
             SoundManager.AddSound("rumble", "Audio/SFX/rumble");
             SoundManager.AddSound("thud",   "Audio/SFX/thud");

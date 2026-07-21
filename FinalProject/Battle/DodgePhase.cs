@@ -262,15 +262,32 @@ namespace FinalProject.Battle
 
         // ── Helpers ──────────────────────────────────────────────────────────
 
+        // px and seconds of screen shake when the player gets hit
+        private const float HitShakeMagnitude = 7f;
+        private const float HitShakeSeconds   = 0.25f;
+
+        // every hazard goes through here so they all share the same i-frames,
+        // shake and damage instead of each doing its own thing
+        private void HitPlayer(int amount)
+        {
+            if (_hitbox.IsInvulnerable) return;
+
+            _playerData.TakeDamage(amount);
+            _hitbox.TakeHit(); // starts the flash + invulnerability
+            ShakeScreen(HitShakeMagnitude, HitShakeSeconds);
+        }
+
         private void CheckCollisions()
         {
+            if (_hitbox.IsInvulnerable) return;
+
             foreach (Projectile p in _projectiles)
             {
                 if (p.IsExpired) continue;
 
                 if (p.Bounds.Intersects(_hitbox.Bounds))
                 {
-                    _playerData.TakeDamage(_teacher.Attack);
+                    HitPlayer(_teacher.Attack);
                     p.Expire(); // so the same bullet can't hit twice
                 }
             }
@@ -280,6 +297,8 @@ namespace FinalProject.Battle
         // cadence for as long as the soul stays inside them
         private void CheckBeamDamage(float dt)
         {
+            if (_hitbox.IsInvulnerable) return;
+
             foreach (Beam beam in _beams)
             {
                 // 1. Quick check: Are they even touching the beam's overall box?
@@ -291,14 +310,14 @@ namespace FinalProject.Battle
                         // Precise check: Is the player touching a solid pixel?
                         if (IntersectsPixel(beam.Bounds, beam.ColorData, _hitbox.Bounds))                        {
                             if (beam.Tick(dt, _hitbox.Bounds))
-                                _playerData.TakeDamage(Beam.Damage);
+                                HitPlayer(Beam.Damage);
                         }
                     }
                     else
                     {
                         // Standard fast behavior for any other normal straight beams (like Garlic Gun)
                         if (beam.Tick(dt, _hitbox.Bounds))
-                            _playerData.TakeDamage(Beam.Damage);
+                            HitPlayer(Beam.Damage);
                     }
                 }
             }
@@ -352,9 +371,11 @@ namespace FinalProject.Battle
         // hexagon edges hurt continuously too, on their own damage cadence
         private void CheckHexDamage()
         {
+            if (_hitbox.IsInvulnerable) return;
+
             foreach (HexHazard hex in _hexes)
                 if (hex.TickDamage(_hitbox.Bounds))
-                    _playerData.TakeDamage(HexHazard.Damage);
+                    HitPlayer(HexHazard.Damage);
         }
 
         private void DrawBoxBorder(SpriteBatch spriteBatch, Texture2D pixel)

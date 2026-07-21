@@ -12,7 +12,7 @@ namespace FinalProject.Battle
     {
         private const float Duration      = 2.6f;  // how long the whole thing lasts
         private const float SlashSeconds  = 0.55f; // the attack animation
-        private const float SlashScale    = 1.6f;  // on top of fitting his height
+        private const float SlashScale    = 1.25f; // on top of fitting his height
         private const float RiseDistance  = 22f;   // px the number floats up
         private const float FadeStart     = 0.85f; // number starts fading at 85%
         private const float FlashInterval = 0.08f; // how fast the digits swap

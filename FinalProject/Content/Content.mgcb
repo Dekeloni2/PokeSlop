@@ -218,6 +218,18 @@
 /processorParam:Quality=Best
 /build:Audio/Music/beep_sound.wav
 
+#begin Audio/SFX/snd_slash.wav
+/importer:WavImporter
+/processor:SoundEffectProcessor
+/processorParam:Quality=Best
+/build:Audio/SFX/snd_slash.wav
+
+#begin Audio/SFX/snd_damage.wav
+/importer:WavImporter
+/processor:SoundEffectProcessor
+/processorParam:Quality=Best
+/build:Audio/SFX/snd_damage.wav
+
 #begin Audio/SFX/rumble.wav
 /importer:WavImporter
 /processor:SoundEffectProcessor

@@ -9,6 +9,17 @@ namespace FinalProject.Battle
 {
     public class PlayerHitbox
     {
+        // after a hit the soul flashes and can't be hurt again for a moment,
+        // same as undertale. DodgePhase checks IsInvulnerable before damaging
+        private const float InvulnSeconds = 1.0f;
+        private const float FlashInterval = 0.07f;
+
+        private float _invulnLeft;
+
+        public bool IsInvulnerable => _invulnLeft > 0f;
+
+        public void TakeHit() => _invulnLeft = InvulnSeconds;
+
         public Vector2 Position;
 
         public Rectangle Bounds => new Rectangle(
@@ -25,6 +36,8 @@ namespace FinalProject.Battle
         public void Update(GameTime gameTime, InputManager input, Rectangle box)
         {
             float dt = (float)gameTime.ElapsedGameTime.TotalSeconds;
+
+            if (_invulnLeft > 0f) _invulnLeft -= dt;
 
             Vector2 move = Vector2.Zero;
             if (input.IsKeyDown(Keys.Left))  move.X -= 1;
@@ -48,7 +61,10 @@ namespace FinalProject.Battle
         public void Draw(SpriteBatch spriteBatch)
         {
             Spritesheet soul = SpriteManager.GetSprite("soul");
-            Rectangle src = soul[0, 0]; // TODO: [1,0] during hit-flash once an invincibility window exists
+
+            // flashes between the normal and the darker soul while invulnerable
+            bool dark = IsInvulnerable && (int)(_invulnLeft / FlashInterval) % 2 == 1;
+            Rectangle src = soul[dark ? 1 : 0, 0];
 
             var dest = new Rectangle(
                 (int)Position.X - src.Width / 2, (int)Position.Y - src.Height / 2,

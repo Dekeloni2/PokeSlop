@@ -63,6 +63,21 @@ namespace FinalProject.UI
             _active = true;
         }
 
+        // starts a line typing out without any of the Z handling, for lines that
+        // aren't a conversation (the data type lesson). drive it with UpdateText
+        public void ShowTyping(string text, SpriteFont font)
+        {
+            Prepare(text, font);
+            Begin();
+        }
+
+        // advances the typing only. Update() is the version that also reads Z
+        // and closes the bubble, which a non conversation line shouldn't do
+        public void UpdateText(float dt)
+        {
+            if (_active) _typer.Update(dt);
+        }
+
         public void Clear()
         {
             _pages.Clear();

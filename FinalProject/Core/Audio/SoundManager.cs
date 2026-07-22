@@ -68,12 +68,14 @@ namespace FinalProject.Core.Audio
                 if (!char.IsWhiteSpace(text[i])) { Play(TextBeepName); return; }
         }
 
-        // starts a track, loops by default and replaces whatever is playing
-        public static void PlayMusic(string name, bool loop = true)
+        // starts a track, loops by default and replaces whatever is playing.
+        // volume is per track on top of MusicVolume, since tracks come from
+        // different places and aren't mastered to the same level
+        public static void PlayMusic(string name, bool loop = true, float volume = 1f)
         {
             if (!_songs.TryGetValue(name, out Song song)) return;
 
-            MediaPlayer.Volume      = MathHelper.Clamp(MusicVolume, 0f, 1f);
+            MediaPlayer.Volume      = MathHelper.Clamp(MusicVolume * volume, 0f, 1f);
             MediaPlayer.IsRepeating = loop;
             MediaPlayer.Play(song);
         }

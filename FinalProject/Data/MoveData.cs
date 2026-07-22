@@ -17,14 +17,19 @@ namespace FinalProject.Data
 
         public bool IsStatusMove => Power == 0;
 
+        // a desperation move. BattleState saves it for the turn the fight is
+        // about to end (see PickEnemyMove) instead of putting it in the rotation
+        public bool IsUltimate { get; }
+
         public MoveData(string name, int power, int accuracy, string description,
-            Func<IBulletPattern> createPattern)
+            Func<IBulletPattern> createPattern, bool isUltimate = false)
         {
             Name          = name;
             Power         = power;
             Accuracy      = accuracy;
             Description   = description;
             CreatePattern = createPattern;
+            IsUltimate    = isUltimate;
         }
     }
 }

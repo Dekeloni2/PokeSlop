@@ -31,6 +31,21 @@ namespace FinalProject.Battle
             float rotation, float growSeconds, float explodeSpeed)
             => _phase.SpawnHex(center, startRadius, maxRadius, rotation, growSeconds, explodeSpeed);
 
+        // for attacks that hurt the player through something other than a
+        // hazard, like getting a quiz answer wrong. goes through the same
+        // i-frames and shake as everything else
+        public void DamagePlayer(int amount) => _phase.HitPlayer(amount);
+
+        // drops the soul back in the middle of the arena
+        public void CenterHitbox() => _phase.CenterHitbox();
+
+        // wipes every live bullet at once, for the loop lesson's ctrl+c gag
+        public void ClearProjectiles() => _phase.ClearProjectiles();
+
+        // running total of hits taken this turn, for attacks that end early
+        // once they've actually landed
+        public int PlayerHitCount => _phase.PlayerHitCount;
+
         // resize the arena, DodgePhase animates the transition
         public void ResizeBoxTo(Rectangle target, float overSeconds)
             => _phase.ResizeBoxTo(target, overSeconds);
@@ -56,5 +71,9 @@ namespace FinalProject.Battle
 
         // hide the box outline, for attacks that cover the whole screen
         public void SetBoxBorderHidden(bool hidden) => _phase.SetBoxBorderHidden(hidden);
+
+        // put the teacher on screen during the attack and give him a line
+        public void SetTeacherVisible(bool visible) => _phase.SetTeacherVisible(visible);
+        public void SetTeacherSpeech(string text)   => _phase.SetTeacherSpeech(text);
     }
 }

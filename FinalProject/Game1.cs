@@ -70,7 +70,9 @@ namespace FinalProject
             SpriteManager.AddSprite("boat", "Sprites/AttackPatterns/boat");
             SpriteManager.AddSprite("garlicGun", "Sprites/AttackPatterns/GarlicGun");
             SpriteManager.AddSprite("vegeta", "Sprites/AttackPatterns/Vegeta",5 , 1);
-            SpriteManager.AddSprite("warning", "Sprites/Battle/warning", 3, 1);
+            // 32x32 frames with a 3px gutter, without the spacing the frames
+            // slice offset and the flash looks like it's sliding sideways
+            SpriteManager.AddSprite("warning", "Sprites/Battle/warning", 3, 1, 3);
             SpriteManager.AddSprite("napoleon", "Sprites/AttackPatterns/napoleon");
             SpriteManager.AddSprite("smoke", "Sprites/AttackPatterns/smoke");
             SpriteManager.AddSprite("yakir", "Sprites/BattleTeachers/yakir");
@@ -86,6 +88,8 @@ namespace FinalProject
             SoundManager.AddSound("doorShut", "Audio/SFX/snd_elecdoor_shut");
             SoundManager.AddSound("bell",     "Audio/SFX/snd_bell");
             SoundManager.AddSong("elevator",  "Audio/Music/mus_elevator");
+            // battle themes, teachers name theirs in their JSON
+            SoundManager.AddSong("yakirTheme", "Audio/Music/yakir_theme");
             // menus, shared by anything that has a cursor
             SoundManager.AddSound(SoundManager.MenuMove,   "Audio/SFX/snd_squeak");
             SoundManager.AddSound(SoundManager.MenuSelect, "Audio/SFX/snd_select");

@@ -230,6 +230,12 @@
 /processorParam:Quality=Best
 /build:Audio/Music/beep_sound.wav
 
+#begin Audio/Music/yakir_theme.ogg
+/importer:OggImporter
+/processor:SongProcessor
+/processorParam:Quality=Best
+/build:Audio/Music/yakir_theme.ogg
+
 #begin Audio/Music/mus_elevator.ogg
 /importer:OggImporter
 /processor:SongProcessor

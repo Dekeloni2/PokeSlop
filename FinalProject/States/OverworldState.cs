@@ -363,7 +363,7 @@ namespace FinalProject.States
         {
             string teachersDir = Path.GetFullPath(
                 Path.Combine(AppContext.BaseDirectory, "..", "..", "..", "Content", "Teachers"));
-            TeacherStats stats = TeacherLoader.Load(Path.Combine(teachersDir, "substitute.json"));
+            TeacherStats stats = TeacherLoader.Load(Path.Combine(teachersDir, "yakir.json"));
             var teacher = new Teacher(stats);
 
             // the Undertale-style intro plays first, then hands off to the battle.

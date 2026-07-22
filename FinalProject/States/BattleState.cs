@@ -49,6 +49,12 @@ namespace FinalProject.States
             WideBoxRect.Center.X - _teacherSprite.Size.X / 2f,
             WideBoxRect.Y - _teacherSprite.Size.Y - 2f);
 
+        // where he stands during an attack that shows him, above whatever the
+        // arena has resized itself to rather than the menu box
+        private Vector2 DodgeTeacherAnchor => new Vector2(
+            _dodgePhase.CurrentBox.Center.X - _teacherSprite.Size.X / 2f,
+            _dodgePhase.CurrentBox.Top - _teacherSprite.Size.Y - 8f);
+
         // his rect on screen, the damage display hangs the slash/number/bar off it
         private Rectangle TeacherBounds => new Rectangle(
             (int)TeacherAnchor.X, (int)TeacherAnchor.Y,
@@ -80,6 +86,27 @@ namespace FinalProject.States
 
         private bool _endingSpared;
         private bool _endingStarted;
+
+        // his ultimate is a one-off, see PickEnemyMove
+        private bool _ultimateUsed;
+
+        // where a sequential teacher is up to in his move list
+        private int _moveIndex;
+
+        // the turn currently being dodged is the ultimate. once he's fired his
+        // best shot he's out of material, so surviving it opens up mercy
+        private bool _ultimateDodging;
+
+        // an ACT got under his skin, so this pattern jumps the queue next turn.
+        // the lesson he skipped isn't lost, the sequence picks up where it was
+        private string _provokedPattern;
+
+        // an ACT with its own comeback, used instead of his usual onAct line
+        // for one turn. cleared by PrepareDialogue once it's been said
+        private string _actSpeech;
+
+        // last line shown in his bubble mid attack, so it only rebuilds on change
+        private string _lastDodgeSpeech;
 
         // the win text in the box, then a fade to black on the way out
         private const float FadeSeconds = 0.3f;
@@ -130,12 +157,22 @@ namespace FinalProject.States
             _teacherSprite = new TeacherSprite(_teacher.Stats.Sprite);
             _hurtQueued    = false;
             _endingStarted = false;
+            _ultimateUsed  = false;
+            _ultimateDodging = false;
+            _provokedPattern = null;
+            _actSpeech       = null;
+            _moveIndex     = 0;
+            _lastDodgeSpeech = null;
             _victoryShown  = false;
             _fading        = false;
             _fadeT         = 0f;
             _spareLeft     = 0f;
             _dialogueIndex.Clear();
             _spareSmoke.Clear();
+
+            // his theme runs for the whole fight, named in his JSON
+            if (!string.IsNullOrEmpty(_teacher.Stats.Theme))
+                SoundManager.PlayMusic(_teacher.Stats.Theme, true, _teacher.Stats.ThemeVolume);
         }
 
         // Detach the HUD from the bus when the battle is popped, so its handler
@@ -148,6 +185,10 @@ namespace FinalProject.States
             // attack might have been cut off mid loop (player died while
             // dodging)
             SoundManager.StopAllLoops();
+
+            // safety net, the fight can also end by the player dying which
+            // never reaches BeginEnding
+            SoundManager.StopMusic();
         }
 
         public override void Update(GameTime gameTime)
@@ -218,7 +259,17 @@ namespace FinalProject.States
 
             if (_phase == BattlePhase.Dodging)
             {
-                _dodgePhase.Draw(spriteBatch, Game.PixelTexture);
+                // some attacks put him on screen above the arena and talk through
+                // the fight, rather than the arena being the whole show
+                if (_dodgePhase.TeacherVisible)
+                {
+                    Vector2 anchor = DodgeTeacherAnchor;
+                    _teacherSprite.Draw(spriteBatch, anchor);
+                    _bubble.Draw(spriteBatch, Game.DialogueFont,
+                        new Vector2(anchor.X + _teacherSprite.Size.X + 4, anchor.Y + 24));
+                }
+
+                _dodgePhase.Draw(spriteBatch, Game.PixelTexture, Game.DialogueFont);
             }
             else
             {
@@ -350,6 +401,8 @@ namespace FinalProject.States
                 page.Add(new MenuOption(opt.Name, () =>
                 {
                     _teacher.IncreaseSparePercent(opt.SpareGain);
+                    if (opt.ForcesPattern != null) _provokedPattern = opt.ForcesPattern;
+                    if (opt.Speech != null)        _actSpeech       = opt.Speech;
                     PushMessageSequence(opt.GetMessages(CurrentHpPercent()), PlayerMoveList.Act);
                 }));
             return page;
@@ -470,9 +523,16 @@ namespace FinalProject.States
             {
                 _teacher.TakeDamage(_pendingAttackDamage);
 
-                // if that killed him his defeat line takes over, so drop the
-                // attack banter instead of saying both
-                if (!_teacher.IsAlive) _bubble.Clear();
+                // that hit killed him, so the music cuts the instant his HP
+                // updates, before the number and the bar even come up
+                if (!_teacher.IsAlive)
+                {
+                    SoundManager.StopMusic();
+
+                    // his defeat line takes over, so drop the attack banter
+                    // instead of saying both
+                    _bubble.Clear();
+                }
 
                 _damageDisplay.Show(_pendingAttackDamage, _teacher.CurrentHp, _teacher.MaxHp,
                     TeacherBounds, WideBoxRect);
@@ -547,8 +607,22 @@ namespace FinalProject.States
                 return;
             }
 
-            MoveData move = _teacher.Moves[_rng.Next(_teacher.Moves.Count)];
-            IBulletPattern pattern = move.CreatePattern();
+            IBulletPattern pattern;
+
+            if (_provokedPattern != null)
+            {
+                // you poked the bear, the lesson plan can wait
+                pattern = PatternRegistry.Resolve(_provokedPattern)();
+                _provokedPattern = null;
+                _ultimateDodging = false;
+            }
+            else
+            {
+                MoveData move = PickEnemyMove();
+                _ultimateDodging = move.IsUltimate;
+                pattern = move.CreatePattern();
+            }
+
             _dodgePhase = new DodgePhase(pattern, _teacher, Game.PlayerData, DodgeBoxRect);
 
             _box.ResizeTo(DodgeBoxRect, ShrinkSeconds);
@@ -572,6 +646,19 @@ namespace FinalProject.States
         {
             _dodgePhase.Update(gameTime, Game.Input);
 
+            // refresh his bubble when the attack changes what he's saying, only
+            // on a change so it isn't restarted every frame, then let it type
+            if (_dodgePhase.TeacherVisible)
+            {
+                if (_dodgePhase.TeacherSpeech != _lastDodgeSpeech)
+                {
+                    _lastDodgeSpeech = _dodgePhase.TeacherSpeech;
+                    _bubble.ShowTyping(_lastDodgeSpeech, Game.DialogueFont);
+                }
+
+                _bubble.UpdateText((float)gameTime.ElapsedGameTime.TotalSeconds);
+            }
+
             // stop early if the player died mid-dodge
             if (IsBattleOver())
             {
@@ -584,6 +671,19 @@ namespace FinalProject.States
             if (_dodgePhase.IsFinished)
             {
                 _dodgePhase = null;
+
+                // he threw everything he had and you're still standing, so the
+                // fight is winding down whether he likes it or not
+                if (_ultimateDodging)
+                {
+                    _ultimateDodging = false;
+                    _teacher.IncreaseSparePercent(100);
+                }
+
+                // a talking attack leaves its line up, drop it or it hangs
+                // around into the menu phase
+                _bubble.Clear();
+                _lastDodgeSpeech = null;
                 _box.ResizeTo(WideBoxRect, GrowSeconds);
                 // a finished enemy turn is a fresh turn — force the narration to
                 // re-type. Prime it to zero now (during the box transition, before
@@ -612,6 +712,10 @@ namespace FinalProject.States
             bool spared = _teacher.IsSpared || _teacher.IsAlive; // alive = mercy, not a kill
 
             string line = spared ? d?.OnSpared : d?.OnDefeat;
+
+            // the fight is decided, so the music cuts here. his last words and
+            // whatever happens to him after play out in silence
+            SoundManager.StopMusic();
 
             _bubble.Prepare(line, Game.DialogueFont);
             _bubble.Begin();
@@ -714,6 +818,60 @@ namespace FinalProject.States
             }
         }
 
+        // The ultimate is saved for the turn the fight is about to end: either the
+        // player just ACTed him into being sparable, or one more clean hit would
+        // finish him. A teacher working through a lesson plan goes by the plan
+        // instead, see IsUltimateTime. It only ever fires once, so a missed swing
+        // afterwards just gets a normal attack instead of his big finish again.
+        private MoveData PickEnemyMove()
+        {
+            var normal = new List<MoveData>();
+            MoveData ultimate = null;
+
+            foreach (MoveData m in _teacher.Moves)
+            {
+                if (m.IsUltimate) ultimate = m;
+                else              normal.Add(m);
+            }
+
+            if (ultimate != null && !_ultimateUsed && IsUltimateTime(normal.Count))
+            {
+                _ultimateUsed = true;
+                return ultimate;
+            }
+
+            // no normal moves defined, fall back to whatever he has
+            if (normal.Count == 0) return _teacher.Moves[_rng.Next(_teacher.Moves.Count)];
+
+            // lessons play in JSON order and then hold on the last one. wrapping
+            // would restart the course after his big finish, which reads as him
+            // forgetting what he just taught
+            if (_teacher.Stats.SequentialMoves)
+            {
+                int i = Math.Min(_moveIndex, normal.Count - 1);
+                _moveIndex++;
+                return normal[i];
+            }
+
+            return normal[_rng.Next(normal.Count)];
+        }
+
+        // a teacher with a lesson plan holds his ultimate until he's actually
+        // taught everything, so how fast the player hits stops deciding which
+        // material gets seen. everyone else goes by how close the fight is
+        private bool IsUltimateTime(int normalCount)
+            => _teacher.Stats.SequentialMoves
+                ? _moveIndex >= normalCount
+                : IsFightAboutToEnd();
+
+        private bool IsFightAboutToEnd()
+        {
+            bool sparableNow = _teacher.SparePercent >= _teacher.Stats.SpareSuccessAt;
+            bool oneHitLeft  = _teacher.CurrentHp <= Game.PlayerData.Attack;
+
+            return sparableNow || oneHitLeft;
+        }
+
         // picks his line for whatever the player just did. an HP line overrides
         // everything, otherwise it takes the next entry from that action's own
         // list and advances only that one
@@ -729,7 +887,15 @@ namespace FinalProject.States
 
             string line = null;
 
-            if (d.ByHp != null && d.ByHp.Count > 0)
+            // an ACT that has its own comeback wins over everything else, it's
+            // a direct answer to what the player just did
+            if (_actSpeech != null)
+            {
+                line       = _actSpeech;
+                _actSpeech = null;
+            }
+
+            if (string.IsNullOrEmpty(line) && d.ByHp != null && d.ByHp.Count > 0)
                 line = PercentThresholdText.Resolve(d.ByHp, CurrentHpPercent());
 
             if (string.IsNullOrEmpty(line))

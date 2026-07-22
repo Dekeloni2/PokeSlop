@@ -1,3 +1,4 @@
+using System;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using FinalProject.Core;
@@ -10,7 +11,9 @@ namespace FinalProject.Battle
     {
         Normal,
         Smoke, // ship attack
-        Laser // garlic gun
+        Laser, // garlic gun
+        Pixel, // yakir's single pixel
+        Code   // yakir's lessons, letters and numbers instead of bullets
     }
     
     public class Projectile
@@ -21,18 +24,28 @@ namespace FinalProject.Battle
 
         public ProjectileType Type {get; private set;}
 
+        // the battle draws at 1:1, so a literal 2px pixel is invisible in
+        // practice. 4px still reads as "one pixel" next to the 6px bullets,
+        // and the halo below is what actually lets you find it
+        private const int   PixelSize      = 4;
+        private const int   PixelHaloSize  = 14;
+        private const float PixelHaloAlpha = 0.28f;
+        private const float PixelPulseHz   = 2.2f;
+
         public int ProjectileWidth => Type switch
         {
             ProjectileType.Smoke => 25,
-            ProjectileType.Laser => 40, 
+            ProjectileType.Laser => 40,
+            ProjectileType.Pixel => PixelSize,
             _ => GameSettings.DodgeProjectileSize // default size
         };
-        
+
         public int ProjectileHeight => Type switch {
             ProjectileType.Smoke => 25,
             ProjectileType.Laser => 50,
+            ProjectileType.Pixel => PixelSize,
             _ => GameSettings.DodgeProjectileSize // default size
-        }; 
+        };
         
         public Rectangle Bounds => new Rectangle(
             (int)Position.X - ProjectileWidth / 2,
@@ -40,11 +53,24 @@ namespace FinalProject.Battle
             ProjectileWidth,
             ProjectileHeight);
 
+        // mostly ones and zeros with a few identifiers mixed in, so the rain
+        // reads as code at a glance instead of turning into alphabet soup
+        private const string CodeGlyphs = "0101010101123456789ifxnbFIXNB";
+
+        // drawn a little larger than the hitbox so a near miss looks like a
+        // near miss, and glyphs stay legible at this resolution
+        private const float CodeGlyphHeight = 11f;
+
+        private readonly char _glyph;
+
         public Projectile(Vector2 position, Vector2 velocity, ProjectileType type = ProjectileType.Normal) // added defaults
         {
             Position = position;
             Velocity = velocity;
             Type = type;
+
+            if (type == ProjectileType.Code)
+                _glyph = CodeGlyphs[Random.Shared.Next(CodeGlyphs.Length)];
         }
         
         private float _lifeTime;
@@ -53,7 +79,8 @@ namespace FinalProject.Battle
         public void Update(GameTime gameTime, Rectangle box)
         {
             float dt = (float)gameTime.ElapsedGameTime.TotalSeconds;
-            Position += Velocity * dt;
+            Position  += Velocity * dt;
+            _lifeTime += dt;
             
             Rectangle expireBounds = new Rectangle(
                 box.X - GameSettings.DodgeBoundsMargin,
@@ -68,8 +95,21 @@ namespace FinalProject.Battle
         // called on hit so the same bullet can't hit twice
         public void Expire() => IsExpired = true;
 
-        public void Draw(SpriteBatch spriteBatch, Texture2D pixel)
+        public void Draw(SpriteBatch spriteBatch, Texture2D pixel, SpriteFont font = null)
         {
+            // yakir's bullets are the code he's teaching. falls back to a plain
+            // square if no font came through, so it can never draw nothing
+            if (Type == ProjectileType.Code && font != null)
+            {
+                string text  = _glyph.ToString();
+                Vector2 size = font.MeasureString(text);
+                float scale  = size.Y > 0f ? CodeGlyphHeight / size.Y : 1f;
+
+                spriteBatch.DrawString(font, text, Position, Color.OrangeRed,
+                    0f, size / 2f, scale, SpriteEffects.None, 0f);
+                return;
+            }
+
             if (Type == ProjectileType.Laser)
             {
                 var sheet = SpriteManager.GetSprite("garlicGun");
@@ -80,12 +120,25 @@ namespace FinalProject.Battle
                 return;
             }
             
+            // the one pixel gets a soft pulsing halo behind it. the pixel itself
+            // is still tiny, the glow is just so the player can track it
+            if (Type == ProjectileType.Pixel)
+            {
+                float pulse = 0.6f + 0.4f * (float)System.Math.Sin(_lifeTime * MathHelper.TwoPi * PixelPulseHz);
+
+                spriteBatch.Draw(pixel, new Rectangle(
+                    (int)Position.X - PixelHaloSize / 2,
+                    (int)Position.Y - PixelHaloSize / 2,
+                    PixelHaloSize, PixelHaloSize), Color.White * (PixelHaloAlpha * pulse));
+            }
+
             Color renderColor = Type switch
             {
                 ProjectileType.Smoke => Color.Gray * 0.6f,
+                ProjectileType.Pixel => Color.White, // just the one pixel
                 _ => Color.OrangeRed
             };
-                
+
             spriteBatch.Draw(pixel, Bounds, renderColor);
         }
         

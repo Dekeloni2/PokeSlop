@@ -22,15 +22,17 @@ namespace FinalProject.Data
             var moves = new List<MoveData>();
             foreach (MoveJson m in data.Moves ?? new List<MoveJson>())
                 moves.Add(new MoveData(m.Name, m.Power, m.Accuracy, m.Description,
-                    PatternRegistry.Resolve(m.Pattern)));
+                    PatternRegistry.Resolve(m.Pattern), m.IsUltimate));
 
             var actOptions = new List<ActOption>();
             foreach (ActOptionJson a in data.ActOptions ?? new List<ActOptionJson>())
             {
-                if (a.DescriptionByHp != null && a.DescriptionByHp.Count > 0)
-                    actOptions.Add(new ActOption(a.Name, ToThresholds(a.DescriptionByHp), a.SpareGain, a.ExtraMessages));
-                else
-                    actOptions.Add(new ActOption(a.Name, a.Description, a.SpareGain, a.ExtraMessages));
+                ActOption option = a.DescriptionByHp != null && a.DescriptionByHp.Count > 0
+                    ? new ActOption(a.Name, ToThresholds(a.DescriptionByHp), a.SpareGain, a.ExtraMessages, a.ForcesPattern)
+                    : new ActOption(a.Name, a.Description, a.SpareGain, a.ExtraMessages, a.ForcesPattern);
+
+                option.Speech = a.Speech;
+                actOptions.Add(option);
             }
 
             List<PercentThresholdText> turnNarration = data.TurnNarrationByHp != null && data.TurnNarrationByHp.Count > 0
@@ -47,7 +49,7 @@ namespace FinalProject.Data
 
             return new TeacherStats(data.Name, data.SpriteName, data.BaseHp, data.BaseAtk, moves, actOptions,
                 turnNarration, data.SpareSuccessAt, data.SpareSuccessText, spareTextByPercent, turnNarrationBySpare,
-                ToSprite(data.Sprite), ToDialogue(data.BattleDialogue), data.GoldReward);
+                ToSprite(data.Sprite), ToDialogue(data.BattleDialogue), data.GoldReward, data.Theme, data.ThemeVolume, data.SequentialMoves);
         }
 
         private static TeacherDialogue ToDialogue(DialogueJson json)
@@ -115,6 +117,9 @@ namespace FinalProject.Data
             public SpriteJson Sprite { get; set; }
             public DialogueJson BattleDialogue { get; set; }
             public int GoldReward { get; set; }
+            public string Theme { get; set; }
+            public float ThemeVolume { get; set; } = 1f;
+            public bool SequentialMoves { get; set; }
         }
 
         private class DialogueJson
@@ -155,6 +160,7 @@ namespace FinalProject.Data
             public int Accuracy { get; set; }
             public string Description { get; set; }
             public string Pattern { get; set; }
+            public bool IsUltimate { get; set; }
         }
 
         private class ActOptionJson
@@ -164,6 +170,8 @@ namespace FinalProject.Data
             public List<PercentThresholdTextJson> DescriptionByHp { get; set; }
             public int SpareGain { get; set; }
             public List<string> ExtraMessages { get; set; }
+            public string ForcesPattern { get; set; }
+            public string Speech { get; set; }
         }
 
         private class PercentThresholdTextJson

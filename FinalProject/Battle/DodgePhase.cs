@@ -46,6 +46,11 @@ namespace FinalProject.Battle
         // and the box outline, for attacks that take over the whole screen
         public bool BoxBorderHidden { get; private set; }
 
+        // attacks that involve the teacher directly (the data type lesson) can
+        // put him on screen above the arena with a line in his speech bubble
+        public bool   TeacherVisible { get; private set; }
+        public string TeacherSpeech  { get; private set; }
+
         // wait for leftover hazards to clear the arena before ending the turn,
         // otherwise the box starts shrinking back while hazards are live
         public bool IsFinished => _elapsed >= _pattern.Duration
@@ -97,8 +102,19 @@ namespace FinalProject.Battle
         }
 
         
-        public void Draw(SpriteBatch spriteBatch, Texture2D pixel)
+        public void Draw(SpriteBatch spriteBatch, Texture2D pixel, SpriteFont font)
         {
+            // the lessons draw their own boards (quiz buttons, warning zones).
+            // the questions themselves go in his speech bubble via BattleState
+            if (_pattern is DataTypePattern quiz)
+                quiz.DrawUi(spriteBatch, pixel, font, CurrentBox);
+
+            if (_pattern is ConditionalPattern cond)
+                cond.DrawUi(spriteBatch, pixel, font, CurrentBox);
+
+            if (_pattern is LoopPattern loop)
+                loop.DrawUi(spriteBatch, pixel, font, CurrentBox);
+
             if (_pattern is BoatPattern boatPattern)
             {
                 Spritesheet boat = SpriteManager.GetSprite("boat");
@@ -193,7 +209,7 @@ namespace FinalProject.Battle
                 hex.Draw(spriteBatch, pixel);
 
             foreach (Projectile p in _projectiles)
-                p.Draw(spriteBatch, pixel);
+                p.Draw(spriteBatch, pixel, font);
 
             _hitbox.Draw(spriteBatch);
             
@@ -242,6 +258,9 @@ namespace FinalProject.Battle
 
         internal void SetBoxBorderHidden(bool hidden) => BoxBorderHidden = hidden;
 
+        internal void SetTeacherVisible(bool visible) => TeacherVisible = visible;
+        internal void SetTeacherSpeech(string text)   => TeacherSpeech  = text;
+
         // random jitter that dies down over the shake duration
         private void UpdateShake(float dt)
         {
@@ -266,12 +285,22 @@ namespace FinalProject.Battle
         private const float HitShakeMagnitude = 7f;
         private const float HitShakeSeconds   = 0.25f;
 
+        internal void ClearProjectiles() => _projectiles.Clear();
+
+        internal void CenterHitbox()
+            => _hitbox.Position = new Vector2(_box.Current.Center.X, _box.Current.Center.Y);
+
         // every hazard goes through here so they all share the same i-frames,
         // shake and damage instead of each doing its own thing
-        private void HitPlayer(int amount)
+        // how many times the soul has been hit this turn. patterns watch it when
+        // they care whether their attack actually connected
+        public int PlayerHitCount { get; private set; }
+
+        internal void HitPlayer(int amount)
         {
             if (_hitbox.IsInvulnerable) return;
 
+            PlayerHitCount++;
             _playerData.TakeDamage(amount);
             _hitbox.TakeHit(); // starts the flash + invulnerability
             ShakeScreen(HitShakeMagnitude, HitShakeSeconds);

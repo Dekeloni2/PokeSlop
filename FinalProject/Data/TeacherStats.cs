@@ -34,6 +34,15 @@ namespace FinalProject.Data
         // handed to the player when the fight is won, either way it ended
         public int GoldReward { get; }
 
+        // SoundManager key for his battle music, null means the fight is silent.
+        // ThemeVolume is 0..1 for balancing it against everything else
+        public string Theme { get; }
+        public float  ThemeVolume { get; }
+
+        // moves play in JSON order instead of at random. for teachers whose
+        // attacks are lessons that build on each other, like Yakir
+        public bool SequentialMoves { get; }
+
         public TeacherStats(
             string name, string spriteName, int baseHp, int baseAtk,
             IReadOnlyList<MoveData> moves, IReadOnlyList<ActOption> actOptions = null,
@@ -42,11 +51,15 @@ namespace FinalProject.Data
             IReadOnlyList<PercentThresholdText> spareTextByPercent = null,
             IReadOnlyList<PercentThresholdText> turnNarrationBySpare = null,
             TeacherSpriteData sprite = null,
-            TeacherDialogue dialogue = null, int goldReward = 0)
+            TeacherDialogue dialogue = null, int goldReward = 0,
+            string theme = null, float themeVolume = 1f, bool sequentialMoves = false)
         {
-            Sprite     = sprite;
-            Dialogue   = dialogue;
-            GoldReward = goldReward;
+            Sprite      = sprite;
+            Dialogue    = dialogue;
+            GoldReward  = goldReward;
+            Theme       = theme;
+            ThemeVolume = themeVolume <= 0f ? 1f : themeVolume;
+            SequentialMoves = sequentialMoves;
             Name       = name;
             SpriteName = spriteName;
             BaseHp     = baseHp;

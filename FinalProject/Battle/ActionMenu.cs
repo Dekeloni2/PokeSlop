@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
@@ -11,11 +12,21 @@ namespace FinalProject.Battle
 {
     // The menu pages shown inside the battle box (target lists, ACT options,
     // result text). Pages stack on top of each other, X goes back one page.
+    //
+    // Option lists lay out in two columns of three, filled top-to-bottom down
+    // the left column first, the way Undertale does it. More than six entries
+    // splits into numbered pages: right from the last slot goes forward, left
+    // from the first slot comes back.
     public class ActionMenu
     {
         private const float TextScale = 2f;
         private const int   RightPadding = 16; // keeps wrapped text off the right border
         private const int   OptionGap    = 12; // extra vertical gap between distinct options
+        private const int   TopPadding   = 16;
+
+        private const int Columns  = 2;
+        private const int Rows     = 3;
+        private const int PerPage  = Columns * Rows;
 
         // each page also remembers whether X can cancel out of it, and whether
         // its text types out (result messages) or shows instantly (option lists)
@@ -54,11 +65,15 @@ namespace FinalProject.Battle
             if (typewriter)
                 _typewriter.Update((float)gameTime.ElapsedGameTime.TotalSeconds);
 
-            if (page.Count > 1 && (input.IsKeyPressed(Keys.Down) || input.IsKeyPressed(Keys.Up)))
-                SoundManager.Play(SoundManager.MenuMove);
-
-            if (input.IsKeyPressed(Keys.Down)) _cursor = (_cursor + 1) % page.Count;
-            if (input.IsKeyPressed(Keys.Up))   _cursor = (_cursor - 1 + page.Count) % page.Count;
+            if (!typewriter)
+            {
+                int moved = MoveCursor(input, page.Count);
+                if (moved != _cursor)
+                {
+                    _cursor = moved;
+                    SoundManager.Play(SoundManager.MenuMove);
+                }
+            }
 
             if (allowCancel && input.IsKeyPressed(Keys.X))
             {
@@ -84,6 +99,53 @@ namespace FinalProject.Battle
             return true;
         }
 
+        // grid movement. up/down walk a column and wrap inside it, left/right
+        // swap columns, and the outer edges are where paging happens
+        private int MoveCursor(InputManager input, int count)
+        {
+            int pageStart = PageStart(_cursor);
+            int onPage    = Math.Min(PerPage, count - pageStart);
+            int local     = _cursor - pageStart;
+            int column    = local / Rows;
+            int row       = local % Rows;
+
+            // a short last page can leave the right column with fewer cells
+            int columnStart = column * Rows;
+            int inColumn    = Math.Min(Rows, onPage - columnStart);
+
+            if (input.IsKeyPressed(Keys.Down) && inColumn > 0)
+                return pageStart + columnStart + (row + 1) % inColumn;
+
+            if (input.IsKeyPressed(Keys.Up) && inColumn > 0)
+                return pageStart + columnStart + (row - 1 + inColumn) % inColumn;
+
+            if (input.IsKeyPressed(Keys.Right))
+            {
+                if (column == 0)
+                {
+                    // same row of the right column, or its last entry if that
+                    // row doesn't exist on a short page
+                    int target = pageStart + Rows + row;
+                    if (target < pageStart + onPage) return target;
+                    if (onPage > Rows) return pageStart + onPage - 1;
+                }
+                else if (local == PerPage - 1 && pageStart + PerPage < count)
+                {
+                    return pageStart + PerPage; // off the last slot, next page
+                }
+            }
+
+            if (input.IsKeyPressed(Keys.Left))
+            {
+                if (column == 1) return pageStart + row;
+                if (pageStart > 0) return pageStart - 1; // back to the previous page's last slot
+            }
+
+            return _cursor;
+        }
+
+        private static int PageStart(int cursor) => cursor / PerPage * PerPage;
+
         // left margin reserved for the soul cursor. Every line gets the same
         // indent so text doesn't shift when the cursor moves
         private const int SoulMarginLeft = 16;
@@ -95,55 +157,84 @@ namespace FinalProject.Battle
             Spritesheet soul = SpriteManager.GetSprite("soul");
             Rectangle soulSrc = soul[0, 0];
             float textIndent  = SoulMarginLeft + soulSrc.Width + SoulTextGap;
-            float maxTextWidth = box.Width - textIndent - RightPadding;
             float lineSpacingPx = font.LineSpacing * TextScale;
+
+            if (typewriter)
+            {
+                DrawMessage(spriteBatch, font, box, page, textIndent);
+                return;
+            }
+
+            int pageStart = PageStart(_cursor);
+            int onPage    = Math.Min(PerPage, page.Count - pageStart);
+            float cellWidth    = (box.Width - RightPadding) / (float)Columns;
+            float maxTextWidth = cellWidth - textIndent - RightPadding;
+
+            for (int local = 0; local < onPage; local++)
+            {
+                int index  = pageStart + local;
+                int column = local / Rows;
+                int row    = local % Rows;
+
+                float cellX = box.X + column * cellWidth;
+                float y     = box.Y + TopPadding + row * (lineSpacingPx + OptionGap);
+
+                string text = string.Join("\n",
+                    TextWrap.ToLines(font, "* " + page[index].Text, maxTextWidth, TextScale));
+
+                spriteBatch.DrawString(font, text, new Vector2(cellX + textIndent, y),
+                    page[index].Color, 0f, Vector2.Zero, TextScale, SpriteEffects.None, 0f);
+
+                if (index == _cursor)
+                {
+                    var soulDest = new Rectangle(
+                        (int)(cellX + SoulMarginLeft),
+                        (int)(y + lineSpacingPx / 2f - soulSrc.Height / 2f),
+                        soulSrc.Width, soulSrc.Height);
+                    spriteBatch.Draw(soul.Texture, soulDest, soulSrc, Color.White);
+                }
+            }
+
+            DrawPageNumber(spriteBatch, font, box, page.Count, pageStart);
+        }
+
+        // only worth showing once the list actually spills past one page
+        private void DrawPageNumber(SpriteBatch spriteBatch, SpriteFont font, Rectangle box,
+                                    int count, int pageStart)
+        {
+            if (count <= PerPage) return;
+
+            int total = (count + PerPage - 1) / PerPage;
+            string label = $"PAGE {pageStart / PerPage + 1}/{total}";
+
+            Vector2 size = font.MeasureString(label) * TextScale;
+            var position = new Vector2(
+                box.Right - RightPadding - size.X,
+                box.Bottom - TopPadding - size.Y);
+
+            spriteBatch.DrawString(font, label, position, Color.White,
+                0f, Vector2.Zero, TextScale, SpriteEffects.None, 0f);
+        }
+
+        // result text keeps the old full width single column layout, it's one
+        // block of prose rather than something you pick from
+        private void DrawMessage(SpriteBatch spriteBatch, SpriteFont font, Rectangle box,
+                                 List<MenuOption> page, float textIndent)
+        {
+            float maxTextWidth = box.Width - textIndent - RightPadding;
 
             // bake the wrap into the typewriter text once, so revealing it a
             // character at a time never moves a letter that's already visible
-            if (typewriter && _typewriterNeedsLayout)
+            if (_typewriterNeedsLayout)
             {
                 _typewriter.SetText(string.Join("\n",
                     TextWrap.ToLines(font, "* " + page[0].Text, maxTextWidth, TextScale)));
                 _typewriterNeedsLayout = false;
             }
 
-            float y = box.Y + 16;
-            for (int i = 0; i < page.Count; i++)
-            {
-                Color color = page[i].Color;
-                float optionStartY = y;
-
-                bool isTyping = typewriter && i == 0;
-
-                // wrap long text so it stays inside the box (the typewriter
-                // text was already wrapped above, with the breaks baked in)
-                string fullText = isTyping
-                    ? _typewriter.FullText
-                    : string.Join("\n", TextWrap.ToLines(font, "* " + page[i].Text, maxTextWidth, TextScale));
-                string shownText = isTyping ? _typewriter.VisibleText : fullText;
-
-                spriteBatch.DrawString(font, shownText, new Vector2(box.X + textIndent, y), color,
-                    0f, Vector2.Zero, TextScale, SpriteEffects.None, 0f);
-
-                // advance by the full text's height so anything below doesn't
-                // slide around while the text is still typing
-                int lineCount = 1;
-                foreach (char c in fullText)
-                    if (c == '\n') lineCount++;
-                y += lineCount * lineSpacingPx;
-
-                // no soul on message pages, only on lists you actually pick from
-                if (i == _cursor && !typewriter)
-                {
-                    var soulDest = new Rectangle(
-                        box.X + SoulMarginLeft,
-                        (int)(optionStartY + lineSpacingPx / 2f - soulSrc.Height / 2f),
-                        soulSrc.Width, soulSrc.Height);
-                    spriteBatch.Draw(soul.Texture, soulDest, soulSrc, Color.White);
-                }
-
-                y += OptionGap;
-            }
+            spriteBatch.DrawString(font, _typewriter.VisibleText,
+                new Vector2(box.X + textIndent, box.Y + TopPadding), page[0].Color,
+                0f, Vector2.Zero, TextScale, SpriteEffects.None, 0f);
         }
     }
 }

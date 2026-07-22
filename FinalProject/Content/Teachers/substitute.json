@@ -37,8 +37,15 @@
       "name": "Napoleon",
       "power": 1,
       "accuracy": 100,
-      "description": "Hexagons bloom across the arena.",
+      "description": "The room falls away and something enormous rises.",
       "pattern": "Napoleon"
+    },
+    {
+      "name": "Hexagon",
+      "power": 1,
+      "accuracy": 100,
+      "description": "Hexagons bloom across the arena.",
+      "pattern": "Hexagon"
     }
   ],
   "actOptions": [

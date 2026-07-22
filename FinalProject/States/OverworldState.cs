@@ -363,6 +363,8 @@ namespace FinalProject.States
         {
             string teachersDir = Path.GetFullPath(
                 Path.Combine(AppContext.BaseDirectory, "..", "..", "..", "Content", "Teachers"));
+            // swap this filename to whoever you're testing (yakir.json for the
+            // real fight, substitute.json for the throwaway pattern dummy)
             TeacherStats stats = TeacherLoader.Load(Path.Combine(teachersDir, "yakir.json"));
             var teacher = new Teacher(stats);
 

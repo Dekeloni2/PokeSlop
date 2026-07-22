@@ -87,13 +87,13 @@
       "name": "Debug",
       "description": "You ask Yakir for help debugging your Final Project's code.",
       "extraMessages": [ "Yakir then solves the issue with extreme precision and accuracy.|You can't be anything less than shocked and impressed" ],
-      "spareGain": 40
+      "spareGain": 30
     },
     {
       "name": "Compliment",
       "description": "You tell Yakir his lectures are actually useful.",
       "extraMessages": [ "Yakir truly appreciates your feedback" ],
-      "spareGain": 60
+      "spareGain": 30
     },
     {
       "name": "Photo",

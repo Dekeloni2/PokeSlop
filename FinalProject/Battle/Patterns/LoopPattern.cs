@@ -20,12 +20,16 @@ public class LoopPattern : IBulletPattern
 
     // ── timing ───────────────────────────────────────────────────────────────
     private const float IntroSeconds     = 3.0f;
-    private const float AnnounceSeconds  = 2.8f;  // reading the loop header
-    private const float TelegraphSeconds = 0.55f; // marker on the column
-    private const float RainSeconds      = 0.75f; // the burst itself
+    private const float AnnounceSeconds  = 2.2f;  // reading the loop header
+    private const float TelegraphSeconds = 0.38f; // marker on the column
+    private const float RainSeconds      = 0.65f; // the burst itself
     private const float CtrlCSeconds     = 2.0f;  // he holds the panic line
-    private const float SpawnInterval    = 0.06f;
-    private const float RainSpeedScale   = 1.6f;  // of DodgeProjectileSpeed
+    private const float SpawnInterval    = 0.035f;
+    private const float RainSpeedScale   = 2.0f;  // of DodgeProjectileSpeed
+
+    // once the runaway loop is properly out of control it stops politely doing
+    // one column at a time and drags the previous one along with it
+    private const int TrailingFrom = 3;
 
     // the runaway loop gets faster every iteration, down to a floor
     private const float InfiniteAccel    = 0.85f; // per iteration multiplier
@@ -34,9 +38,10 @@ public class LoopPattern : IBulletPattern
 
     private const int Columns = 5;
 
-    // same staging as the other lessons
-    private const int BoxWidth  = 400;
-    private const int BoxHeight = 200;
+    // same staging as the other lessons, tightened so a column is somewhere you
+    // have to leave rather than somewhere you stroll past
+    private const int BoxWidth  = 320;
+    private const int BoxHeight = 170;
     private const int BoxTop    = 252;
     private const float ResizeSeconds = 0.6f;
     private const float WarningFlashSeconds = 0.08f;
@@ -191,7 +196,17 @@ public class LoopPattern : IBulletPattern
         if (_spawnTimer < SpawnInterval) return;
         _spawnTimer = 0f;
 
-        Rectangle col = ColumnRect(context.CurrentBox, CurrentColumn);
+        RainOnColumn(context, CurrentColumn);
+
+        // the runaway loop smears across two columns once it's gone properly
+        // wrong, so there's no standing still until he pulls the plug
+        if (IsInfinite && _step >= TrailingFrom)
+            RainOnColumn(context, (CurrentColumn + Columns - 1) % Columns);
+    }
+
+    private void RainOnColumn(DodgeContext context, int column)
+    {
+        Rectangle col = ColumnRect(context.CurrentBox, column);
         float x = col.Left + (float)_rng.NextDouble() * col.Width;
 
         context.SpawnProjectile(

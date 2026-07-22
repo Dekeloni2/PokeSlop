@@ -27,13 +27,15 @@
     "onAct": [
       "C# is such an excellent language to learn|Surely you will be able to find a job once you learn it!| But before we do...",
       "Seems like this was pretty easy for you! Onto the next lesson!.",
-      "The third lesson is really hard! Good luck!."
+      "The third lesson is really hard! Good luck!",
+      "I have seen some students fail on this lesson!|Are you also going to fail?|I believe you won't!",
+      "Wow, you are really good at this!"
     ],
     "onSpare": [
       "Mercy isn't in the syllabus."
     ],
-    "onDefeat": "How could you have done this?|We were having so much fun together...|I just wanted you to learn how to code.....|...I guess I was wrong.....",
-    "onSpared": "Fine.|But you're still writing the documentation."
+    "onDefeat": "How could you have done this?|We were having so much fun together...|I just wanted you to learn how to code.....|........|I guess I was wrong....",
+    "onSpared": "It seems you have learned everything you need to be a successful dev|Don't forget to come to C# Advanced next semester!."
   },
   "moves": [
     {
@@ -77,22 +79,20 @@
     {
       "name": "Check",
       "descriptionByHp": [
-        { "minPercent": 67, "text": "Yakir - HP 51, ATK 4. Teaches C#. Has never successfully drawn a pixel." },
-        { "minPercent": 34, "text": "Yakir - HP 51, ATK 4. He's started muttering about render targets." },
-        { "minPercent": 0,  "text": "Yakir - HP 51, ATK 4. He looks like he's about to try something." }
+        { "minPercent": 67, "text": "Yakir - HP 51, ATK 4. Teaches C# and Unity at Tiltan.|Why does he have 51 HP? It doesn't matter." }
       ],
       "spareGain": 0
     },
     {
       "name": "Debug",
-      "description": "You point out the bug in his code.",
-      "extraMessages": [ "... He stares at the screen for a long time." ],
+      "description": "You ask Yakir for help debugging your Final Project's code.",
+      "extraMessages": [ "Yakir then solves the issue with extreme precision and accuracy.|You can't be anything less than shocked and impressed" ],
       "spareGain": 40
     },
     {
       "name": "Compliment",
       "description": "You tell Yakir his lectures are actually useful.",
-      "extraMessages": [ "He pretends not to care. He cares." ],
+      "extraMessages": [ "Yakir truly appreciates your feedback" ],
       "spareGain": 60
     },
     {
@@ -112,7 +112,7 @@
     { "minPercent": 80, "text": "Yakir is packing up his laptop..." }
   ],
   "turnNarrationByHp": [
-    { "minPercent": 67, "text": " * Yakir is explaining something you didn't ask about." },
+    { "minPercent": 67, "text": " * Yakir is currently opening his laptop." },
     { "minPercent": 34, "text": " * Yakir alt-tabs to his slides." },
     { "minPercent": 0,  "text": " * Yakir opens a new project file." }
   ],

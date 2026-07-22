@@ -343,13 +343,16 @@ namespace FinalProject.States
         // turn), clear _lastNarrationText first.
         private void RefreshNarration()
         {
-            // prefer the spare-based narration once mercy progress has overtaken
-            // the teacher's remaining HP%; otherwise use the HP-based narration
-            float hp      = CurrentHpPercent();
-            float spare   = _teacher.SparePercent;
-            var   bySpare = _teacher.Stats.TurnNarrationBySpare;
+            // two routes out of a fight, whichever the player is further along
+            // is the one he reacts to. mercy progress is the spare%, the other
+            // route's progress is damage dealt, so compare against that and not
+            // against the HP he has left
+            float hp       = CurrentHpPercent();
+            float damage   = 100f - hp;
+            float spare    = _teacher.SparePercent;
+            var   bySpare  = _teacher.Stats.TurnNarrationBySpare;
 
-            string narrationText = (bySpare != null && bySpare.Count > 0 && spare > hp)
+            string narrationText = (bySpare != null && bySpare.Count > 0 && spare > damage)
                 ? PercentThresholdText.Resolve(bySpare, spare)
                 : PercentThresholdText.Resolve(_teacher.Stats.TurnNarration, hp);
             if (narrationText == _lastNarrationText) return;
@@ -469,6 +472,10 @@ namespace FinalProject.States
         // shows messages one after another, Z on the last one ends the turn
         private void PushMessageSequence(List<string> messages, PlayerMoveList finalChoice, int index = 0)
         {
+            // a '|' gives the rest of the line its own box, same as the speech
+            // bubble and the overworld. done here so every caller gets it
+            if (index == 0) messages = SplitPages(messages);
+
             bool isLast = index >= messages.Count - 1;
             _actionMenu.Push(new List<MenuOption>
             {
@@ -476,6 +483,27 @@ namespace FinalProject.States
                     ? () => FinalizeChoice(finalChoice)
                     : () => PushMessageSequence(messages, finalChoice, index + 1))
             }, allowCancel: false, typewriter: true);
+        }
+
+        // one entry per box. stray breaks and blank entries are dropped, and an
+        // empty result still yields one page so the turn can always be advanced
+        private static List<string> SplitPages(List<string> messages)
+        {
+            var pages = new List<string>();
+
+            foreach (string message in messages)
+            {
+                if (string.IsNullOrEmpty(message)) continue;
+
+                foreach (string part in message.Split('|'))
+                {
+                    string trimmed = part.Trim();
+                    if (trimmed.Length > 0) pages.Add(trimmed);
+                }
+            }
+
+            if (pages.Count == 0) pages.Add(string.Empty);
+            return pages;
         }
 
         private void FinalizeChoice(PlayerMoveList choice)

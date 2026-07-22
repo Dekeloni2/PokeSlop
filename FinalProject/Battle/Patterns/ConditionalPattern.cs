@@ -20,20 +20,26 @@ public class ConditionalPattern : IBulletPattern
 
     // ── timing ───────────────────────────────────────────────────────────────
     private const float IntroSeconds     = 3.0f;
-    private const float ReadSeconds      = 3.4f;  // time to parse the code line
-    private const float TelegraphSeconds = 0.9f;  // markers flash on the doomed zone
-    private const float RainSeconds      = 1.6f;
-    private const float PauseSeconds     = 0.8f;  // beat between questions
+    private const float ReadSeconds      = 2.6f;  // time to parse the code line
+    private const float TelegraphSeconds = 0.55f; // markers flash on the doomed zone
+    private const float RainSeconds      = 2.2f;
+    private const float PauseSeconds     = 0.7f;  // beat between questions
     private const float ErrorSeconds     = 3.0f;  // the compiler error hangs there
 
-    private const float SpawnInterval    = 0.07f;
-    private const float RainSpeedScale   = 1.5f;  // of DodgeProjectileSpeed
+    private const float SpawnInterval    = 0.04f;
+    private const float RainSpeedScale   = 1.9f;  // of DodgeProjectileSpeed
+
+    // a thin trickle over the whole arena while a branch is firing. standing
+    // in the safe half shouldn't mean standing still, it should mean surviving
+    private const float StraySpawnInterval = 0.3f;
     private const float WarningFlashSeconds = 0.08f; // per frame, like garlic gun
     private const int   WarningMarkers   = 3;
 
-    // same staging as the data types lesson, low box with him standing over it
-    private const int BoxWidth  = 400;
-    private const int BoxHeight = 200;
+    // same staging as the data types lesson, low box with him standing over it.
+    // tighter than the quiz box on purpose, a half of a 400px arena is more
+    // open floor than a dodge needs
+    private const int BoxWidth  = 320;
+    private const int BoxHeight = 170;
     private const int BoxTop    = 252;
     private const float ResizeSeconds = 0.6f;
 
@@ -81,6 +87,7 @@ public class ConditionalPattern : IBulletPattern
     private float _phaseTimer;
     private float _elapsed;
     private float _spawnTimer;
+    private float _strayTimer;
     private float _doneTime = -1f;
     private int   _question;
     private Zone  _attackZone;
@@ -189,6 +196,8 @@ public class ConditionalPattern : IBulletPattern
 
     private void SpawnRain(DodgeContext context, float dt)
     {
+        SpawnStray(context, dt);
+
         _spawnTimer += dt;
         if (_spawnTimer < SpawnInterval) return;
         _spawnTimer = 0f;
@@ -211,6 +220,21 @@ public class ConditionalPattern : IBulletPattern
             context.SpawnProjectile(new Vector2(box.Right, y), new Vector2(-speed, 0f),
                                     ProjectileType.Code);
         }
+    }
+
+    // the odd bullet anywhere in the arena, slower than the branch rain so it
+    // reads as background noise rather than a second attack to solve
+    private void SpawnStray(DodgeContext context, float dt)
+    {
+        _strayTimer += dt;
+        if (_strayTimer < StraySpawnInterval) return;
+        _strayTimer = 0f;
+
+        Rectangle box = context.CurrentBox;
+        float x = box.Left + (float)_rng.NextDouble() * box.Width;
+
+        context.SpawnProjectile(new Vector2(x, box.Top),
+            new Vector2(0f, GameSettings.DodgeProjectileSpeed), ProjectileType.Code);
     }
 
     // flashing markers over the doomed zone while it telegraphs. drawn by

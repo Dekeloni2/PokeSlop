@@ -68,6 +68,13 @@ namespace FinalProject.Core.Audio
                 if (!char.IsWhiteSpace(text[i])) { Play(TextBeepName); return; }
         }
 
+        // same, but with a custom blip (the GAME OVER text uses snd_txtasg)
+        public static void PlayTextBeep(string beepName, string text, int from, int to)
+        {
+            for (int i = from; i < to; i++)
+                if (!char.IsWhiteSpace(text[i])) { Play(beepName); return; }
+        }
+
         // starts a track, loops by default and replaces whatever is playing.
         // volume is per track on top of MusicVolume, since tracks come from
         // different places and aren't mastered to the same level
@@ -79,6 +86,11 @@ namespace FinalProject.Core.Audio
             MediaPlayer.IsRepeating = loop;
             MediaPlayer.Play(song);
         }
+
+        // adjust the current track's volume live (used to fade music out). the
+        // argument is the per-track volume, same scale as PlayMusic's parameter
+        public static void SetMusicVolume(float volume)
+            => MediaPlayer.Volume = MathHelper.Clamp(MusicVolume * volume, 0f, 1f);
 
         public static void StopMusic()   => MediaPlayer.Stop();
         public static void PauseMusic()  => MediaPlayer.Pause();

@@ -64,6 +64,7 @@ namespace FinalProject
             new SpriteManager(Content);
             SpriteManager.AddSprite("student_world", "Sprites/Player/student_world", 4, 3);
             SpriteManager.AddSprite("soul", "Sprites/Battle/Soul", 2, 1);
+            SpriteManager.AddSprite("soul_lost", "Sprites/Battle/soul_lost", 7, 1, 1, 0);
             SpriteManager.AddSprite("battleButtons", "Sprites/Battle/buttons", 2, 4, 10, 8);
             SpriteManager.AddSprite("attackZone", "Sprites/Battle/attack_minigame");
             SpriteManager.AddSprite("attackBar", "Sprites/Battle/attack_target", 2, 1, 6);
@@ -90,6 +91,7 @@ namespace FinalProject
             SoundManager.AddSong("elevator",  "Audio/Music/mus_elevator");
             // battle themes, teachers name theirs in their JSON
             SoundManager.AddSong("yakirTheme", "Audio/Music/yakir_theme");
+            SoundManager.AddSong("game_over",  "Audio/Music/game_over");
             // menus, shared by anything that has a cursor
             SoundManager.AddSound(SoundManager.MenuMove,   "Audio/SFX/snd_squeak");
             SoundManager.AddSound(SoundManager.MenuSelect, "Audio/SFX/snd_select");
@@ -97,6 +99,9 @@ namespace FinalProject
             SoundManager.AddSound("vaporized", "Audio/SFX/snd_vaporized");
             SoundManager.AddSound("slash",  "Audio/SFX/snd_slash");
             SoundManager.AddSound("damage", "Audio/SFX/snd_damage");
+            SoundManager.AddSound("snd_break1", "Audio/SFX/snd_break1");
+            SoundManager.AddSound("snd_break2", "Audio/SFX/snd_break2");
+            SoundManager.AddSound("snd_txtasg", "Audio/SFX/snd_txtasg");
             // napoleon sfx
             SoundManager.AddSound("rumble", "Audio/SFX/rumble");
             SoundManager.AddSound("thud",   "Audio/SFX/thud");

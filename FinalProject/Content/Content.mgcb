@@ -116,6 +116,18 @@
 /processorParam:TextureFormat=Color
 /build:Sprites/Battle/Soul.png
 
+#begin Sprites/Battle/soul_lost.png
+/importer:TextureImporter
+/processor:TextureProcessor
+/processorParam:ColorKeyColor=255,0,255,255
+/processorParam:ColorKeyEnabled=True
+/processorParam:GenerateMipmaps=False
+/processorParam:PremultiplyAlpha=True
+/processorParam:ResizeToPowerOfTwo=False
+/processorParam:MakeSquare=False
+/processorParam:TextureFormat=Color
+/build:Sprites/Battle/soul_lost.png
+
 #begin Sprites/Battle/warning.png
 /importer:TextureImporter
 /processor:TextureProcessor
@@ -242,6 +254,12 @@
 /processorParam:Quality=Best
 /build:Audio/Music/mus_elevator.ogg
 
+#begin Audio/Music/game_over.ogg
+/importer:OggImporter
+/processor:SongProcessor
+/processorParam:Quality=Best
+/build:Audio/Music/game_over.ogg
+
 #begin Audio/SFX/snd_elecdoor_shut.wav
 /importer:WavImporter
 /processor:SoundEffectProcessor
@@ -277,6 +295,24 @@
 /processor:SoundEffectProcessor
 /processorParam:Quality=Best
 /build:Audio/SFX/snd_slash.wav
+
+#begin Audio/SFX/snd_break1.wav
+/importer:WavImporter
+/processor:SoundEffectProcessor
+/processorParam:Quality=Best
+/build:Audio/SFX/snd_break1.wav
+
+#begin Audio/SFX/snd_break2.wav
+/importer:WavImporter
+/processor:SoundEffectProcessor
+/processorParam:Quality=Best
+/build:Audio/SFX/snd_break2.wav
+
+#begin Audio/SFX/snd_txtasg.wav
+/importer:WavImporter
+/processor:SoundEffectProcessor
+/processorParam:Quality=Best
+/build:Audio/SFX/snd_txtasg.wav
 
 #begin Audio/SFX/snd_damage.wav
 /importer:WavImporter

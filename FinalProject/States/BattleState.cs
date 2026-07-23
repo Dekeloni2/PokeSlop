@@ -87,6 +87,9 @@ namespace FinalProject.States
         private bool _endingSpared;
         private bool _endingStarted;
 
+        // the soul-shatter death effect, created when the player's HP hits 0
+        private SoulShatter _soulShatter;
+
         // his ultimate is a one-off, see PickEnemyMove
         private bool _ultimateUsed;
 
@@ -230,6 +233,10 @@ namespace FinalProject.States
                     UpdateEnding(gameTime);
                     break;
 
+                case BattlePhase.PlayerDying:
+                    UpdatePlayerDying(gameTime);
+                    break;
+
                 case BattlePhase.BattleOver:
                     StateManager.Pop();
                     break;
@@ -239,6 +246,15 @@ namespace FinalProject.States
         public override void Draw(SpriteBatch spriteBatch)
         {
             Game.GraphicsDevice.Clear(Color.Black);
+
+            // player death takes over the whole screen — just the shatter on black
+            if (_phase == BattlePhase.PlayerDying)
+            {
+                spriteBatch.Begin(samplerState: SamplerState.PointClamp);
+                _soulShatter.Draw(spriteBatch, SpriteManager.GetSprite("soul_lost"));
+                spriteBatch.End();
+                return;
+            }
 
             // the current attack can pan/shake the view. draw time only, the
             // hitboxes never move, so collision always matches what you see.
@@ -629,9 +645,9 @@ namespace FinalProject.States
         {
             if (IsBattleOver())
             {
-                // the player dying just exits, the teacher going down gets a scene
+                // player death plays the soul shatter, the teacher going down gets a scene
                 if (Game.PlayerData.IsAlive) BeginEnding();
-                else                         _phase = BattlePhase.BattleOver;
+                else                         BeginPlayerDeath();
                 return;
             }
 
@@ -690,9 +706,9 @@ namespace FinalProject.States
             // stop early if the player died mid-dodge
             if (IsBattleOver())
             {
-                // the player dying just exits, the teacher going down gets a scene
+                // player death plays the soul shatter, the teacher going down gets a scene
                 if (Game.PlayerData.IsAlive) BeginEnding();
-                else                         _phase = BattlePhase.BattleOver;
+                else                         BeginPlayerDeath();
                 return;
             }
 
@@ -723,6 +739,30 @@ namespace FinalProject.States
                 _phaseAfterTransition = BattlePhase.SelectingMove;
                 _phase = BattlePhase.BoxTransition;
             }
+        }
+
+        // ── Phase: PlayerDying ───────────────────────────────────────────────
+
+        // the soul shattering on black. plays out, then the fight ends. the
+        // GAME OVER screen will hook in where this currently pops the battle
+        private void BeginPlayerDeath()
+        {
+            SoundManager.StopAllLoops();
+            SoundManager.StopMusic();
+
+            Vector2 soulPos = _dodgePhase != null
+                ? _dodgePhase.HitboxPosition - _dodgePhase.CameraOffset
+                : new Vector2(GameSettings.WindowWidth / 2f, GameSettings.WindowHeight / 2f);
+
+            _soulShatter = new SoulShatter(soulPos);
+            _phase = BattlePhase.PlayerDying;
+        }
+
+        private void UpdatePlayerDying(GameTime gameTime)
+        {
+            _soulShatter.Update((float)gameTime.ElapsedGameTime.TotalSeconds);
+            if (_soulShatter.IsFinished)
+                StateManager.Replace(new GameOverState(Game, StateManager));
         }
 
         // ── Helpers ──────────────────────────────────────────────────────────
@@ -975,5 +1015,5 @@ namespace FinalProject.States
 
     public enum PlayerMoveList { Attack, Act, Item, Spare }
 
-    public enum BattlePhase { SelectingMove, ActionMenu, AttackMinigame, ExecutingTurn, TurnFeedback, BoxTransition, Dodging, Ending, BattleOver }
+    public enum BattlePhase { SelectingMove, ActionMenu, AttackMinigame, ExecutingTurn, TurnFeedback, BoxTransition, Dodging, Ending, PlayerDying, BattleOver }
 }

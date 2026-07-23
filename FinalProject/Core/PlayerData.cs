@@ -8,8 +8,8 @@ namespace FinalProject.Core
     // the player's stats and inventory
     public class PlayerData
     {
-        public int CurrentHp { get; set; } = 100;
-        public int MaxHp     { get; set; } = 100;
+        public int CurrentHp { get; set; } = 10;
+        public int MaxHp     { get; set; } = 10;
         public int Attack    { get; set; } = 10;
         public int Money     { get; set; } = 500;
 

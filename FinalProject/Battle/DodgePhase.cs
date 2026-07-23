@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
+using Microsoft.Xna.Framework.Input;
 using FinalProject.Core;
 using FinalProject.Core.Input;
 using FinalProject.Core.Graphics;
@@ -24,6 +25,7 @@ namespace FinalProject.Battle
         private readonly Rectangle   _baseBox;
         private readonly TweeningBox _box;
         private readonly ParticleSystem _particles = new();
+        private InputManager _input;
 
         private float _elapsed;
 
@@ -39,6 +41,8 @@ namespace FinalProject.Battle
         private float   _shakeLeft;
 
         public Vector2 CameraOffset => _cameraPan + _shakeOffset;
+
+        public bool IsKeyDown(Keys key) => _input?.IsKeyDown(key) ?? false;
 
         // patterns can hide the HP bar for their attack
         public bool HudHidden { get; private set; }
@@ -76,6 +80,7 @@ namespace FinalProject.Battle
         public void Update(GameTime gameTime, InputManager input)
         {
             float dt = (float)gameTime.ElapsedGameTime.TotalSeconds;
+            _input = input;
             _elapsed += dt;
 
             _box.Update(dt);
@@ -138,7 +143,7 @@ namespace FinalProject.Battle
                     spriteBatch.Draw(boat.Texture, boatRect, boat[0, 0], boatPattern.BoatTint);
                 }
             }
-            
+
             if (_pattern is GarlicGunPattern garlic && (garlic.IsCharging || garlic.IsFiring || garlic.IsVanishing))
             {
                 Rectangle laneRect = garlic.BeamStrip(CurrentBox);

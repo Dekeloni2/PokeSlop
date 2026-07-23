@@ -5,6 +5,7 @@ using Microsoft.Xna.Framework.Input;
 using FinalProject.Core.Graphics;
 using FinalProject.Core.Input;
 using FinalProject.Core.Text;
+using FinalProject.Core.Audio;
 
 namespace FinalProject.UI
 {
@@ -31,6 +32,7 @@ namespace FinalProject.UI
 
         public bool HasText  => _pages.Count > 0;
         public bool IsActive => _active;
+        public string BeepSound { get; set; }
 
         // splits on '|', wraps each page, and holds them without showing anything
         public void Prepare(string text, SpriteFont font)
@@ -59,6 +61,7 @@ namespace FinalProject.UI
             if (!HasText) return;
 
             _page = 0;
+            _typer.BeepSound = BeepSound ?? SoundManager.TextBeepName;
             _typer.SetText(_pages[0]);
             _active = true;
         }

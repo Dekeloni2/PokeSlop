@@ -1,5 +1,6 @@
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
+using Microsoft.Xna.Framework.Input;
 
 namespace FinalProject.Battle
 {
@@ -75,5 +76,7 @@ namespace FinalProject.Battle
         // put the teacher on screen during the attack and give him a line
         public void SetTeacherVisible(bool visible) => _phase.SetTeacherVisible(visible);
         public void SetTeacherSpeech(string text)   => _phase.SetTeacherSpeech(text);
+
+        public bool IsKeyDown(Keys key) => _phase.IsKeyDown(key);
     }
 }

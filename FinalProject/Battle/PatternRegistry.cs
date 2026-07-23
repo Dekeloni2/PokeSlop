@@ -23,6 +23,7 @@ namespace FinalProject.Battle
             ["GarlicGun"]    = () => new GarlicGunPattern(), // only if you bring up the photo
             ["Napoleon"]     = () => new NapoleonPattern(),
             ["Hexagon"]      = () => new HexagonPattern(),
+            ["Boat"]         = () => new BoatPattern(),
         };
 
         public static Func<IBulletPattern> Resolve(string name)

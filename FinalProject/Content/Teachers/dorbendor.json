@@ -1,0 +1,80 @@
+{
+  "name": "Dor Ben Dor",
+  "spriteName": "dorbendor",
+  "speakingVoice": "snd_txtasg",
+  "baseHp": 100,
+  "baseAtk": 5,
+  "goldReward": 100,
+  "theme": "dbdTheme",
+  "themeVolume": 0.4,
+  "sequentialMoves": false,
+  "sprite": {
+    "sheet": "dorbendor",
+    "anchor": [ 0, 0 ],
+    "scale": 2.0,
+    "parts": [
+      { "name": "rightArm", "src": [ 0, 18, 10, 24 ], "offset": [ 0, 30 ],  "bobX": 0, "bobY": 1.5, "speed": 0.55, "phase": 0.50 },
+      { "name": "torso",    "src": [ 38, 0, 34, 51 ],  "offset": [ 0, 15 ],  "bobX": 0, "bobY": 1,   "speed": 0.45, "phase": 0.00 },
+      { "name": "leftArm",  "src": [ 15, 1, 18, 38 ],  "offset": [ 21, 18 ], "bobX": 0, "bobY": 1.5, "speed": 0.65, "phase": 0.80 },
+      { "name": "head",     "src": [ 81, 0, 29, 37 ],  "srcHurt": [ 119, 0, 29, 37 ], "offset": [ 0, 0 ], "bobX": 0, "bobY": 1, "speed": 0.45, "phase": 0.00 }
+    ]
+  },
+  "battleDialogue": {
+    "onAttack": [
+      "You dare challenge Dor Ben Dor?",
+      "Feel the power of the high seas!",
+      "You cannot escape this tempest!"
+    ],
+    "onAct": [
+      "Dor Ben Dor adjusts his stance.",
+      "The waves swell around you."
+    ],
+    "onSpare": [
+      "The ocean shows no mercy."
+    ],
+    "onDefeat": "Impossible... defeated by a student...",
+    "onSpared": "You have earned safe passage through the storm."
+  },
+  "moves": [
+    {
+      "name": "Boat Attack",
+      "power": 1,
+      "accuracy": 100,
+      "description": "Dor Ben Dor unleashes the boat attack.",
+      "pattern": "Boat"
+    }
+  ],
+  "actOptions": [
+    {
+      "name": "Check",
+      "descriptionByHp": [
+        { "minPercent": 0, "text": "Dor Ben Dor - HP 100, ATK 5. The final boss of Tiltan | Seems like trying to spare him is a waste of time." }
+      ],
+      "spareGain": 0
+    },
+    {
+      "name": "RPG",
+      "description": "You talk with Dor Ben Dor about an RPG.",
+      "extraMessages": [ "He starts to get excited.|RPGs are one of his favourite generes." ],
+      "speech": "RPGs were the cornerstone of humanity when it came to designing games.|Why, I used to roleplay a pacifist monk in World of Warcraft.",
+      "spareGain": 20
+    },
+    {
+      "name": "RTS",
+      "description": "You talk with Dor Ben Dor about RTS.",
+      "extraMessages": [
+        "He starts to get excited.|RTSs are one of his favourite generes."
+      ],
+      "speech": "The world doesn't make any more quality RTS games.|They are the most significant part of game design when it comes to innovating strategy games|Why doesn't cloverbite have an RTS game in development?.",
+      "spareGain": 20
+    }
+  ],
+  "spareSuccessAt": 100,
+  "spareSuccessText": "Dor Ben Dor nods and allows you passage.",
+  "spareTextByPercent": [
+    { "minPercent": 0,  "text": "Dor Ben Dor commands the battlefield." }
+  ],
+  "turnNarrationByHp": [
+    { "minPercent": 0,  "text": " * Dor Ben Dor stands imposing before you." }
+  ]
+}

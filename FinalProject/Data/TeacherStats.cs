@@ -43,8 +43,12 @@ namespace FinalProject.Data
         // attacks are lessons that build on each other, like Yakir
         public bool SequentialMoves { get; }
 
+        // SoundManager key for his text blip while speaking. null means the
+        // default "beep" is used.
+        public string SpeakingVoice { get; }
+
         public TeacherStats(
-            string name, string spriteName, int baseHp, int baseAtk,
+            string name, string spriteName, string speakingVoice, int baseHp, int baseAtk,
             IReadOnlyList<MoveData> moves, IReadOnlyList<ActOption> actOptions = null,
             IReadOnlyList<PercentThresholdText> turnNarration = null,
             int spareSuccessAt = 100, string spareSuccessText = null,
@@ -60,6 +64,7 @@ namespace FinalProject.Data
             Theme       = theme;
             ThemeVolume = themeVolume <= 0f ? 1f : themeVolume;
             SequentialMoves = sequentialMoves;
+            SpeakingVoice = speakingVoice;
             Name       = name;
             SpriteName = spriteName;
             BaseHp     = baseHp;

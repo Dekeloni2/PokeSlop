@@ -173,6 +173,8 @@ namespace FinalProject.States
             _dialogueIndex.Clear();
             _spareSmoke.Clear();
 
+            _bubble.BeepSound = _teacher.Stats.SpeakingVoice;
+
             // his theme runs for the whole fight, named in his JSON
             if (!string.IsNullOrEmpty(_teacher.Stats.Theme))
                 SoundManager.PlayMusic(_teacher.Stats.Theme, true, _teacher.Stats.ThemeVolume);

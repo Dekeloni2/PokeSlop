@@ -14,10 +14,10 @@ namespace FinalProject.Core.Text
         private int    _visibleChars;
 
         // which blip plays as characters reveal — defaults to the normal beep
-        private readonly string _beepSound;
+        public string BeepSound { get; set; }
 
         public Typewriter(string beepSound = null)
-            => _beepSound = beepSound ?? SoundManager.TextBeepName;
+            => BeepSound = beepSound ?? SoundManager.TextBeepName;
 
         public bool   IsFullyShown => _visibleChars >= _text.Length;
         public string VisibleText  => _text.Substring(0, _visibleChars);
@@ -40,7 +40,7 @@ namespace FinalProject.Core.Text
             // blip once per frame for each newly revealed non-space character
             if (revealed > _visibleChars)
             {
-                SoundManager.PlayTextBeep(_beepSound, _text, _visibleChars, revealed);
+                SoundManager.PlayTextBeep(BeepSound ?? SoundManager.TextBeepName, _text, _visibleChars, revealed);
                 _visibleChars = revealed;
             }
         }

@@ -38,6 +38,8 @@ public class BoatPattern : IBulletPattern
 
     public void Start(DodgeContext context)
     {
+        context.SetTeacherVisible(true);
+
         // shrinking the box. LeadInSeconds has to match this number so the
         // first windup waits until the boat is actually in place
         Rectangle box = context.CurrentBox;

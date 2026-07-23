@@ -47,7 +47,7 @@ namespace FinalProject.Data
                 ? ToThresholds(data.TurnNarrationBySpare)
                 : null;
 
-            return new TeacherStats(data.Name, data.SpriteName, data.BaseHp, data.BaseAtk, moves, actOptions,
+            return new TeacherStats(data.Name, data.SpriteName, data.SpeakingVoice, data.BaseHp, data.BaseAtk, moves, actOptions,
                 turnNarration, data.SpareSuccessAt, data.SpareSuccessText, spareTextByPercent, turnNarrationBySpare,
                 ToSprite(data.Sprite), ToDialogue(data.BattleDialogue), data.GoldReward, data.Theme, data.ThemeVolume, data.SequentialMoves);
         }
@@ -105,6 +105,7 @@ namespace FinalProject.Data
         {
             public string Name { get; set; }
             public string SpriteName { get; set; }
+            public string SpeakingVoice { get; set; }
             public int BaseHp { get; set; }
             public int BaseAtk { get; set; }
             public List<MoveJson> Moves { get; set; }

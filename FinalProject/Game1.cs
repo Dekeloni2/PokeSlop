@@ -77,6 +77,7 @@ namespace FinalProject
             SpriteManager.AddSprite("napoleon", "Sprites/AttackPatterns/napoleon");
             SpriteManager.AddSprite("smoke", "Sprites/AttackPatterns/smoke");
             SpriteManager.AddSprite("yakir", "Sprites/BattleTeachers/yakir");
+            SpriteManager.AddSprite("dorbendor", "Sprites/BattleTeachers/dorbendor");
             SpriteManager.AddSprite("attackSlash", "Sprites/Battle/attack", 6, 1);
             // digits aren't a even grid ("1" is narrower), DamageDisplay has the rects
             SpriteManager.AddSprite("damageNumbers", "Sprites/Battle/damage");
@@ -91,6 +92,7 @@ namespace FinalProject
             SoundManager.AddSong("elevator",  "Audio/Music/mus_elevator");
             // battle themes, teachers name theirs in their JSON
             SoundManager.AddSong("yakirTheme", "Audio/Music/yakir_theme");
+            SoundManager.AddSong("dbdTheme",   "Audio/Music/dbd_theme");
             SoundManager.AddSong("game_over",  "Audio/Music/game_over");
             // menus, shared by anything that has a cursor
             SoundManager.AddSound(SoundManager.MenuMove,   "Audio/SFX/snd_squeak");

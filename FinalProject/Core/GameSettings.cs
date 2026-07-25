@@ -6,7 +6,7 @@ public static class GameSettings
     public const int  WindowWidth  = 720;
     public const int  WindowHeight = 480;
 
-    public const int TileSize = 16;
+    public const int TileSize = 20;
     
     public static int TilesWide => WindowWidth / TileSize;
     public static int TilesTall => WindowHeight / TileSize;

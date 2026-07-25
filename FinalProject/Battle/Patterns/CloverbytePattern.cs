@@ -72,9 +72,11 @@ public class CloverbytePattern : IBulletPattern
     // purpose, the gap is the runway the tongue crosses
     private const int LogoGap = 210;
 
-    // where the tongue comes out of, as a fraction across the sprite
-    private const float MouthX = 0.18f;
-    private const float MouthY = 0.50f;
+    // where the tongue comes out of, measured off the sprite in paint.net.
+    // px from the logo's top left, not a fraction, so it stays put if the
+    // sprite is ever swapped for one a different size
+    private const int MouthPx = 53;
+    private const int MouthPy = 70;
 
     // ── look ─────────────────────────────────────────────────────────────────
     private const float SquashAmount   = 0.72f;
@@ -121,8 +123,12 @@ public class CloverbytePattern : IBulletPattern
     // logo placement, fixed once at Start — it does not follow the box
     private int     _logoLeft;
     private int     _logoTop;
-    private Vector2 _pivot;      // mouth, where the tongue is anchored
     private float   _fallFromY;
+
+    // the mouth, where the tongue is anchored. computed rather than stored so
+    // it can't go stale, and so it carries the recoil — the tongue has to stay
+    // attached to the sprite when the body kicks back
+    private Vector2 Pivot => new(_logoLeft + MouthPx + _recoil, _logoTop + MouthPy);
 
     private float _squash = 1f;
     private float _recoil;       // px the logo is pushed right by a strike
@@ -147,7 +153,6 @@ public class CloverbytePattern : IBulletPattern
         _logoLeft  = box.Right + LogoGap;
         _logoTop   = box.Center.Y - LogoH / 2;
         _fallFromY = -LogoH - 40f; // above the top of the screen
-        _pivot     = new Vector2(_logoLeft + LogoW * MouthX, _logoTop + LogoH * MouthY);
 
         _timesUsed++;
         _escalated = _timesUsed >= EscalateAfter;
@@ -199,7 +204,6 @@ public class CloverbytePattern : IBulletPattern
                 if (st >= 1f)
                 {
                     _squash = 1f;
-                    RefreshPivot();
                     SoundManager.Play(TongueRiseSound);
                     Advance(Phase.Aim);
                 }
@@ -387,7 +391,7 @@ public class CloverbytePattern : IBulletPattern
         bool sweep  = _color != HazardColor.White;
         float reach = (sweep ? SwipeWidth : TongueWidth) / 2f + GameSettings.DodgeHitboxSize / 2f;
 
-        if (DistToSegment(context.HitboxPosition, _pivot, Tip()) <= reach)
+        if (DistToSegment(context.HitboxPosition, Pivot, Tip()) <= reach)
             context.DamagePlayer(sweep ? SwipeDamage : TongueDamage);
     }
 
@@ -410,14 +414,16 @@ public class CloverbytePattern : IBulletPattern
     {
         if (!_visible) return;
 
+        // logo first — the tongue comes out of the middle of the sprite, so it
+        // has to sit on top of him or it looks like it's coming from behind
+        DrawLogo(sb);
+
         // the swept area trails behind the leading edge so the sweep reads as a
         // single arc rather than a line that teleported
         if (_phase is Phase.Swipe or Phase.SwipeBack or Phase.Impact)
             DrawSweptWedge(sb, pixel);
 
         if (_extend > 0.01f) DrawTongue(sb, pixel);
-
-        DrawLogo(sb);
     }
 
     private void DrawLogo(SpriteBatch sb)
@@ -462,7 +468,7 @@ public class CloverbytePattern : IBulletPattern
             }
         }
 
-        DrawLine(sb, pixel, _pivot, Tip(), width, color);
+        DrawLine(sb, pixel, Pivot, Tip(), width, color);
     }
 
     private void DrawSweptWedge(SpriteBatch sb, Texture2D pixel)
@@ -475,10 +481,10 @@ public class CloverbytePattern : IBulletPattern
         {
             float t = i / (float)steps;              // 0 = oldest, 1 = leading edge
             float a = _trailFromAngle + swept * t;
-            var end = _pivot + new Vector2(MathF.Cos(a), MathF.Sin(a)) * _length * _extend;
+            var end = Pivot + new Vector2(MathF.Cos(a), MathF.Sin(a)) * _length * _extend;
 
             // fades out the further behind the leading edge it is
-            DrawLine(sb, pixel, _pivot, end, SwipeWidth,
+            DrawLine(sb, pixel, Pivot, end, SwipeWidth,
                 SweepColor * ((0.14f + t * 0.5f) * _trailAlpha));
         }
     }
@@ -508,15 +514,12 @@ public class CloverbytePattern : IBulletPattern
 
     private int LandTop(DodgeContext context) => context.BaseBox.Center.Y - LogoH / 2;
 
-    private void RefreshPivot()
-        => _pivot = new Vector2(_logoLeft + LogoW * MouthX, _logoTop + LogoH * MouthY);
-
     private Vector2 Tip()
-        => _pivot + new Vector2(MathF.Cos(_angle), MathF.Sin(_angle)) * _length * _extend;
+        => Pivot + new Vector2(MathF.Cos(_angle), MathF.Sin(_angle)) * _length * _extend;
 
     private void AimAt(Vector2 target)
     {
-        Vector2 d = target - _pivot;
+        Vector2 d = target - Pivot;
         _angle  = MathF.Atan2(d.Y, d.X);
         _length = d.Length();
     }

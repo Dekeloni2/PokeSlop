@@ -17,6 +17,10 @@ namespace FinalProject.Battle
         public Rectangle CurrentBox     => _phase.CurrentBox;
         public Vector2   HitboxPosition => _phase.HitboxPosition;
 
+        // for undertale style blue/orange attacks: blue only hurts you while
+        // you're moving, orange only while you're standing still
+        public bool      IsPlayerMoving => _phase.HitboxIsMoving;
+
         public void SpawnProjectile(Vector2 position, Vector2 velocity, ProjectileType type = ProjectileType.Normal)
             => _phase.SpawnProjectile(position, velocity,  type);
 

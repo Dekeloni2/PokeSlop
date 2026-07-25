@@ -4,6 +4,7 @@ using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
 using FinalProject.Battle;
+using FinalProject.Battle.Patterns;
 using FinalProject.Core;
 using FinalProject.Core.Audio;
 using FinalProject.Core.Graphics;
@@ -164,6 +165,9 @@ namespace FinalProject.States
             _ultimateDodging = false;
             _provokedPattern = null;
             _actSpeech       = null;
+            // patterns that escalate the more they're thrown count their own
+            // uses in a static, so a new fight has to start them from zero
+            CloverbytePattern.ResetUseCount();
             _moveIndex     = 0;
             _lastDodgeSpeech = null;
             _victoryShown  = false;

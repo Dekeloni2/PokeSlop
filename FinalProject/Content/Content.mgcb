@@ -68,6 +68,18 @@
 /processorParam:TextureFormat=Color
 /build:Sprites/AttackPatterns/Vegeta.png
 
+#begin Sprites/AttackPatterns/cloverbyte.png
+/importer:TextureImporter
+/processor:TextureProcessor
+/processorParam:ColorKeyColor=255,0,255,255
+/processorParam:ColorKeyEnabled=False
+/processorParam:GenerateMipmaps=False
+/processorParam:PremultiplyAlpha=True
+/processorParam:ResizeToPowerOfTwo=False
+/processorParam:MakeSquare=False
+/processorParam:TextureFormat=Color
+/build:Sprites/AttackPatterns/cloverbyte.png
+
 #begin Sprites/Battle/attack_minigame.png
 /importer:TextureImporter
 /processor:TextureProcessor
@@ -325,6 +337,32 @@
 /processor:SoundEffectProcessor
 /processorParam:Quality=Best
 /build:Audio/SFX/snd_break2.wav
+
+#begin Audio/SFX/snd_screenshake.wav
+/importer:WavImporter
+/processor:SoundEffectProcessor
+/processorParam:Quality=Best
+/build:Audio/SFX/snd_screenshake.wav
+
+# shipped with a .wav extension but it's actually ogg data, so it needs the
+# ogg importer. SoundEffectProcessor (not SongProcessor) so it can overlap
+#begin Audio/SFX/snd_heavydamage.ogg
+/importer:OggImporter
+/processor:SoundEffectProcessor
+/processorParam:Quality=Best
+/build:Audio/SFX/snd_heavydamage.ogg
+
+#begin Audio/SFX/snd_spearrise.wav
+/importer:WavImporter
+/processor:SoundEffectProcessor
+/processorParam:Quality=Best
+/build:Audio/SFX/snd_spearrise.wav
+
+#begin Audio/SFX/snd_grab.wav
+/importer:WavImporter
+/processor:SoundEffectProcessor
+/processorParam:Quality=Best
+/build:Audio/SFX/snd_grab.wav
 
 #begin Audio/SFX/snd_txtasg.wav
 /importer:WavImporter

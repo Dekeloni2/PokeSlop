@@ -20,6 +20,13 @@ namespace FinalProject.Battle
 
         public void TakeHit() => _invulnLeft = InvulnSeconds;
 
+        // true on frames the player is holding a direction. undertale's blue
+        // attacks only hurt you if you're moving (orange is the reverse), so
+        // hazards that care read this instead of just testing overlap.
+        // based on input, not on actual displacement — holding into a wall still
+        // counts as moving, same as the real thing
+        public bool IsMoving { get; private set; }
+
         public Vector2 Position;
 
         public Rectangle Bounds => new Rectangle(
@@ -44,6 +51,8 @@ namespace FinalProject.Battle
             if (input.IsKeyDown(Keys.Right)) move.X += 1;
             if (input.IsKeyDown(Keys.Up))    move.Y -= 1;
             if (input.IsKeyDown(Keys.Down))  move.Y += 1;
+
+            IsMoving = move != Vector2.Zero;
 
             if (move != Vector2.Zero)
             {

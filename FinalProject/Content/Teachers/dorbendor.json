@@ -21,13 +21,16 @@
   },
   "battleDialogue": {
     "onAttack": [
-      "You dare challenge Dor Ben Dor?",
-      "Feel the power of the high seas!",
-      "You cannot escape this tempest!"
+      "This will reduce your score on Canvas.",
+      "My portfolio won't be affected by this.",
+      "Don't expect me to help you with your Final Project!"
     ],
     "onAct": [
-      "Dor Ben Dor adjusts his stance.",
-      "The waves swell around you."
+      "You know...|After the thousands of students I have taught here in Tiltan|I don't think I have seen more potential here than you|You have some energy emitting from you...",
+      "This generation of students is really pissing me off....|None of you students have the potential to even be successful in the market.|If you keep making platformers, you surely won't get anywhere",
+      "You know|At this point...|I don't care about you escaping this place.",
+      "Being a Game Designer is a commitment. A test of your might|Prove to me with this next attack that you truly are a Game Designer.",
+      "Soon, all the world shall know the power of Dor Ben Dor."
     ],
     "onSpare": [
       "The ocean shows no mercy."
@@ -42,6 +45,13 @@
       "accuracy": 100,
       "description": "Dor Ben Dor unleashes the boat attack.",
       "pattern": "Boat"
+    },
+    {
+      "name": "Cloverbyte",
+      "power": 1,
+      "accuracy": 100,
+      "description": "Dor Ben Dor calls in the Cloverbyte.",
+      "pattern": "Cloverbyte"
     }
   ],
   "actOptions": [
@@ -55,18 +65,24 @@
     {
       "name": "RPG",
       "description": "You talk with Dor Ben Dor about an RPG.",
-      "extraMessages": [ "He starts to get excited.|RPGs are one of his favourite generes." ],
-      "speech": "RPGs were the cornerstone of humanity when it came to designing games.|Why, I used to roleplay a pacifist monk in World of Warcraft.",
-      "spareGain": 20
+      "extraMessages": [ "He starts to get excited.|RPGs are one of his favourite generes.|This did not affect his SPARE score." ],
+      "spareGain": 0
     },
     {
       "name": "RTS",
       "description": "You talk with Dor Ben Dor about RTS.",
       "extraMessages": [
-        "He starts to get excited.|RTSs are one of his favourite generes."
+        "He starts to get excited.|RTSs are one of his favourite generes.|This did not affect his SPARE score"
       ],
-      "speech": "The world doesn't make any more quality RTS games.|They are the most significant part of game design when it comes to innovating strategy games|Why doesn't cloverbite have an RTS game in development?.",
-      "spareGain": 20
+      "spareGain": 0
+    },
+    {
+      "name": "Student Council",
+      "description": "You ask the student council to extend the period of the Final Project.",
+      "extraMessages": [
+        "Dor Ben Dor"
+      ],
+      "spareGain": 0
     }
   ],
   "spareSuccessAt": 100,

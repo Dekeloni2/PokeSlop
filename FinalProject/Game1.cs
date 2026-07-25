@@ -71,6 +71,7 @@ namespace FinalProject
             SpriteManager.AddSprite("boat", "Sprites/AttackPatterns/boat");
             SpriteManager.AddSprite("garlicGun", "Sprites/AttackPatterns/GarlicGun");
             SpriteManager.AddSprite("vegeta", "Sprites/AttackPatterns/Vegeta",5 , 1);
+            SpriteManager.AddSprite("cloverbyte", "Sprites/AttackPatterns/cloverbyte");
             // 32x32 frames with a 3px gutter, without the spacing the frames
             // slice offset and the flash looks like it's sliding sideways
             SpriteManager.AddSprite("warning", "Sprites/Battle/warning", 3, 1, 3);
@@ -107,6 +108,11 @@ namespace FinalProject
             // napoleon sfx
             SoundManager.AddSound("rumble", "Audio/SFX/rumble");
             SoundManager.AddSound("thud",   "Audio/SFX/thud");
+            // cloverbyte sfx
+            SoundManager.AddSound("snd_screenshake", "Audio/SFX/snd_screenshake");
+            SoundManager.AddSound("snd_heavydamage", "Audio/SFX/snd_heavydamage");
+            SoundManager.AddSound("snd_spearrise",   "Audio/SFX/snd_spearrise");
+            SoundManager.AddSound("snd_grab",        "Audio/SFX/snd_grab");
             // SoundManager.AddSong("battle", "Audio/battle_theme");
 
 #if DEBUG

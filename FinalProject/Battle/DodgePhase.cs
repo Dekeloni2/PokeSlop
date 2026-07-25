@@ -64,6 +64,7 @@ namespace FinalProject.Battle
         internal float     Elapsed        => _elapsed;
         internal Rectangle BaseBox        => _baseBox;
         internal Vector2   HitboxPosition => _hitbox.Position;
+        internal bool      HitboxIsMoving => _hitbox.IsMoving;
 
         public DodgePhase(IBulletPattern pattern, Teacher teacher, PlayerData playerData, Rectangle baseBox)
         {
@@ -143,6 +144,10 @@ namespace FinalProject.Battle
                     spriteBatch.Draw(boat.Texture, boatRect, boat[0, 0], boatPattern.BoatTint);
                 }
             }
+
+            // draws its own logo and tongue, it owns all of that geometry
+            if (_pattern is CloverbytePattern clover)
+                clover.Draw(spriteBatch, pixel);
 
             if (_pattern is GarlicGunPattern garlic && (garlic.IsCharging || garlic.IsFiring || garlic.IsVanishing))
             {

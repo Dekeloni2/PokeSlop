@@ -44,11 +44,56 @@ namespace FinalProject.Core.Audio
 
         // ── playback ──────────────────────────────────────────────────────────
 
-        // one-shot, can't be stopped. pitch/pan are -1..1, 0 is normal
+        // one-shots are kept around while they play so StopAll can cut them off.
+        // SoundEffect.Play() hands back no reference at all, so anything started
+        // that way would keep ringing out over the death sequence with no way to
+        // silence it. going through instances is what makes them stoppable
+        private static readonly List<SoundEffectInstance> _oneShots = new();
+
+        // fire and forget from the caller's side. pitch/pan are -1..1, 0 is normal
         public static void Play(string name, float volume = 1f, float pitch = 0f, float pan = 0f)
         {
-            if (_sounds.TryGetValue(name, out SoundEffect sfx))
-                sfx.Play(MathHelper.Clamp(volume * SfxVolume, 0f, 1f), pitch, pan);
+            if (!_sounds.TryGetValue(name, out SoundEffect sfx)) return;
+
+            PruneOneShots();
+
+            SoundEffectInstance instance = sfx.CreateInstance();
+            instance.Volume = MathHelper.Clamp(volume * SfxVolume, 0f, 1f);
+            instance.Pitch  = MathHelper.Clamp(pitch, -1f, 1f);
+            instance.Pan    = MathHelper.Clamp(pan, -1f, 1f);
+            instance.Play();
+
+            _oneShots.Add(instance);
+        }
+
+        // drops the ones that have finished. runs on every Play so the list
+        // can't grow all fight — the text blip alone fires ~20 times a second,
+        // and platforms cap how many instances can exist at once
+        private static void PruneOneShots()
+        {
+            for (int i = _oneShots.Count - 1; i >= 0; i--)
+            {
+                if (_oneShots[i].State != SoundState.Stopped) continue;
+
+                _oneShots[i].Dispose();
+                _oneShots.RemoveAt(i);
+            }
+        }
+
+        // everything off at once — one-shots, loops and music. for the player
+        // dying mid attack, where whatever was mid-swing would otherwise carry
+        // straight over the top of the death sequence
+        public static void StopAll()
+        {
+            foreach (SoundEffectInstance instance in _oneShots)
+            {
+                instance.Stop();
+                instance.Dispose();
+            }
+            _oneShots.Clear();
+
+            StopAllLoops();
+            StopMusic();
         }
 
         // default blip for text typing out, undertale style

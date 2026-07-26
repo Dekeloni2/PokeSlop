@@ -753,8 +753,10 @@ namespace FinalProject.States
         // GAME OVER screen will hook in where this currently pops the battle
         private void BeginPlayerDeath()
         {
-            SoundManager.StopAllLoops();
-            SoundManager.StopMusic();
+            // everything, not just loops and music — a one-shot from whatever
+            // was mid-swing would otherwise ring out over the shatter.
+            // has to happen before SoulShatter below, that plays its own cue
+            SoundManager.StopAll();
 
             Vector2 soulPos = _dodgePhase != null
                 ? _dodgePhase.HitboxPosition - _dodgePhase.CameraOffset

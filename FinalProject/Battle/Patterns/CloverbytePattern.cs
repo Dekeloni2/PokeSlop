@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using FinalProject.Core;
@@ -9,9 +10,15 @@ namespace FinalProject.Battle.Patterns;
 
 // Dor's cloverbyte attack. The camera pans so he and the arena slide left,
 // leaving room on the right for the cloverbyte to drop in. It lands, squashes
-// once, then lashes its tongue at wherever the soul is, five times. The sixth
-// is a feint — it aims under the box on purpose, holds there, turns blue and
-// sweeps the whole arena.
+// once, then lashes its tongue at wherever the soul is, five times.
+//
+// What follows depends on how many times he's already thrown it (see Tier).
+// The first two are lessons: a sixth lash feints under the box, turns blue and
+// sweeps the arena, and the second time an orange sweep comes straight back
+// down through it. From the third on he drops the lesson entirely — the
+// scripted finale is gone and colour sweeps are woven between the lashes
+// instead, each one opening as an ordinary lash before recolouring at random
+// and swinging either way up the arc.
 //
 // The sprite itself is never animated, it's one static frame the whole way
 // through. Everything that moves is the tongue, plus a squash on landing and a
@@ -23,19 +30,24 @@ namespace FinalProject.Battle.Patterns;
 // Draws itself (logo + tongue), DodgePhase just forwards the call.
 public class CloverbytePattern : IBulletPattern
 {
-    // sum of every phase below is ~15.1s, a little slack so the sweep never
-    // gets cut off by the turn ending. the escalated version adds the orange
-    // return sweep on the end, so it needs the extra ~1.3s
-    public float Duration => _escalated ? 16.8f : 15.4f;
+    // worked out in PlanBeats once the coin flips are known. it has to be fixed
+    // before the turn starts, so the layout is rolled up front rather than as
+    // it goes — otherwise an unlucky run gets cut off and a lucky one sits idle
+    public float Duration => _duration;
 
-    // once he's thrown this at you EscalateAfter times he stops being polite
-    // about it: the blue sweep is followed by an orange one straight back down,
-    // so the answer that just saved you is the one that gets you hit.
+    // he only runs the lesson twice, then assumes you've got it:
+    //   1st   feint, then a blue sweep            — here's what blue means
+    //   2nd   the same, plus an orange one back   — and here's orange
+    //   3rd+  no lesson and no feint. the colour sweeps are woven between the
+    //         lashes instead, colour and direction both picked the instant the
+    //         lash lands so there's nothing to read ahead of time
     // static because a fresh pattern instance is built every turn — BattleState
     // clears it on OnEnter so the count can't carry between fights
-    // 2 rather than 3 because he splits his turns with the boat, so this only
-    // comes up about every other turn
-    private const int  EscalateAfter = 2;
+    private enum Tier { TeachBlue, TeachOrange, Randomised }
+
+    // he splits his turns with the boat, so this only comes up every other turn
+    private const int  TeachOrangeAt = 2;
+    private const int  RandomiseAt   = 3;
     private static int _timesUsed;
 
     public static void ResetUseCount() => _timesUsed = 0;
@@ -55,9 +67,27 @@ public class CloverbytePattern : IBulletPattern
     private const float SwipeSeconds       = 0.38f; // fast on purpose, it's a whip crack
     private const float ImpactSeconds      = 0.45f; // screen rattles, trail hangs then fades
     private const float ReturnWindUpSeconds = 0.50f; // shorter — it's a punish, not a warning
+    private const float RecolourSeconds     = 0.35f; // tier 3: all the read you get
     private const float RecoverSeconds     = 1.10f;
 
-    private const int LashCount = 5; // real lashes before the feint
+    private const int LashCount   = 5; // plain lashes, tiers 1 and 2
+    private const int LashCountT3 = 8; // tier 3 throws noticeably more
+
+    // tier 3: odds that any given gap between two lashes gets a colour sweep.
+    // rolled per gap, so two can land back to back and the layout never repeats
+    private const float SwipeChance   = 0.5f;
+    private const float DurationSlack = 0.4f;
+
+    // what one beat costs, so Duration can be worked out instead of guessed
+    private const float OpeningSeconds   = PanSeconds + FallSeconds + SquishSeconds;
+    private const float LashBeatSeconds  = AimSeconds + StrikeSeconds + HoldSeconds
+                                         + RetractSeconds + RestSeconds;
+    private const float SweepBeatSeconds = AimSeconds + StrikeSeconds + HoldSeconds
+                                         + RecolourSeconds + SwipeSeconds + ImpactSeconds
+                                         + RetractSeconds + RestSeconds;
+    private const float FinaleSeconds    = FeintAimSeconds + FeintStrikeSeconds
+                                         + WindUpSeconds + SwipeSeconds + ImpactSeconds;
+    private const float ReturnSeconds    = ReturnWindUpSeconds + SwipeSeconds + ImpactSeconds;
 
     // ── layout ───────────────────────────────────────────────────────────────
     // + moves the view right, so the box and Dor appear to slide left
@@ -109,7 +139,7 @@ public class CloverbytePattern : IBulletPattern
     private enum Phase
     {
         Pan, Fall, Squish,
-        Aim, Strike, Hold, Retract, Rest,
+        Aim, Strike, Hold, Recolour, Retract, Rest,
         FeintAim, FeintStrike,
         WindUp, Swipe, Impact,
         ReturnWindUp, SwipeBack,
@@ -135,14 +165,24 @@ public class CloverbytePattern : IBulletPattern
 
     // tongue state. tip = pivot + dir(_angle) * _length * _extend
     private float _angle;
+    private float _prevAngle;    // last frame's angle, so the sweep can't tunnel
     private float _length;
     private float _extend;       // 0 retracted, 1 fully out
     private HazardColor _color = HazardColor.White;
     private float _swipeStartAngle;
     private float _trailFromAngle;         // where the swept wedge is drawn from
     private float _trailAlpha = 1f;        // wedge hangs after the swipe, then fades
-    private bool  _escalated;              // locked in at Start so Duration is stable
+    private float _sweepDir = 1f;          // +1 sweeps up the arc, -1 sweeps down
+    private float _lashLength;             // reach of the lash a sweep grew out of
+    private Tier  _tier;                   // locked in at Start so Duration is stable
+    private bool  _swipeLash;              // this beat ends in a colour sweep
     private bool  _returnSwipeDone;
+    private float _duration;
+    private int   _lashTarget;
+
+    // one entry per gap between lashes: does a colour sweep go there. rolled in
+    // PlanBeats and consumed as it goes, so a gap can't fire twice
+    private readonly List<bool> _sweepAfter = new();
 
     private bool _visible;
 
@@ -155,13 +195,21 @@ public class CloverbytePattern : IBulletPattern
         _fallFromY = -LogoH - 40f; // above the top of the screen
 
         _timesUsed++;
-        _escalated = _timesUsed >= EscalateAfter;
+        _tier = _timesUsed >= RandomiseAt   ? Tier.Randomised
+              : _timesUsed >= TeachOrangeAt ? Tier.TeachOrange
+              :                               Tier.TeachBlue;
+
+        _lashTarget = _tier == Tier.Randomised ? LashCountT3 : LashCount;
+        PlanBeats();
 
         // he watches this one happen, so put him on screen and let him talk
         context.SetTeacherVisible(true);
-        context.SetTeacherSpeech(_escalated
-            ? "You've seen this one already. Let's add a step."
-            : "Let me show you what we ship at Cloverbyte.");
+        context.SetTeacherSpeech(_tier switch
+        {
+            Tier.Randomised  => "You know both rules now. Keep up.",
+            Tier.TeachOrange => "You've seen this one already. Let's add a step.",
+            _                => "Let me show you what we ship at Cloverbyte.",
+        });
     }
 
     public void Update(GameTime gameTime, DodgeContext context)
@@ -211,7 +259,10 @@ public class CloverbytePattern : IBulletPattern
 
             case Phase.Aim:
                 // follows the soul the whole wind up, then commits to wherever
-                // it was on the last frame. that's the tell — move after this
+                // it was on the last frame. that's the tell — move after this.
+                // always opens white: a colour sweep starts life as an ordinary
+                // lash so there's nothing to read until it has already landed
+                _color = HazardColor.White;
                 AimAt(context.HitboxPosition);
                 _extend = 0f;
                 if (_timer >= AimSeconds)
@@ -229,7 +280,29 @@ public class CloverbytePattern : IBulletPattern
 
             case Phase.Hold:
                 _extend = 1f;
-                if (_timer >= HoldSeconds) Advance(Phase.Retract);
+                if (_timer >= HoldSeconds)
+                {
+                    if (_swipeLash) BeginColourSweep();
+                    else            Advance(Phase.Retract);
+                }
+                break;
+
+            case Phase.Recolour:
+                // still buried in the soul's last position, but coloured now and
+                // stretching out to full sweep reach. this is the whole read, and
+                // it's live the entire time — blue here already wants you frozen,
+                // before it has swung anywhere
+                _extend = 1f;
+                _length = MathHelper.Lerp(_lashLength, SwipeRadius, Progress(RecolourSeconds));
+                if (_timer >= RecolourSeconds)
+                {
+                    _length          = SwipeRadius;
+                    _swipeStartAngle = _angle;
+                    _trailFromAngle  = _angle;
+                    SoundManager.Play(SwipeSound);
+                    Shake(context, 9f, 0.2f);
+                    Advance(Phase.Swipe);
+                }
                 break;
 
             case Phase.Retract:
@@ -237,7 +310,9 @@ public class CloverbytePattern : IBulletPattern
                 if (_timer >= RetractSeconds)
                 {
                     _extend = 0f;
-                    _lashesDone++;
+                    // woven sweeps sit between the lashes, they aren't one of them
+                    if (_swipeLash) _swipeLash = false;
+                    else            _lashesDone++;
                     Advance(Phase.Rest);
                 }
                 break;
@@ -248,15 +323,27 @@ public class CloverbytePattern : IBulletPattern
                 _extend = 0f;
                 if (_timer >= RestSeconds)
                 {
-                    // same telegraph either way, the feint is meant to look
-                    // exactly like the five that came before it
-                    SoundManager.Play(TongueRiseSound);
-                    if (_lashesDone >= LashCount)
+                    if (_lashesDone >= _lashTarget)
                     {
+                        // tier 3 has no finale — once the lashes are spent it's over
+                        if (_tier == Tier.Randomised) { Advance(Phase.Recover); break; }
+
+                        SoundManager.Play(TongueRiseSound);
                         context.SetTeacherSpeech("Enough warm up.");
                         Advance(Phase.FeintAim);
+                        break;
                     }
-                    else Advance(Phase.Aim);
+
+                    // take the sweep planned for this gap, if there is one, and
+                    // clear it so coming back round can't fire the same gap twice
+                    int gap = _lashesDone - 1;
+                    _swipeLash = gap >= 0 && gap < _sweepAfter.Count && _sweepAfter[gap];
+                    if (_swipeLash) _sweepAfter[gap] = false;
+
+                    // same telegraph either way — a sweep has to open looking
+                    // exactly like a plain lash
+                    SoundManager.Play(TongueRiseSound);
+                    Advance(Phase.Aim);
                 }
                 break;
 
@@ -302,10 +389,10 @@ public class CloverbytePattern : IBulletPattern
                 // follows through, a symmetric ease made it creep off and creep
                 // back in, which is what killed the impact
                 _angle = _swipeStartAngle
-                       + MathHelper.ToRadians(SwipeArcDeg) * EaseOut(Progress(SwipeSeconds));
+                       + MathHelper.ToRadians(SwipeArcDeg) * _sweepDir * EaseOut(Progress(SwipeSeconds));
                 if (_timer >= SwipeSeconds)
                 {
-                    _angle = _swipeStartAngle + MathHelper.ToRadians(SwipeArcDeg);
+                    _angle = _swipeStartAngle + MathHelper.ToRadians(SwipeArcDeg) * _sweepDir;
                     SoundManager.Play(ThudSound);
                     Shake(context, ImpactShake, ImpactSeconds);
                     _recoil = RecoilPx * 2.5f;
@@ -321,12 +408,17 @@ public class CloverbytePattern : IBulletPattern
                 _trailAlpha = 1f - Progress(ImpactSeconds);
                 if (_timer >= ImpactSeconds)
                 {
-                    // both sweeps land here, the flag is what stops it looping
-                    if (_escalated && !_returnSwipeDone)
+                    // every sweep lands here, so this is the fork back out
+                    if (_tier == Tier.TeachOrange && !_returnSwipeDone)
                     {
                         _color = HazardColor.Orange;
                         context.SetTeacherSpeech("ORANGE. Now MOVE.");
                         Advance(Phase.ReturnWindUp);
+                    }
+                    else if (_tier == Tier.Randomised)
+                    {
+                        // woven sweep is spent, fall back into the lash rhythm
+                        Advance(Phase.Retract);
                     }
                     else Advance(Phase.Recover);
                 }
@@ -350,7 +442,7 @@ public class CloverbytePattern : IBulletPattern
             case Phase.SwipeBack:
                 // same arc, travelled back down to where it started
                 _angle = _swipeStartAngle
-                       + MathHelper.ToRadians(SwipeArcDeg) * (1f - EaseOut(Progress(SwipeSeconds)));
+                       + MathHelper.ToRadians(SwipeArcDeg) * _sweepDir * (1f - EaseOut(Progress(SwipeSeconds)));
                 if (_timer >= SwipeSeconds)
                 {
                     _angle = _swipeStartAngle;
@@ -378,6 +470,11 @@ public class CloverbytePattern : IBulletPattern
         }
 
         ApplyDamage(context);
+
+        // after the damage check, so next frame knows where the arc started.
+        // Aim moves this around a lot while it tracks the soul, but the tongue
+        // is retracted then so nothing gets swept
+        _prevAngle = _angle;
     }
 
     // ── damage ───────────────────────────────────────────────────────────────
@@ -391,12 +488,35 @@ public class CloverbytePattern : IBulletPattern
         bool sweep  = _color != HazardColor.White;
         float reach = (sweep ? SwipeWidth : TongueWidth) / 2f + GameSettings.DodgeHitboxSize / 2f;
 
-        if (DistToSegment(context.HitboxPosition, Pivot, Tip()) <= reach)
-            context.DamagePlayer(sweep ? SwipeDamage : TongueDamage);
+        // Testing only the angle the tongue is at RIGHT NOW misses the sweeps
+        // entirely. EaseOut opens at 3x the average rate, ~670 deg/sec, which at
+        // arm's length is ~70px of travel in a single frame — the line steps
+        // clean over a 26px hit window and never overlaps on any sampled frame.
+        // So walk the arc it covered since last frame instead of sampling a
+        // point on it. Static phases come out as delta 0 and one sample.
+        float reachOut = _length * _extend;
+        float delta    = _angle - _prevAngle;
+
+        // one sample per ~8px of tip travel, so the step is always well inside
+        // the hit window no matter how far out the tip is
+        int steps = (int)MathF.Ceiling(MathF.Abs(delta) * reachOut / 8f);
+        steps = Math.Clamp(steps, 1, 64);
+
+        for (int i = 0; i <= steps; i++)
+        {
+            float a = _prevAngle + delta * (i / (float)steps);
+            Vector2 tip = Pivot + new Vector2(MathF.Cos(a), MathF.Sin(a)) * reachOut;
+
+            if (DistToSegment(context.HitboxPosition, Pivot, tip) <= reach)
+            {
+                context.DamagePlayer(sweep ? SwipeDamage : TongueDamage);
+                return;
+            }
+        }
     }
 
     private bool IsDamagingPhase => _phase is Phase.Strike or Phase.Hold
-        or Phase.WindUp or Phase.Swipe or Phase.Impact
+        or Phase.Recolour or Phase.WindUp or Phase.Swipe or Phase.Impact
         or Phase.ReturnWindUp or Phase.SwipeBack;
 
     // the sweep passes right over you either way, the colour decides whether it
@@ -495,6 +615,44 @@ public class CloverbytePattern : IBulletPattern
     {
         _phase = next;
         _timer = 0f;
+    }
+
+    // rolls the whole layout before the attack starts and totals up what it will
+    // cost, so Duration is exact no matter how the coin flips land
+    private void PlanBeats()
+    {
+        float seconds = OpeningSeconds + RecoverSeconds + _lashTarget * LashBeatSeconds;
+
+        if (_tier == Tier.Randomised)
+        {
+            // one flip per gap between lashes — none after the last, tier 3
+            // deliberately doesn't end on a sweep
+            for (int i = 0; i < _lashTarget - 1; i++)
+            {
+                bool sweep = Random.Shared.NextDouble() < SwipeChance;
+                _sweepAfter.Add(sweep);
+                if (sweep) seconds += SweepBeatSeconds;
+            }
+        }
+        else
+        {
+            seconds += FinaleSeconds;
+            if (_tier == Tier.TeachOrange) seconds += ReturnSeconds;
+        }
+
+        _duration = seconds + DurationSlack;
+    }
+
+    // the lash has already landed by the time this runs. picking the colour and
+    // the direction here, at the last possible moment, is what stops the wind up
+    // or the lash itself leaking which one is coming
+    private void BeginColourSweep()
+    {
+        _color      = Random.Shared.Next(2) == 0 ? HazardColor.Blue : HazardColor.Orange;
+        _sweepDir   = Random.Shared.Next(2) == 0 ? 1f : -1f;
+        _lashLength = _length;
+        _trailAlpha = 1f;
+        Advance(Phase.Recolour);
     }
 
     // every shake in this attack goes through here so the rattle and the sound

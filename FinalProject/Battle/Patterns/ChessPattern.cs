@@ -56,6 +56,83 @@ public class ChessPattern : IBulletPattern
 
     private static int _timesUsed;
 
+    // ── what he says ─────────────────────────────────────────────────────────
+    // four beats per board, so he isn't repeating the same two lines across six
+    // increasingly nasty versions of the same attack, and so taking his board
+    // apart gets a different answer from running the clock down.
+    //
+    // the real lines live in the teacher's JSON under the move's "speech" block,
+    // keyed by these beat names, indexed by board number. this table is only the
+    // fallback for when a teacher doesn't author a beat — it's what you see if
+    // the JSON is missing, so it's worth keeping readable rather than blank.
+    // keep lines under ~50 characters, that's about what the bubble fits
+    private const string BeatOpening  = "opening";
+    private const string BeatLanding  = "landing";
+    private const string BeatCleared  = "cleared";
+    private const string BeatSurvived = "survived";
+    private readonly struct Script
+    {
+        public readonly string Opening;  // as the board expands
+        public readonly string Landing;  // as the pieces hit it
+        public readonly string Cleared;  // you took every piece
+        public readonly string Survived; // the clock ran out with pieces left
+
+        public Script(string opening, string landing, string cleared, string survived)
+        {
+            Opening  = opening;
+            Landing  = landing;
+            Cleared  = cleared;
+            Survived = survived;
+        }
+    }
+
+    private static readonly Script[] Scripts =
+    {
+        // 3 pieces — the pitch
+        new("Chess. Simple to learn.",
+            "Hard to master.",
+            "Luck. Nothing more.",
+            "Survival is not skill. Anyone can wait."),
+
+        // 4 pieces — he starts scaling it
+        new("Again. This time I add a piece.",
+            "Everything scales. Keep up.",
+            "Faster than last time. Barely.",
+            "Hiding is not a strategy. It is a delay."),
+
+        // 5 pieces, first queen
+        new("You have earned a queen. Congratulations.",
+            "The queen does not forgive.",
+            "You took my queen. Do not enjoy it.",
+            "A whole turn of nothing. Impressive."),
+
+        // 6 pieces — the commitment speech, his favourite subject
+        new("Six pieces. Still think this is a game?",
+            "Commitment. That is what this tests.",
+            "...You are not what I expected.",
+            "You survive. You do not win. Learn that."),
+
+        // 7 pieces, second queen
+        new("Two queens. I am done being generous.",
+            "The ocean shows no mercy. Neither do I.",
+            "Both of them? ...Impossible.",
+            "Still breathing. That will change."),
+
+        // 8 pieces, the full back rank, and every board after
+        new("The full rank. No more lessons.",
+            "Soon all the world shall know this board.",
+            "You cleared it. I will not forget this.",
+            "You endure. The storm does not tire."),
+    };
+
+    private static Script CurrentScript
+        => Scripts[Math.Clamp(_timesUsed - 1, 0, Scripts.Length - 1)];
+
+    // the board number is the variant index, so the JSON arrays line up one
+    // entry per board the same way the fallback table does
+    private static string Line(DodgeContext context, string beat, string fallback)
+        => context.Line(beat, _timesUsed - 1, fallback);
+
     // ── timing ───────────────────────────────────────────────────────────────
     private const float ExpandSeconds   = 0.6f;
     private const float TileStagger     = 0.012f; // gap between one tile and the next
@@ -63,7 +140,9 @@ public class ChessPattern : IBulletPattern
     private const float SummonSeconds   = 0.55f;  // pieces falling in
     private const float LandSeconds     = 0.35f;  // squash and back
     private const float PlaySeconds     = 12f;    // survive this long if you can't clear it
-    private const float RecoverSeconds  = 0.8f;
+    // he gets the last word in here and the bubble types it a character at a
+    // time, so this is paced to let a closing line land rather than flash past
+    private const float RecoverSeconds  = 1.9f;
 
     // one piece acts roughly every half second — no turns, just relentless
     private const float TelegraphSeconds = 0.32f;
@@ -238,9 +317,11 @@ public class ChessPattern : IBulletPattern
         // he runs the board from above it — the anchor follows the box, so he
         // ends up sitting just over the frame
         context.SetTeacherVisible(true);
-        context.SetTeacherSpeech("Chess. Simple to learn.");
 
+        // counted before the script is read, so the first board gets the first row
         _timesUsed++;
+        context.SetTeacherSpeech(Line(context, BeatOpening, CurrentScript.Opening));
+
         BuildRoster();
     }
 
@@ -322,7 +403,7 @@ public class ChessPattern : IBulletPattern
                     SoundManager.Play(ShakeSound);
                     context.ShakeScreen(6f, 0.25f);
                     SpawnLandingDust(context);
-                    context.SetTeacherSpeech("Hard to master.");
+                    context.SetTeacherSpeech(Line(context, BeatLanding, CurrentScript.Landing));
                     Advance(Phase.Land);
                 }
                 break;
@@ -338,7 +419,19 @@ public class ChessPattern : IBulletPattern
 
             case Phase.Play:
                 UpdatePlay(dt, context);
-                if (NoneAlive || _timer >= PlaySeconds) Advance(Phase.Recover);
+
+                // he reacts to how it actually ended — taking his board apart
+                // and running out the clock deserve different answers
+                if (NoneAlive)
+                {
+                    context.SetTeacherSpeech(Line(context, BeatCleared, CurrentScript.Cleared));
+                    Advance(Phase.Recover);
+                }
+                else if (_timer >= PlaySeconds)
+                {
+                    context.SetTeacherSpeech(Line(context, BeatSurvived, CurrentScript.Survived));
+                    Advance(Phase.Recover);
+                }
                 break;
 
             case Phase.Recover:

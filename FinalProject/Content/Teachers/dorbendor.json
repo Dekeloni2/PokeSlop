@@ -44,7 +44,42 @@
       "power": 1,
       "accuracy": 100,
       "description": "Dor Ben Dor sets the board.",
-      "pattern": "Chess"
+      "pattern": "Chess",
+
+      "speech": {
+        "opening": [
+          "Chess. Simple to learn.",
+          "Again. This time I add a piece.",
+          "You have earned a queen. Congratulations.",
+          "Six pieces. Still think this is a game?",
+          "Two queens. I am done being generous.",
+          "The full rank. No more lessons."
+        ],
+        "landing": [
+          "Hard to master.",
+          "Everything scales. Keep up.",
+          "The queen does not forgive.",
+          "Commitment. That is what this tests.",
+          "The ocean shows no mercy. Neither do I.",
+          "Soon all the world shall know this board."
+        ],
+        "cleared": [
+          "Luck. Nothing more.",
+          "Faster than last time. Barely.",
+          "You took my queen. Do not enjoy it.",
+          "...You are not what I expected.",
+          "Both of them? ...Impossible.",
+          "You cleared it. I will not forget this."
+        ],
+        "survived": [
+          "Survival is not skill. Anyone can wait.",
+          "Hiding is not a strategy. It is a delay.",
+          "A whole turn of nothing. Impressive.",
+          "You survive. You do not win. Learn that.",
+          "Still breathing. That will change.",
+          "You endure. The storm does not tire."
+        ]
+      }
     }
   ],
   "actOptions": [

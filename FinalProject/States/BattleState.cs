@@ -660,6 +660,7 @@ namespace FinalProject.States
             }
 
             IBulletPattern pattern;
+            MoveData       move = null; // stays null on the provoked path below
 
             if (_provokedPattern != null)
             {
@@ -670,12 +671,14 @@ namespace FinalProject.States
             }
             else
             {
-                MoveData move = PickEnemyMove();
+                move = PickEnemyMove();
                 _ultimateDodging = move.IsUltimate;
                 pattern = move.CreatePattern();
             }
 
-            _dodgePhase = new DodgePhase(pattern, _teacher, Game.PlayerData, DodgeBoxRect);
+            // the move comes along so patterns can read their authored lines out
+            // of the teacher's JSON instead of holding them in code
+            _dodgePhase = new DodgePhase(pattern, _teacher, Game.PlayerData, DodgeBoxRect, move);
 
             _box.ResizeTo(DodgeBoxRect, ShrinkSeconds);
             _phaseAfterTransition = BattlePhase.Dodging;

@@ -6,6 +6,7 @@ using FinalProject.Core;
 using FinalProject.Core.Input;
 using FinalProject.Core.Graphics;
 using FinalProject.Battle.Patterns;
+using FinalProject.Data;
 using System;
 
 namespace FinalProject.Battle
@@ -17,6 +18,7 @@ namespace FinalProject.Battle
         private readonly IBulletPattern _pattern;
         private readonly Teacher        _teacher;
         private readonly PlayerData     _playerData;
+        private readonly MoveData       _move; // null when an ACT provoked the pattern
         private readonly PlayerHitbox   _hitbox;
         private readonly List<Projectile> _projectiles = new();
         private readonly List<Beam>       _beams       = new();
@@ -74,17 +76,26 @@ namespace FinalProject.Battle
             => _hitbox.MoveToTile(tile, slideSeconds);
         internal void HoldSoul(float seconds)   => _hitbox.HoldStill(seconds);
 
-        public DodgePhase(IBulletPattern pattern, Teacher teacher, PlayerData playerData, Rectangle baseBox)
+        // move is optional: a pattern provoked by an ACT isn't backed by one, so
+        // anything that reads it has to cope with null
+        public DodgePhase(IBulletPattern pattern, Teacher teacher, PlayerData playerData,
+            Rectangle baseBox, MoveData move = null)
         {
             _pattern    = pattern;
             _teacher    = teacher;
             _playerData = playerData;
             _baseBox    = baseBox;
+            _move       = move; // before Start, patterns read their lines in there
             _box        = new TweeningBox(baseBox);
             _hitbox     = new PlayerHitbox(new Vector2(baseBox.Center.X, baseBox.Center.Y));
 
             _pattern.Start(new DodgeContext(this));
         }
+
+        // authored line for a beat of this attack, or the pattern's own fallback
+        // when the teacher's JSON doesn't cover it (or there's no move at all)
+        internal string Line(string beat, int variant, string fallback)
+            => _move?.Line(beat, variant) ?? fallback;
 
         public void Update(GameTime gameTime, InputManager input)
         {

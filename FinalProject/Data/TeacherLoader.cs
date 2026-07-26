@@ -22,7 +22,7 @@ namespace FinalProject.Data
             var moves = new List<MoveData>();
             foreach (MoveJson m in data.Moves ?? new List<MoveJson>())
                 moves.Add(new MoveData(m.Name, m.Power, m.Accuracy, m.Description,
-                    PatternRegistry.Resolve(m.Pattern), m.IsUltimate));
+                    PatternRegistry.Resolve(m.Pattern), m.IsUltimate, ToSpeech(m.Speech)));
 
             var actOptions = new List<ActOption>();
             foreach (ActOptionJson a in data.ActOptions ?? new List<ActOptionJson>())
@@ -50,6 +50,27 @@ namespace FinalProject.Data
             return new TeacherStats(data.Name, data.SpriteName, data.SpeakingVoice, data.BaseHp, data.BaseAtk, moves, actOptions,
                 turnNarration, data.SpareSuccessAt, data.SpareSuccessText, spareTextByPercent, turnNarrationBySpare,
                 ToSprite(data.Sprite), ToDialogue(data.BattleDialogue), data.GoldReward, data.Theme, data.ThemeVolume, data.SequentialMoves);
+        }
+
+        // a move's "speech" block: beat name -> the lines for it. empty beats are
+        // dropped here rather than at lookup time, so a half filled block behaves
+        // the same as one that was never written and the pattern falls back
+        private static IReadOnlyDictionary<string, IReadOnlyList<string>> ToSpeech(
+            Dictionary<string, List<string>> json)
+        {
+            if (json == null || json.Count == 0) return null;
+
+            // case insensitive keys, so the file can say "Opening" or "opening"
+            // and still match the beat name the pattern asks for
+            var result = new Dictionary<string, IReadOnlyList<string>>(StringComparer.OrdinalIgnoreCase);
+
+            foreach (KeyValuePair<string, List<string>> beat in json)
+            {
+                if (beat.Value == null || beat.Value.Count == 0) continue;
+                result[beat.Key] = beat.Value;
+            }
+
+            return result.Count > 0 ? result : null;
         }
 
         private static TeacherDialogue ToDialogue(DialogueJson json)
@@ -162,6 +183,9 @@ namespace FinalProject.Data
             public string Description { get; set; }
             public string Pattern { get; set; }
             public bool IsUltimate { get; set; }
+
+            // optional. beat name -> lines, see MoveData.Line
+            public Dictionary<string, List<string>> Speech { get; set; }
         }
 
         private class ActOptionJson

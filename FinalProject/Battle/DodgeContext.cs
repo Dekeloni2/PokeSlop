@@ -102,6 +102,14 @@ namespace FinalProject.Battle
         public void SetTeacherVisible(bool visible) => _phase.SetTeacherVisible(visible);
         public void SetTeacherSpeech(string text)   => _phase.SetTeacherSpeech(text);
 
+        // a line authored in the teacher's JSON for a named beat of this attack,
+        // falling back to what the pattern passes when the file doesn't cover it.
+        // lets characterisation be rewritten without a rebuild, while text the
+        // mechanic depends on (quiz prompts) stays in the pattern where it belongs.
+        // variant picks between lines for the same beat — see MoveData.Line
+        public string Line(string beat, int variant, string fallback)
+            => _phase.Line(beat, variant, fallback);
+
         public bool IsKeyDown(Keys key) => _phase.IsKeyDown(key);
     }
 }

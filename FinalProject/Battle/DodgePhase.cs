@@ -57,7 +57,7 @@ namespace FinalProject.Battle
 
         // wait for leftover hazards to clear the arena before ending the turn,
         // otherwise the box starts shrinking back while hazards are live
-        public bool IsFinished => _elapsed >= _pattern.Duration
+        public bool IsFinished => (_elapsed >= _pattern.Duration || _pattern.IsComplete)
                                   && _projectiles.Count == 0 && _beams.Count == 0 && _hexes.Count == 0;
         public Rectangle CurrentBox => _box.Current;
 
@@ -65,6 +65,14 @@ namespace FinalProject.Battle
         internal Rectangle BaseBox        => _baseBox;
         internal Vector2   HitboxPosition => _hitbox.Position;
         internal bool      HitboxIsMoving => _hitbox.IsMoving;
+        internal Point     HitboxTile     => _hitbox.Tile;
+
+        internal void EnterGrid(Point originPx, int tileSize, int cols, int rows, Point startTile)
+            => _hitbox.EnterGrid(originPx, tileSize, cols, rows, startTile);
+        internal void ExitGrid() => _hitbox.ExitGrid();
+        internal void MoveSoulToTile(Point tile, float slideSeconds)
+            => _hitbox.MoveToTile(tile, slideSeconds);
+        internal void HoldSoul(float seconds)   => _hitbox.HoldStill(seconds);
 
         public DodgePhase(IBulletPattern pattern, Teacher teacher, PlayerData playerData, Rectangle baseBox)
         {
@@ -148,6 +156,10 @@ namespace FinalProject.Battle
             // draws its own logo and tongue, it owns all of that geometry
             if (_pattern is CloverbytePattern clover)
                 clover.Draw(spriteBatch, pixel);
+
+            // board, frame and pieces all belong to the pattern
+            if (_pattern is ChessPattern chess)
+                chess.Draw(spriteBatch, pixel);
 
             if (_pattern is GarlicGunPattern garlic && (garlic.IsCharging || garlic.IsFiring || garlic.IsVanishing))
             {
@@ -305,6 +317,15 @@ namespace FinalProject.Battle
         // how many times the soul has been hit this turn. patterns watch it when
         // they care whether their attack actually connected
         public int PlayerHitCount { get; private set; }
+
+        // gives HP back as a fraction of the bar rather than a flat number, so a
+        // reward stays worth the same however big the bar has grown. always at
+        // least 1, otherwise a small max HP rounds the whole thing away
+        internal void HealPlayer(float fractionOfMax)
+        {
+            int amount = Math.Max(1, (int)Math.Ceiling(_playerData.MaxHp * fractionOfMax));
+            _playerData.Heal(amount);
+        }
 
         internal void HitPlayer(int amount)
         {

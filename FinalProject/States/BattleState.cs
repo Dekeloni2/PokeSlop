@@ -168,6 +168,7 @@ namespace FinalProject.States
             // patterns that escalate the more they're thrown count their own
             // uses in a static, so a new fight has to start them from zero
             CloverbytePattern.ResetUseCount();
+            ChessPattern.ResetBoard();
             _moveIndex     = 0;
             _lastDodgeSpeech = null;
             _victoryShown  = false;
@@ -454,6 +455,7 @@ namespace FinalProject.States
         private void UseItem(ItemData item)
         {
             Game.PlayerData.Heal(item.HealAmount);
+            SoundManager.Play(SoundManager.HealSound);
             Game.PlayerData.Inventory.Remove(item);
             PushMessageSequence(
                 new List<string> { $"You ate the {item.Name}. Restored {item.HealAmount} HP." },

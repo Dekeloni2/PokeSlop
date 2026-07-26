@@ -21,6 +21,24 @@ namespace FinalProject.Battle
         // you're moving, orange only while you're standing still
         public bool      IsPlayerMoving => _phase.HitboxIsMoving;
 
+        // ── grid movement ────────────────────────────────────────────────────
+        // takes free movement away and steps the soul tile by tile instead, for
+        // the chess board. the soul is placed by tile, so it ignores the usual
+        // box clamp while this is on
+        public Point SoulTile => _phase.HitboxTile;
+
+        public void EnterGrid(Point originPx, int tileSize, int cols, int rows, Point startTile)
+            => _phase.EnterGrid(originPx, tileSize, cols, rows, startTile);
+        public void ExitGrid() => _phase.ExitGrid();
+
+        // shove the soul onto a given tile, for knockback. a recoil wants to be
+        // faster than a normal step, hence the slide override
+        public void MoveSoulToTile(Point tile, float slideSeconds = 0.09f)
+            => _phase.MoveSoulToTile(tile, slideSeconds);
+
+        // ignore movement input for a moment, without moving the soul
+        public void HoldSoul(float seconds) => _phase.HoldSoul(seconds);
+
         public void SpawnProjectile(Vector2 position, Vector2 velocity, ProjectileType type = ProjectileType.Normal)
             => _phase.SpawnProjectile(position, velocity,  type);
 
@@ -40,6 +58,9 @@ namespace FinalProject.Battle
         // hazard, like getting a quiz answer wrong. goes through the same
         // i-frames and shake as everything else
         public void DamagePlayer(int amount) => _phase.HitPlayer(amount);
+
+        // the other direction, as a fraction of max HP (0.2f == a fifth of the bar)
+        public void HealPlayer(float fractionOfMax) => _phase.HealPlayer(fractionOfMax);
 
         // drops the soul back in the middle of the arena
         public void CenterHitbox() => _phase.CenterHitbox();

@@ -40,18 +40,11 @@
   },
   "moves": [
     {
-      "name": "Boat Attack",
+      "name": "Chess",
       "power": 1,
       "accuracy": 100,
-      "description": "Dor Ben Dor unleashes the boat attack.",
-      "pattern": "Boat"
-    },
-    {
-      "name": "Cloverbyte",
-      "power": 1,
-      "accuracy": 100,
-      "description": "Dor Ben Dor calls in the Cloverbyte.",
-      "pattern": "Cloverbyte"
+      "description": "Dor Ben Dor sets the board.",
+      "pattern": "Chess"
     }
   ],
   "actOptions": [

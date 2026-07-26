@@ -8,6 +8,12 @@ namespace FinalProject.Battle
     {
         float Duration { get; }
 
+        // patterns that can finish on their own terms override this — the chess
+        // board ends the moment the last piece is taken, rather than sitting
+        // there for the rest of its Duration. everything else just runs out the
+        // clock like before, which is why it has a default
+        bool IsComplete => false;
+
         void Start(DodgeContext context);
         void Update(GameTime gameTime, DodgeContext context);
     }

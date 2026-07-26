@@ -72,6 +72,7 @@ namespace FinalProject
             SpriteManager.AddSprite("garlicGun", "Sprites/AttackPatterns/GarlicGun");
             SpriteManager.AddSprite("vegeta", "Sprites/AttackPatterns/Vegeta",5 , 1);
             SpriteManager.AddSprite("cloverbyte", "Sprites/AttackPatterns/cloverbyte");
+            SpriteManager.AddSprite("chess", "Sprites/AttackPatterns/chess", 4, 1);
             // 32x32 frames with a 3px gutter, without the spacing the frames
             // slice offset and the flash looks like it's sliding sideways
             SpriteManager.AddSprite("warning", "Sprites/Battle/warning", 3, 1, 3);
@@ -113,6 +114,10 @@ namespace FinalProject
             SoundManager.AddSound("snd_heavydamage", "Audio/SFX/snd_heavydamage");
             SoundManager.AddSound("snd_spearrise",   "Audio/SFX/snd_spearrise");
             SoundManager.AddSound("snd_grab",        "Audio/SFX/snd_grab");
+            // chess sfx
+            SoundManager.AddSound("snd_vulkinhurt",  "Audio/SFX/snd_vulkinhurt");
+            // healing, both from items and the chess board's green pieces
+            SoundManager.AddSound("snd_heal_c",      "Audio/SFX/snd_heal_c");
             // SoundManager.AddSong("battle", "Audio/battle_theme");
 
 #if DEBUG

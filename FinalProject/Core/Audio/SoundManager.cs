@@ -103,6 +103,9 @@ namespace FinalProject.Core.Audio
         public const string MenuMove   = "menuMove";   // moving the cursor
         public const string MenuSelect = "menuSelect"; // confirming an option
 
+        // anything that puts HP back, wherever it comes from
+        public const string HealSound  = "snd_heal_c";
+
         public static void PlayTextBeep() => Play(TextBeepName);
 
         // only blips if text[from..to) has an actual character in it, so

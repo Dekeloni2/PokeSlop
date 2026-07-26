@@ -25,6 +25,7 @@ namespace FinalProject.Battle
             ["Hexagon"]      = () => new HexagonPattern(),
             ["Boat"]         = () => new BoatPattern(),
             ["Cloverbyte"]   = () => new CloverbytePattern(),
+            ["Chess"]        = () => new ChessPattern(),
         };
 
         public static Func<IBulletPattern> Resolve(string name)

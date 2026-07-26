@@ -68,6 +68,18 @@
 /processorParam:TextureFormat=Color
 /build:Sprites/AttackPatterns/Vegeta.png
 
+#begin Sprites/AttackPatterns/chess.png
+/importer:TextureImporter
+/processor:TextureProcessor
+/processorParam:ColorKeyColor=255,0,255,255
+/processorParam:ColorKeyEnabled=False
+/processorParam:GenerateMipmaps=False
+/processorParam:PremultiplyAlpha=True
+/processorParam:ResizeToPowerOfTwo=False
+/processorParam:MakeSquare=False
+/processorParam:TextureFormat=Color
+/build:Sprites/AttackPatterns/chess.png
+
 #begin Sprites/AttackPatterns/cloverbyte.png
 /importer:TextureImporter
 /processor:TextureProcessor
@@ -337,6 +349,18 @@
 /processor:SoundEffectProcessor
 /processorParam:Quality=Best
 /build:Audio/SFX/snd_break2.wav
+
+#begin Audio/SFX/snd_heal_c.wav
+/importer:WavImporter
+/processor:SoundEffectProcessor
+/processorParam:Quality=Best
+/build:Audio/SFX/snd_heal_c.wav
+
+#begin Audio/SFX/snd_vulkinhurt.wav
+/importer:WavImporter
+/processor:SoundEffectProcessor
+/processorParam:Quality=Best
+/build:Audio/SFX/snd_vulkinhurt.wav
 
 #begin Audio/SFX/snd_screenshake.wav
 /importer:WavImporter

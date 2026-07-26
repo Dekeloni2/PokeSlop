@@ -199,8 +199,7 @@ public class ChessPattern : IBulletPattern
 
     private const string ThudSound  = "thud";
     private const string ShakeSound = "snd_screenshake";
-    private const string MoveSound  = "snd_grab"; // a piece committing its move
-    private const string StepSound  = "snd_grab"; // the soul stepping a square
+    private const string MoveSound  = "snd_grab";
     private const string HitSound   = "slash";          // survived it
     private const string HealSound  = SoundManager.HealSound;
     // the knockout is both cues together — vulkinhurt on top of the old
@@ -374,11 +373,6 @@ public class ChessPattern : IBulletPattern
         _timer += dt;
 
         UpdateDying(dt, context);
-
-        // the soul's own footsteps, for as long as it's on the board. sits
-        // outside the phase switch so it covers landing and recovery too, not
-        // just the hunt — the board is walkable the whole time it's up
-        if (context.SoulStepped) SoundManager.Play(StepSound);
 
         switch (_phase)
         {

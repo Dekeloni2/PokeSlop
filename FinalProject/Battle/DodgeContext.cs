@@ -39,11 +39,6 @@ namespace FinalProject.Battle
         // ignore movement input for a moment, without moving the soul
         public void HoldSoul(float seconds) => _phase.HoldSoul(seconds);
 
-        // true on the frame the soul commits a step of its own, for patterns
-        // that want to put a sound or an effect on the player's movement.
-        // knockbacks and other forced moves don't count
-        public bool SoulStepped => _phase.SoulStepped;
-
         public void SpawnProjectile(Vector2 position, Vector2 velocity, ProjectileType type = ProjectileType.Normal)
             => _phase.SpawnProjectile(position, velocity,  type);
 

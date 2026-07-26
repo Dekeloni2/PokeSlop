@@ -75,7 +75,6 @@ namespace FinalProject.Battle
         internal void MoveSoulToTile(Point tile, float slideSeconds)
             => _hitbox.MoveToTile(tile, slideSeconds);
         internal void HoldSoul(float seconds)   => _hitbox.HoldStill(seconds);
-        internal bool SoulStepped               => _hitbox.SteppedThisFrame;
 
         // move is optional: a pattern provoked by an ACT isn't backed by one, so
         // anything that reads it has to cope with null

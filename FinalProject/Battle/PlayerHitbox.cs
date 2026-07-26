@@ -77,6 +77,11 @@ namespace FinalProject.Battle
         // refuses input for a moment without moving anything. the chess board
         // uses it so a knockback reads as landing on the square first and being
         // thrown off it after, rather than never getting there at all
+        // true for the one frame a grid step commits, so whoever owns the board
+        // can react to it. the hitbox reports that a step happened, it doesn't
+        // decide what a step sounds like — that stays with the pattern
+        public bool SteppedThisFrame { get; private set; }
+
         public void HoldStill(float seconds)
             => _stepCooldown = MathHelper.Max(_stepCooldown, seconds);
 
@@ -111,6 +116,8 @@ namespace FinalProject.Battle
             float dt = (float)gameTime.ElapsedGameTime.TotalSeconds;
 
             if (_invulnLeft > 0f) _invulnLeft -= dt;
+
+            SteppedThisFrame = false; // set again below if a step commits
 
             if (_gridMode) { UpdateGrid(dt, input); return; }
 
@@ -180,6 +187,11 @@ namespace FinalProject.Battle
             _tile          = next; // committed up front, collision reads the new tile
             _slideDuration = SlideSeconds;
             _slideLeft     = SlideSeconds;
+
+            // only a step the player asked for. a forced move (MoveToTile, the
+            // chess knockback) deliberately doesn't set this — it isn't the
+            // player walking and it already has its own sound
+            SteppedThisFrame = true;
         }
 
         // the sprite is drawn bigger than the actual hitbox (like undertale,

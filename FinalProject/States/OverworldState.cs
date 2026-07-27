@@ -8,7 +8,6 @@ using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
 using FinalProject.Battle;
 using FinalProject.Core;
-using FinalProject.Core.Audio;
 using FinalProject.Core.Graphics;
 using FinalProject.Core.StateMachine;
 using FinalProject.Data;
@@ -19,7 +18,7 @@ using FinalProject.UI;
 
 namespace FinalProject.States
 {
-    public class OverworldState : GameState
+    public class OverworldState : GameState, ElevatorSequence.IElevatorHost
     {
         public OverworldState(Game1 game, GameStateManager stateManager)
             : base(game, stateManager) { }
@@ -46,7 +45,7 @@ namespace FinalProject.States
             _player      = new Player(Game, 6, 14);
             _camera      = new Camera();
             _dialogueBox = new DialogueBox(Game.PixelTexture, Game.DialogueFont);
-            _floorMenu   = new ChoiceBox(Game.PixelTexture, Game.DialogueFont);
+            _elevator    = new ElevatorSequence(Game.PixelTexture, Game.DialogueFont);
             // TODO: swap back to the real starting map once the tileset rework
             // lands — pointed at "entrance" for now to test the Interactables layer.
             LoadMap("entrance", 6, 14);
@@ -75,31 +74,25 @@ namespace FinalProject.States
         }
 
         // ── elevator ─────────────────────────────────────────────────────────
-        // the floors it can reach. a null map is one that isn't built yet, it
-        // still rides but there's nowhere to walk out to
-        private static readonly (int Floor, string Label, string Map, int X, int Y)[] Floors =
-        {
-            (0, "Floor 0", "entrance",    6, 14),
-            (2, "Floor 2", null,          0,  0),
-            (3, "Floor 3", "tiltan_hall", 53, 7),
-        };
-
-        private const float DoorSeconds  = 0.7f; // shutting and opening again
-        private const float RideSeconds  = 2.5f;
-        private const float RideShake    = 2.5f; // px of judder while moving
-        private const float RideSettleSeconds = 0.8f; // it eases off over the last stretch
-
-        private enum ElevatorPhase { None, Closing, Riding, Opening }
-
-        private ElevatorPhase _elevPhase = ElevatorPhase.None;
-        private float _elevTimer;
-        private int   _currentFloor  = 0;
-        private int   _pendingFloor  = -1; // index into Floors, set once it arrives
-
-        private ChoiceBox _floorMenu;
-        private readonly List<int> _floorChoices = new(); // indices shown in the menu
-        private readonly Random _rng = new();
+        // the lift runs itself (see ElevatorSequence), this state just gives it
+        // the few things it needs through IElevatorHost, below
+        private ElevatorSequence _elevator;
         private bool _awaitingFloorMenu; // prompt is up, floors come after it
+
+        bool ElevatorSequence.IElevatorHost.IsChangingMap => _transitioning;
+
+        bool ElevatorSequence.IElevatorHost.PlayerOnDoorTile
+            => _map != null && _map.IsElevatorDoorTile(_player.TilePosition.X, _player.TilePosition.Y);
+
+        void ElevatorSequence.IElevatorHost.FacePlayerOut() => _player.Face(Direction.Down);
+
+        void ElevatorSequence.IElevatorHost.SetDoorsShut(bool shut)
+        {
+            if (_map != null) _map.ElevatorDoorVisible = shut;
+        }
+
+        void ElevatorSequence.IElevatorHost.ChangeMap(string map, int spawnX, int spawnY)
+            => BeginMapChange(map, spawnX, spawnY);
 
         public override void Resume() => _fadeInLeft = FadeInSeconds;
 
@@ -125,22 +118,10 @@ namespace FinalProject.States
                 return;
             }
 
-            // the lift owns everything while it's running, the player can't move
-            if (_elevPhase != ElevatorPhase.None)
+            // riding or picking a floor, either way the player can't move
+            if (_elevator.IsBusy)
             {
-                UpdateElevator(gameTime);
-                return;
-            }
-
-            // picking a floor also locks movement
-            if (_floorMenu.IsActive)
-            {
-                if (_floorMenu.Update(Game.Input) && _floorMenu.SelectedIndex >= 0)
-                {
-                    // the last entry is Cancel, anything before it is a floor
-                    int picked = _floorMenu.SelectedIndex;
-                    if (picked < _floorChoices.Count) StartElevator(_floorChoices[picked]);
-                }
+                _elevator.Update(gameTime, Game.Input, this);
                 return;
             }
 
@@ -157,7 +138,7 @@ namespace FinalProject.States
             if (_awaitingFloorMenu)
             {
                 _awaitingFloorMenu = false;
-                OpenFloorMenu();
+                _elevator.OpenFloorMenu();
                 return;
             }
 
@@ -195,115 +176,20 @@ namespace FinalProject.States
 
             CheckTransitions();
             CheckWarps();
-            CheckElevatorExit();
-        }
-
-        // ── Elevator ─────────────────────────────────────────────────────────
-
-        // opens the floor list, leaving out whichever floor we're already on
-        private void OpenFloorMenu()
-        {
-            _floorChoices.Clear();
-            var labels = new List<string>();
-
-            for (int i = 0; i < Floors.Length; i++)
-            {
-                if (Floors[i].Floor == _currentFloor) continue;
-
-                _floorChoices.Add(i);
-                labels.Add(Floors[i].Label);
-            }
-
-            labels.Add("Cancel"); // always last, sits past the end of _floorChoices
-            _floorMenu.Open(labels);
-        }
-
-        private void StartElevator(int floorIndex)
-        {
-            _pendingFloor = floorIndex;
-            _elevPhase    = ElevatorPhase.Closing;
-            _elevTimer    = 0f;
-
-            _player.Face(Direction.Down); // turn to face out of the lift
-
-            if (_map != null) _map.ElevatorDoorVisible = true; // shut
-            SoundManager.Play("doorShut");
-        }
-
-        private void UpdateElevator(GameTime gameTime)
-        {
-            _elevTimer += (float)gameTime.ElapsedGameTime.TotalSeconds;
-
-            switch (_elevPhase)
-            {
-                case ElevatorPhase.Closing:
-                    if (_elevTimer >= DoorSeconds)
-                    {
-                        // music runs for the ride itself, doors shut before it
-                        SoundManager.PlayMusic("elevator");
-                        Advance(ElevatorPhase.Riding);
-                    }
-                    break;
-
-                case ElevatorPhase.Riding:
-                    // the judder is applied in Draw, this just times it
-                    if (_elevTimer >= RideSeconds)
-                    {
-                        SoundManager.StopMusic();
-                        SoundManager.Play("bell");
-                        SoundManager.Play("doorShut"); // same clip for opening
-                        if (_map != null) _map.ElevatorDoorVisible = false;
-                        _currentFloor = Floors[_pendingFloor].Floor;
-                        Advance(ElevatorPhase.Opening);
-                    }
-                    break;
-
-                case ElevatorPhase.Opening:
-                    if (_elevTimer >= DoorSeconds) Advance(ElevatorPhase.None);
-                    break;
-            }
-        }
-
-        private void Advance(ElevatorPhase next)
-        {
-            _elevPhase = next;
-            _elevTimer = 0f;
-        }
-
-        // once it's arrived, walking onto the door tiles takes you out onto the
-        // floor that was picked
-        private void CheckElevatorExit()
-        {
-            // no IsMoving check now that movement is free, he's walking when he
-            // crosses the door and would never trigger otherwise
-            if (_pendingFloor < 0 || _transitioning) return;
-            if (_map == null || !_map.IsElevatorDoorTile(_player.TilePosition.X, _player.TilePosition.Y)) return;
-
-            (int _, string _, string map, int x, int y) = Floors[_pendingFloor];
-            if (map == null) return; // floor isn't built yet, nothing to walk into
-
-            _pendingFloor = -1;
-            BeginMapChange(map, x, y);
+            _elevator.CheckExit(this);
         }
 
         public override void Draw(SpriteBatch spriteBatch)
         {
             Game.GraphicsDevice.Clear(BackgroundColor);
 
-            // the lift judders on the way between floors. screen space, applied
-            // after the camera so it shakes the view rather than the world.
-            // it settles over the last stretch so it isn't still rattling when
-            // the doors open
+            // the lift judders on the way between floors. applied after the
+            // camera so it shakes the view rather than the world, and it's
+            // Vector2.Zero whenever the lift isn't moving
             Matrix view = _camera.GetTransform();
-            if (_elevPhase == ElevatorPhase.Riding)
-            {
-                float left  = RideSeconds - _elevTimer;
-                float mag   = RideShake * MathHelper.Clamp(left / RideSettleSeconds, 0f, 1f);
-
-                view *= Matrix.CreateTranslation(
-                    ((float)_rng.NextDouble() * 2f - 1f) * mag,
-                    ((float)_rng.NextDouble() * 2f - 1f) * mag, 0f);
-            }
+            Vector2 judder = _elevator.ShakeOffset;
+            if (judder != Vector2.Zero)
+                view *= Matrix.CreateTranslation(judder.X, judder.Y, 0f);
 
             spriteBatch.Begin(
                 samplerState: SamplerState.PointClamp,
@@ -316,7 +202,7 @@ namespace FinalProject.States
             // UI layer — screen space, unaffected by the world camera's zoom/scroll.
             spriteBatch.Begin(samplerState: SamplerState.PointClamp);
             _dialogueBox.Draw(spriteBatch);
-            _floorMenu.Draw(spriteBatch);
+            _elevator.Draw(spriteBatch);
 
             // black going up for a map change, or lifting off after one (and
             // after a battle). whichever is stronger wins

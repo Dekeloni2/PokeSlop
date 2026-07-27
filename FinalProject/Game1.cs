@@ -30,6 +30,10 @@ namespace FinalProject
 
         public PlayerData PlayerData { get; private set; } = new();
 
+        // listens for teacher fights finishing, so the ending can look at the
+        // whole run. subscribes on construction, so build it before any battle
+        public RouteTracker Route { get; private set; } = new();
+
         public Game1()
         {
             _graphics = new GraphicsDeviceManager(this)

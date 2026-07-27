@@ -52,6 +52,21 @@ public class CloverbytePattern : IBulletPattern
 
     public static void ResetUseCount() => _timesUsed = 0;
 
+    // ── what he says ─────────────────────────────────────────────────────────
+    // the real lines live in the teacher's JSON under the move's "speech" block,
+    // keyed by these beat names and indexed by how many times he's set this up.
+    // what's passed as the fallback below is only what you see when the JSON
+    // doesn't cover a beat, so it's worth keeping readable rather than blank.
+    // beats that don't change between uses only need one entry — running off
+    // the end of a list repeats its last line
+    private const string BeatOpening = "opening";
+    private const string BeatFeint   = "feint";
+    private const string BeatBlue    = "blue";
+    private const string BeatOrange  = "orange";
+
+    private static string Line(DodgeContext context, string beat, string fallback)
+        => context.Line(beat, _timesUsed - 1, fallback);
+
     // ── timing ───────────────────────────────────────────────────────────────
     private const float PanSeconds     = 1.1f;
     private const float FallSeconds    = 0.7f;
@@ -204,12 +219,12 @@ public class CloverbytePattern : IBulletPattern
 
         // he watches this one happen, so put him on screen and let him talk
         context.SetTeacherVisible(true);
-        context.SetTeacherSpeech(_tier switch
+        context.SetTeacherSpeech(Line(context, BeatOpening, _tier switch
         {
             Tier.Randomised  => "You know both rules now. Keep up.",
             Tier.TeachOrange => "You've seen this one already. Let's add a step.",
             _                => "Let me show you what we ship at Cloverbyte.",
-        });
+        }));
     }
 
     public void Update(GameTime gameTime, DodgeContext context)
@@ -329,7 +344,7 @@ public class CloverbytePattern : IBulletPattern
                         if (_tier == Tier.Randomised) { Advance(Phase.Recover); break; }
 
                         SoundManager.Play(TongueRiseSound);
-                        context.SetTeacherSpeech("Enough warm up.");
+                        context.SetTeacherSpeech(Line(context, BeatFeint, "Enough warm up."));
                         Advance(Phase.FeintAim);
                         break;
                     }
@@ -368,7 +383,8 @@ public class CloverbytePattern : IBulletPattern
                     _length          = SwipeRadius;
                     _swipeStartAngle = _angle;
                     _trailFromAngle  = _angle;
-                    context.SetTeacherSpeech("BLUE means you hold still. Were you not listening?");
+                    context.SetTeacherSpeech(Line(context, BeatBlue,
+                        "BLUE means you hold still. Were you not listening?"));
                     Advance(Phase.WindUp);
                 }
                 break;
@@ -412,7 +428,7 @@ public class CloverbytePattern : IBulletPattern
                     if (_tier == Tier.TeachOrange && !_returnSwipeDone)
                     {
                         _color = HazardColor.Orange;
-                        context.SetTeacherSpeech("ORANGE. Now MOVE.");
+                        context.SetTeacherSpeech(Line(context, BeatOrange, "ORANGE. Now MOVE."));
                         Advance(Phase.ReturnWindUp);
                     }
                     else if (_tier == Tier.Randomised)

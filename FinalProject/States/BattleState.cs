@@ -11,6 +11,7 @@ using FinalProject.Core.Graphics;
 using FinalProject.Core.StateMachine;
 using FinalProject.Core.Text;
 using FinalProject.Data;
+using FinalProject.Events;
 using FinalProject.UI;
 
 namespace FinalProject.States
@@ -806,6 +807,13 @@ namespace FinalProject.States
             _teacherSprite.Freeze();
 
             _endingSpared = spared;
+
+            // the fight is settled here, whichever way it went. announced rather
+            // than written down directly so the run's bookkeeping isn't this
+            // state's problem — see RouteTracker
+            EventBus.Instance.Publish(new TeacherResolvedEvent(
+                _teacher.Name, spared ? BattleOutcome.Spared : BattleOutcome.Killed));
+
             _phase = BattlePhase.Ending;
         }
 

@@ -23,14 +23,19 @@
     "onAttack": [
       "This will reduce your score on Canvas.",
       "My portfolio won't be affected by this.",
-      "Don't expect me to help you with your Final Project!"
+      "Don't expect me to help you with your Final Project!",
+      "This is why you can't make a good game."
     ],
     "onAct": [
       "You know...|After the thousands of students I have taught here in Tiltan|I don't think I have seen more potential here than you|You have some energy emitting from you...",
       "This generation of students is really pissing me off....|None of you students have the potential to even be successful in the market.|If you keep making platformers, you surely won't get anywhere",
       "You know|At this point...|I don't care about you escaping this place.",
       "Being a Game Designer is a commitment. A test of your might|Prove to me with this next attack that you truly are a Game Designer.",
-      "Soon, all the world shall know the power of Dor Ben Dor."
+      "Hmph.|Most students were not able to reach to this point.|Your endurance and skill are impressive.|But don't get too comfortable.",
+      "The world of game creation is a cruel mistress.|Creating games is not only a craft, but an art.|It shows the nature of your character.|Who is the person behind making games?|This next attack, hopefully, will show you what good game design can achieve.",
+      "Knowing how to make games is not enough.|Always ask yourself: What is the purpose of this game?|What is the player supposed to feel when playing this game?|What is the player supposed to learn from this game?|This next attack will show you what good game design can achieve.",
+      "I truly am starting to get impressed with you.|I usually just kick students out of Tiltan when they reach this point.|But you have shown me that you are a student with potential.",
+      "One of my main goals as a Game Designer teachers is to reduce slop.|What we are missing right now are good games.|You might have the potential to make a good one.|But I am not counting on it.|At the end of the day, students can't deliver."
     ],
     "onSpare": [
       "The ocean shows no mercy."
@@ -40,12 +45,36 @@
   },
   "moves": [
     {
+      "name": "Cloverbyte",
+      "power": 1,
+      "accuracy": 100,
+      "description": "Dor unleashes a cloverbyte.",
+      "pattern": "Cloverbyte",
+      "speech": {
+        "opening": [
+          "Let me show you what we ship at Cloverbyte.",
+          "You've seen this one already. Let's add a step.",
+          "You know both rules now. Keep up.",
+          "Cloverbyte will be a successful studio when you are not in its way.",
+          "With each game Cloverbyte releases, we only get richer and richer."
+        ],
+        "feint": [
+          "Enough warm up."
+        ],
+        "blue": [
+          "BLUE means you hold still. Were you not listening?"
+        ],
+        "orange": [
+          "ORANGE. Now MOVE."
+        ]
+      }
+    },
+    {
       "name": "Chess",
       "power": 1,
       "accuracy": 100,
       "description": "Dor Ben Dor sets the board.",
       "pattern": "Chess",
-
       "speech": {
         "opening": [
           "Chess. Simple to learn.",
@@ -69,7 +98,7 @@
           "You took my queen. Do not enjoy it.",
           "...You are not what I expected.",
           "Both of them? ...Impossible.",
-          "You cleared it. I will not forget this."
+          "You cleared it. Truly splendid movement."
         ],
         "survived": [
           "Survival is not skill. Anyone can wait.",
@@ -86,7 +115,7 @@
     {
       "name": "Check",
       "descriptionByHp": [
-        { "minPercent": 0, "text": "Dor Ben Dor - HP 100, ATK 5. The final boss of Tiltan | Seems like trying to spare him is a waste of time." }
+        { "minPercent": 0, "text": "Dor Ben Dor - HP 100, ATK 5. The final boss of Tiltan. | Seems like trying to spare him is a waste of time." }
       ],
       "spareGain": 0
     },
@@ -108,7 +137,7 @@
       "name": "Student Council",
       "description": "You ask the student council to extend the period of the Final Project.",
       "extraMessages": [
-        "Dor Ben Dor"
+        "Dor Ben Dor nods at the student council.|They just leave you.....|This did not affect his SPARE score"
       ],
       "spareGain": 0
     }

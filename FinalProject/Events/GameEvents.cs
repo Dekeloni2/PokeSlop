@@ -16,32 +16,27 @@ namespace FinalProject.Events
         }
     }
 
-    // Fired the moment a battle begins.
-    // Listners: OverworldState (stop processing the movement/encounters)
-    public class BattleStartedEvent : GameEvent
-    {
-        public bool IsTeacherBattle { get;  }
+    // how a teacher's fight finished. only the two ways a teacher actually gets
+    // resolved — losing to him doesn't settle anything, you just try again
+    public enum BattleOutcome { Killed, Spared }
 
-        public BattleStartedEvent(bool isTeacherBattle)
+    // Fired once a teacher's fight is decided, before the ending plays out.
+    // The teacher is a name rather than a type so a new teacher stays a JSON
+    // file and nothing here has to change.
+    // Listeners: RouteTracker
+    public class TeacherResolvedEvent : GameEvent
+    {
+        public string        TeacherName { get; }
+        public BattleOutcome Outcome     { get; }
+
+        public TeacherResolvedEvent(string teacherName, BattleOutcome outcome)
         {
-            IsTeacherBattle = isTeacherBattle;
+            TeacherName = teacherName;
+            Outcome     = outcome;
         }
     }
 
-    
-    // Fired when the battle ends.
-    // Listners: OverworldState (re-enabled movement)
-    public class BattleEndedEvent : GameEvent
-    {
-        public bool PlayerWon { get;  }
 
-        public BattleEndedEvent(bool playerWon)
-        {
-            PlayerWon = playerWon;
-        }
-    }
-
-    
     // Fired when the player's HP changes.
     // Listeners: BattleHUD
     public class PlayerHpChangedEvent : GameEvent
@@ -52,19 +47,6 @@ namespace FinalProject.Events
         {
             CurrentHp = currentHp;
             MaxHp = maxHp;
-        }
-    }
-
-    
-    // Fired when the player reaches a teacher's classroom. Triggers the end
-    // game sequence.
-    public class ClassReachedEvent : GameEvent
-    {
-        public string ClassName { get; }
-
-        public ClassReachedEvent(string className)
-        {
-            ClassName = className;
         }
     }
 }

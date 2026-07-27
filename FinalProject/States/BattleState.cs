@@ -699,21 +699,25 @@ namespace FinalProject.States
         // picks the teacher's attack and shrinks the box down for it
         private void BeginEnemyTurn()
         {
-            // he's yielded. he doesn't raise a hand again whatever the player
-            // does, so the turn comes straight back rather than picking a move
-            if (_yielded)
-            {
-                _lastNarrationText = null;
-                RefreshNarration();
-                _phase = BattlePhase.SelectingMove;
-                return;
-            }
-
+            // the fight being over has to win over everything below, including
+            // the yield check — that's the whole point of yielding, the player
+            // gets to end it
             if (IsBattleOver())
             {
                 // player death plays the soul shatter, the teacher going down gets a scene
                 if (Game.PlayerData.IsAlive) BeginEnding();
                 else                         BeginPlayerDeath();
+                return;
+            }
+
+            // he's yielded and the player didn't finish it. he doesn't raise a
+            // hand again either way, so the turn comes straight back rather
+            // than picking a move
+            if (_yielded)
+            {
+                _lastNarrationText = null;
+                RefreshNarration();
+                _phase = BattlePhase.SelectingMove;
                 return;
             }
 

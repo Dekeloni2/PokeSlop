@@ -28,6 +28,11 @@ namespace FinalProject.Data
         // that only carries character, so it can be rewritten without a rebuild
         public IReadOnlyDictionary<string, IReadOnlyList<string>> Speech { get; }
 
+        // what he says before the attack starts, as a cutscene — buttons off
+        // screen, '|' between pages, the player presses Z through it. null for
+        // the moves he just throws without ceremony
+        public string Intro { get; set; }
+
         public MoveData(string name, int power, int accuracy, string description,
             Func<IBulletPattern> createPattern, bool isUltimate = false,
             IReadOnlyDictionary<string, IReadOnlyList<string>> speech = null)

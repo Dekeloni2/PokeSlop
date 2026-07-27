@@ -6,6 +6,28 @@ namespace FinalProject.Data
     public class TeacherStats
     {
         public string      Name          { get; }
+
+        // stable identifier for save data and unlock checks, so renaming what's
+        // printed on screen can't silently break a gate. the loader falls back
+        // to Name when a file doesn't set one
+        public string Id { get; set; }
+
+        // teachers (by Id) whose fights have to be finished before this one can
+        // start. empty means he's available from the off
+        public IReadOnlyList<string> Requires { get; set; } = new List<string>();
+
+        // shown at his door while Requires isn't met
+        public string LockedText { get; set; }
+
+        // HP at or below which he reaches for his ultimate. null means the
+        // default, "one more clean hit would finish him", which moves about
+        // with how hard the player is swinging — set this to pin it
+        public int? UltimateAtHp { get; set; }
+
+        // his last stand once the ultimate has been survived. null means he
+        // just keeps fighting like anyone else
+        public TeacherYield Yield { get; set; }
+
         public string      SpriteName    { get; }
         public int         BaseHp        { get; }
         public int         BaseAtk       { get; }

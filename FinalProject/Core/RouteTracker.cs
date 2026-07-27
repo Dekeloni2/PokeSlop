@@ -27,7 +27,7 @@ namespace FinalProject.Core
         // refighting a teacher overwrites the old result — the last way you left
         // him is the one that counts
         private void OnTeacherResolved(TeacherResolvedEvent e)
-            => _resolved[e.TeacherName] = e.Outcome;
+            => _resolved[e.TeacherId] = e.Outcome;
 
         public int Killed => _resolved.Values.Count(o => o == BattleOutcome.Killed);
         public int Spared => _resolved.Values.Count(o => o == BattleOutcome.Spared);
@@ -42,10 +42,16 @@ namespace FinalProject.Core
                               :               Route.Neutral;
 
         // null when that teacher hasn't been fought to a finish yet
-        public BattleOutcome? OutcomeFor(string teacherName)
-            => _resolved.TryGetValue(teacherName, out BattleOutcome outcome) ? outcome : null;
+        public BattleOutcome? OutcomeFor(string teacherId)
+            => _resolved.TryGetValue(teacherId, out BattleOutcome outcome) ? outcome : null;
 
-        public bool IsResolved(string teacherName) => _resolved.ContainsKey(teacherName);
+        public bool IsResolved(string teacherId) => _resolved.ContainsKey(teacherId);
+
+        // whether a teacher's prerequisites are all settled. either way a fight
+        // ended counts — this asks "have you faced them", not "how did it go".
+        // no prerequisites means there's nothing to wait for
+        public bool HasResolvedAll(IEnumerable<string> teacherIds)
+            => teacherIds == null || teacherIds.All(IsResolved);
 
         public void Reset() => _resolved.Clear();
     }

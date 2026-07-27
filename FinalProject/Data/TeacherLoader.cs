@@ -22,18 +22,12 @@ namespace FinalProject.Data
             var moves = new List<MoveData>();
             foreach (MoveJson m in data.Moves ?? new List<MoveJson>())
                 moves.Add(new MoveData(m.Name, m.Power, m.Accuracy, m.Description,
-                    PatternRegistry.Resolve(m.Pattern), m.IsUltimate, ToSpeech(m.Speech)));
+                    PatternRegistry.Resolve(m.Pattern), m.IsUltimate, ToSpeech(m.Speech))
+                {
+                    Intro = m.Intro,
+                });
 
-            var actOptions = new List<ActOption>();
-            foreach (ActOptionJson a in data.ActOptions ?? new List<ActOptionJson>())
-            {
-                ActOption option = a.DescriptionByHp != null && a.DescriptionByHp.Count > 0
-                    ? new ActOption(a.Name, ToThresholds(a.DescriptionByHp), a.SpareGain, a.ExtraMessages, a.ForcesPattern)
-                    : new ActOption(a.Name, a.Description, a.SpareGain, a.ExtraMessages, a.ForcesPattern);
-
-                option.Speech = a.Speech;
-                actOptions.Add(option);
-            }
+            List<ActOption> actOptions = ToActOptions(data.ActOptions);
 
             List<PercentThresholdText> turnNarration = data.TurnNarrationByHp != null && data.TurnNarrationByHp.Count > 0
                 ? ToThresholds(data.TurnNarrationByHp)
@@ -47,9 +41,22 @@ namespace FinalProject.Data
                 ? ToThresholds(data.TurnNarrationBySpare)
                 : null;
 
-            return new TeacherStats(data.Name, data.SpriteName, data.SpeakingVoice, data.BaseHp, data.BaseAtk, moves, actOptions,
+            var stats = new TeacherStats(data.Name, data.SpriteName, data.SpeakingVoice, data.BaseHp, data.BaseAtk, moves, actOptions,
                 turnNarration, data.SpareSuccessAt, data.SpareSuccessText, spareTextByPercent, turnNarrationBySpare,
                 ToSprite(data.Sprite), ToDialogue(data.BattleDialogue), data.GoldReward, data.Theme, data.ThemeVolume, data.SequentialMoves);
+
+            // a file without an explicit id falls back to the display name, so
+            // older teacher files keep working untouched
+            stats.Id         = string.IsNullOrWhiteSpace(data.Id) ? data.Name : data.Id;
+            stats.Requires     = data.Requires ?? new List<string>();
+            stats.LockedText   = data.LockedText;
+            stats.UltimateAtHp = data.UltimateAtHp;
+            stats.Yield        = data.Yield == null
+                ? null
+                : new TeacherYield(data.Yield.Speech, data.Yield.Closing, data.Yield.FlawlessLine,
+                                   ToActOptions(data.Yield.ActOptions));
+
+            return stats;
         }
 
         // a move's "speech" block: beat name -> the lines for it. empty beats are
@@ -125,6 +132,11 @@ namespace FinalProject.Data
         private class TeacherJson
         {
             public string Name { get; set; }
+            public string Id { get; set; }
+            public List<string> Requires { get; set; }
+            public string LockedText { get; set; }
+            public int? UltimateAtHp { get; set; }
+            public YieldJson Yield { get; set; }
             public string SpriteName { get; set; }
             public string SpeakingVoice { get; set; }
             public int BaseHp { get; set; }
@@ -184,8 +196,40 @@ namespace FinalProject.Data
             public string Pattern { get; set; }
             public bool IsUltimate { get; set; }
 
+            // optional. a cutscene before the attack, see MoveData.Intro
+            public string Intro { get; set; }
+
             // optional. beat name -> lines, see MoveData.Line
             public Dictionary<string, List<string>> Speech { get; set; }
+        }
+
+        private class YieldJson
+        {
+            public string Speech { get; set; }
+            public string Closing { get; set; }
+            public string FlawlessLine { get; set; }
+
+            // optional. replaces his ACT list once he's yielded
+            public List<ActOptionJson> ActOptions { get; set; }
+        }
+
+        // shared by the teacher's normal ACT list and the shorter one he's left
+        // with after yielding, so both support the same fields
+        private static List<ActOption> ToActOptions(List<ActOptionJson> json)
+        {
+            var options = new List<ActOption>();
+
+            foreach (ActOptionJson a in json ?? new List<ActOptionJson>())
+            {
+                ActOption option = a.DescriptionByHp != null && a.DescriptionByHp.Count > 0
+                    ? new ActOption(a.Name, ToThresholds(a.DescriptionByHp), a.SpareGain, a.ExtraMessages, a.ForcesPattern)
+                    : new ActOption(a.Name, a.Description, a.SpareGain, a.ExtraMessages, a.ForcesPattern);
+
+                option.Speech = a.Speech;
+                options.Add(option);
+            }
+
+            return options;
         }
 
         private class ActOptionJson

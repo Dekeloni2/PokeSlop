@@ -31,7 +31,7 @@ namespace FinalProject.Core.Audio
         {
             if (_content == null) return;
             try   { _sounds[name] = _content.Load<SoundEffect>(fileName); }
-            catch { /* not built yet, leave it out so Play does nothing */ }
+            catch { }
         }
 
         // same but for background tracks, .ogg/.mp3 built as Song
@@ -39,7 +39,7 @@ namespace FinalProject.Core.Audio
         {
             if (_content == null) return;
             try   { _songs[name] = _content.Load<Song>(fileName); }
-            catch { /* not built yet */ }
+            catch { }
         }
 
         // ── playback ──────────────────────────────────────────────────────────

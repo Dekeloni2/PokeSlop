@@ -102,6 +102,20 @@ namespace FinalProject.States
         // best shot he's out of material, so surviving it opens up mercy
         private bool _ultimateDodging;
 
+        // he's said his piece and stopped defending himself. any hit that lands
+        // after this finishes him, however badly it was timed
+        private bool _yielded;
+        private bool _yieldStarted; // the speech has been queued into the bubble
+
+        // an attack waiting behind its intro cutscene, started once he's done
+        private IBulletPattern _pendingPattern;
+        private MoveData       _pendingMove;
+        private const int YieldedHitDamage = 9999;
+
+        // whether anything has got through all fight. drives the extra line in
+        // his yield speech, so it has to survive across every dodge phase
+        private bool _tookDamage;
+
         // an ACT got under his skin, so this pattern jumps the queue next turn.
         // the lesson he skipped isn't lost, the sequence picks up where it was
         private string _provokedPattern;
@@ -164,6 +178,11 @@ namespace FinalProject.States
             _endingStarted = false;
             _ultimateUsed  = false;
             _ultimateDodging = false;
+            _yielded         = false;
+            _yieldStarted    = false;
+            _tookDamage      = false;
+            _pendingPattern  = null;
+            _pendingMove     = null;
             _provokedPattern = null;
             _actSpeech       = null;
             // patterns that escalate the more they're thrown count their own
@@ -235,6 +254,14 @@ namespace FinalProject.States
 
                 case BattlePhase.Dodging:
                     UpdateDodging(gameTime);
+                    break;
+
+                case BattlePhase.MoveIntro:
+                    UpdateMoveIntro(gameTime);
+                    break;
+
+                case BattlePhase.Yielding:
+                    UpdateYielding(gameTime);
                     break;
 
                 case BattlePhase.Ending:
@@ -334,8 +361,11 @@ namespace FinalProject.States
                     new Vector2(TeacherBounds.Right + 4, TeacherBounds.Top + 24));
 
                 // buttons stay on screen the whole time (they only disappear
-                // while dodging), the soul only sits on them while choosing
-                _menu.Draw(spriteBatch, showSoul: _phase == BattlePhase.SelectingMove);
+                // while dodging), the soul only sits on them while choosing.
+                // his last stand takes them away too — nothing to press until
+                // he's finished talking
+                if (_phase != BattlePhase.Yielding && _phase != BattlePhase.MoveIntro)
+                    _menu.Draw(spriteBatch, showSoul: _phase == BattlePhase.SelectingMove);
             }
 
             // over the top of everything on the way out to the overworld
@@ -421,10 +451,24 @@ namespace FinalProject.States
             new MenuOption(_teacher.Name, () => _actionMenu.Push(BuildActOptionsPage()))
         };
 
+        // once he's yielded there's nothing left to talk him round with, so his
+        // usual list gives way to whatever short one his JSON leaves behind
+        private IReadOnlyList<ActOption> CurrentActOptions
+        {
+            get
+            {
+                IReadOnlyList<ActOption> yieldOptions = _teacher.Stats.Yield?.ActOptions;
+
+                return _yielded && yieldOptions != null && yieldOptions.Count > 0
+                    ? yieldOptions
+                    : _teacher.Stats.ActOptions;
+            }
+        }
+
         private List<MenuOption> BuildActOptionsPage()
         {
             var page = new List<MenuOption>();
-            foreach (ActOption opt in _teacher.Stats.ActOptions)
+            foreach (ActOption opt in CurrentActOptions)
                 page.Add(new MenuOption(opt.Name, () =>
                 {
                     _teacher.IncreaseSparePercent(opt.SpareGain);
@@ -547,8 +591,11 @@ namespace FinalProject.States
 
             // a miss still spends the turn, it just deals nothing. A hit
             // scales attack by accuracy (min 1 so edge hits still count)
-            _pendingAttackDamage = _attackMinigame.Missed
-                ? 0
+            // once he's yielded he isn't defending himself — any strike that
+            // connects finishes it, however badly it was timed. a clean miss
+            // still misses
+            _pendingAttackDamage = _attackMinigame.Missed ? 0
+                : _yielded ? YieldedHitDamage
                 : Math.Max(1, (int)MathF.Round(Game.PlayerData.Attack * _attackMinigame.DamageMultiplier));
 
             _attackMinigame = null;
@@ -652,6 +699,16 @@ namespace FinalProject.States
         // picks the teacher's attack and shrinks the box down for it
         private void BeginEnemyTurn()
         {
+            // he's yielded. he doesn't raise a hand again whatever the player
+            // does, so the turn comes straight back rather than picking a move
+            if (_yielded)
+            {
+                _lastNarrationText = null;
+                RefreshNarration();
+                _phase = BattlePhase.SelectingMove;
+                return;
+            }
+
             if (IsBattleOver())
             {
                 // player death plays the soul shatter, the teacher going down gets a scene
@@ -677,13 +734,48 @@ namespace FinalProject.States
                 pattern = move.CreatePattern();
             }
 
-            // the move comes along so patterns can read their authored lines out
-            // of the teacher's JSON instead of holding them in code
+            // a move can announce itself first — buttons off, he talks, and the
+            // attack only starts once the player has read it
+            if (!string.IsNullOrWhiteSpace(move?.Intro))
+            {
+                _pendingPattern = pattern;
+                _pendingMove    = move;
+
+                _bubble.Prepare(move.Intro, Game.DialogueFont);
+                _bubble.Begin();
+                _phase = BattlePhase.MoveIntro;
+                return;
+            }
+
+            StartDodge(pattern, move);
+        }
+
+        // the move comes along so patterns can read their authored lines out
+        // of the teacher's JSON instead of holding them in code
+        private void StartDodge(IBulletPattern pattern, MoveData move)
+        {
             _dodgePhase = new DodgePhase(pattern, _teacher, Game.PlayerData, DodgeBoxRect, move);
 
             _box.ResizeTo(DodgeBoxRect, ShrinkSeconds);
             _phaseAfterTransition = BattlePhase.Dodging;
             _phase = BattlePhase.BoxTransition;
+        }
+
+        // ── Phase: MoveIntro ─────────────────────────────────────────────────
+
+        // he announces the attack before throwing it. held here rather than
+        // inside the pattern so the pattern doesn't have to know about the
+        // bubble, and so the player reads it before the box shrinks
+        private void UpdateMoveIntro(GameTime gameTime)
+        {
+            _bubble.Update(gameTime, Game.Input);
+            if (_bubble.IsActive) return; // let him finish
+
+            _bubble.Clear();
+            StartDodge(_pendingPattern, _pendingMove);
+
+            _pendingPattern = null;
+            _pendingMove    = null;
         }
 
         // ── Phase: BoxTransition ─────────────────────────────────────────────
@@ -701,6 +793,9 @@ namespace FinalProject.States
         private void UpdateDodging(GameTime gameTime)
         {
             _dodgePhase.Update(gameTime, Game.Input);
+
+            // one hit anywhere in the fight is enough to lose the flawless line
+            if (_dodgePhase.PlayerHitCount > 0) _tookDamage = true;
 
             // refresh his bubble when the attack changes what he's saying, only
             // on a change so it isn't restarted every frame, then let it type
@@ -730,10 +825,15 @@ namespace FinalProject.States
 
                 // he threw everything he had and you're still standing, so the
                 // fight is winding down whether he likes it or not
+                bool yielding = false;
                 if (_ultimateDodging)
                 {
                     _ultimateDodging = false;
-                    _teacher.IncreaseSparePercent(100);
+
+                    // a teacher with a last stand hands mercy over at the end of
+                    // it instead, so the buttons stay gone until he's finished
+                    if (_teacher.Stats.Yield != null) yielding = true;
+                    else                              _teacher.IncreaseSparePercent(100);
                 }
 
                 // a talking attack leaves its line up, drop it or it hangs
@@ -748,9 +848,42 @@ namespace FinalProject.States
                 // submenu, which keeps the guard and shows the text instantly.
                 _lastNarrationText = null;
                 RefreshNarration();
-                _phaseAfterTransition = BattlePhase.SelectingMove;
+                _phaseAfterTransition = yielding ? BattlePhase.Yielding : BattlePhase.SelectingMove;
                 _phase = BattlePhase.BoxTransition;
             }
+        }
+
+        // ── Phase: Yielding ──────────────────────────────────────────────────
+
+        // he's out of attacks and out of argument. the buttons come off screen
+        // while he talks, then mercy is his to give and the player picks how
+        // this ends. he doesn't defend himself afterwards either way
+        private void UpdateYielding(GameTime gameTime)
+        {
+            if (!_yieldStarted)
+            {
+                _yieldStarted = true;
+
+                // his theme has carried the whole fight, and it stops with him.
+                // what he says next plays out in silence
+                SoundManager.StopMusic();
+
+                // the extra line is only earned by getting through untouched
+                _bubble.Prepare(_teacher.Stats.Yield.BuildSpeech(!_tookDamage), Game.DialogueFont);
+                _bubble.Begin();
+            }
+
+            _bubble.Update(gameTime, Game.Input);
+            if (_bubble.IsActive) return; // let him finish
+
+            _yielded = true;
+            _teacher.IncreaseSparePercent(100);
+
+            // his mercy state just changed, so the narration under the buttons
+            // has to catch up before it's drawn again
+            _lastNarrationText = null;
+            RefreshNarration();
+            _phase = BattlePhase.SelectingMove;
         }
 
         // ── Phase: PlayerDying ───────────────────────────────────────────────
@@ -812,7 +945,7 @@ namespace FinalProject.States
             // than written down directly so the run's bookkeeping isn't this
             // state's problem — see RouteTracker
             EventBus.Instance.Publish(new TeacherResolvedEvent(
-                _teacher.Name, spared ? BattleOutcome.Spared : BattleOutcome.Killed));
+                _teacher.Stats.Id, spared ? BattleOutcome.Spared : BattleOutcome.Killed));
 
             _phase = BattlePhase.Ending;
         }
@@ -956,9 +1089,13 @@ namespace FinalProject.States
         private bool IsFightAboutToEnd()
         {
             bool sparableNow = _teacher.SparePercent >= _teacher.Stats.SpareSuccessAt;
-            bool oneHitLeft  = _teacher.CurrentHp <= Game.PlayerData.Attack;
 
-            return sparableNow || oneHitLeft;
+            // a teacher can name the HP he panics at. without one it's "one more
+            // clean hit would finish him", which drifts with the player's attack
+            int threshold   = _teacher.Stats.UltimateAtHp ?? Game.PlayerData.Attack;
+            bool nearlyDown = _teacher.CurrentHp <= threshold;
+
+            return sparableNow || nearlyDown;
         }
 
         // picks his line for whatever the player just did. an HP line overrides
@@ -1036,5 +1173,5 @@ namespace FinalProject.States
 
     public enum PlayerMoveList { Attack, Act, Item, Spare }
 
-    public enum BattlePhase { SelectingMove, ActionMenu, AttackMinigame, ExecutingTurn, TurnFeedback, BoxTransition, Dodging, Ending, PlayerDying, BattleOver }
+    public enum BattlePhase { SelectingMove, ActionMenu, AttackMinigame, ExecutingTurn, TurnFeedback, BoxTransition, MoveIntro, Dodging, Yielding, Ending, PlayerDying, BattleOver }
 }

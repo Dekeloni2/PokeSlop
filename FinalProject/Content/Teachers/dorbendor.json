@@ -1,5 +1,8 @@
 {
   "name": "Dor Ben Dor",
+  "id": "dorbendor",
+  "requires": [ "yakir", "david" ],
+  "lockedText": "* The door doesn't budge.|* You haven't finished with the others yet.",
   "spriteName": "dorbendor",
   "speakingVoice": "snd_txtasg",
   "baseHp": 100,
@@ -8,6 +11,20 @@
   "theme": "dbdTheme",
   "themeVolume": 0.4,
   "sequentialMoves": false,
+  "ultimateAtHp": 10,
+  "yield": {
+    "speech": "Huff...|Puff....|I see....|A game designer's wits don't come from the way they fight...|But the way they think about how games work....|.....|So even after everything I threw at you....|You are still standing.....|......",
+    "flawlessLine": "With not a single point of damage taken....",
+    "closing": "........|I yield.....|I leave the decision on what to do next in your hands.",
+    "actOptions": [
+      {
+        "name": "Check",
+        "description": "Dor Ben Dor - 100 Health, 5 Attack. The decision on what to do now, rests in your hands",
+        "speech": ".........",
+        "spareGain": 0
+      }
+    ]
+  },
   "sprite": {
     "sheet": "dorbendor",
     "anchor": [ 0, 0 ],
@@ -40,8 +57,8 @@
     "onSpare": [
       "The ocean shows no mercy."
     ],
-    "onDefeat": "Impossible... defeated by a student...",
-    "onSpared": "You have earned safe passage through the storm."
+    "onDefeat": ".......................................|Defeated.......|This fight was so much fun........|..........",
+    "onSpared": "You truly are remakable.|You survived everything I threw at you, yet you still show mercy?|I shouldn't have been so harsh with you.|Thank you for giving me a chance to see the world through your eyes.|I will let you go, but I hope you will remember this lesson for the rest of your life."
   },
   "moves": [
     {
@@ -109,6 +126,15 @@
           "You endure. The storm does not tire."
         ]
       }
+    },
+    {
+      "name": "Napoleon",
+      "power": 1,
+      "accuracy": 100,
+      "description": "The room falls away and something enormous rises.",
+      "pattern": "Napoleon",
+      "isUltimate": true,
+      "intro": "Hmph.|You truly are a remarkable student.|But lets see you face against my ultimate attack."
     }
   ],
   "actOptions": [
@@ -145,7 +171,7 @@
   "spareSuccessAt": 100,
   "spareSuccessText": "Dor Ben Dor nods and allows you passage.",
   "spareTextByPercent": [
-    { "minPercent": 0,  "text": "Dor Ben Dor commands the battlefield." }
+    { "minPercent": 1,  "text": "Dor Ben Dor is weakened and is ready to give up." }
   ],
   "turnNarrationByHp": [
     { "minPercent": 0,  "text": " * Dor Ben Dor stands imposing before you." }

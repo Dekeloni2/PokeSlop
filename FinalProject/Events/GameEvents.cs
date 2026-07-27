@@ -21,18 +21,19 @@ namespace FinalProject.Events
     public enum BattleOutcome { Killed, Spared }
 
     // Fired once a teacher's fight is decided, before the ending plays out.
-    // The teacher is a name rather than a type so a new teacher stays a JSON
-    // file and nothing here has to change.
+    // The teacher is an id rather than a type so a new teacher stays a JSON
+    // file and nothing here has to change — and an id rather than a display
+    // name so renaming him on screen can't break an unlock that depends on him.
     // Listeners: RouteTracker
     public class TeacherResolvedEvent : GameEvent
     {
-        public string        TeacherName { get; }
-        public BattleOutcome Outcome     { get; }
+        public string        TeacherId { get; }
+        public BattleOutcome Outcome   { get; }
 
-        public TeacherResolvedEvent(string teacherName, BattleOutcome outcome)
+        public TeacherResolvedEvent(string teacherId, BattleOutcome outcome)
         {
-            TeacherName = teacherName;
-            Outcome     = outcome;
+            TeacherId = teacherId;
+            Outcome   = outcome;
         }
     }
 

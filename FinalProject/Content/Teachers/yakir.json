@@ -1,5 +1,6 @@
 {
   "name": "Yakir",
+  "id": "yakir",
   "spriteName": "yakir",
   "baseHp": 51,
   "baseAtk": 4,

@@ -10,7 +10,7 @@ namespace FinalProject.Core
     {
         public int CurrentHp { get; set; } = 20;
         public int MaxHp     { get; set; } = 20;
-        public int Attack    { get; set; } = 10;
+        public int Attack    { get; set; } = 90;
         public int Money     { get; set; } = 500;
 
         // no stacking, using an item just removes its entry

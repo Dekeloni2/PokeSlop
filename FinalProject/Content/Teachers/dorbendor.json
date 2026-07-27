@@ -171,7 +171,11 @@
   "spareSuccessAt": 100,
   "spareSuccessText": "Dor Ben Dor nods and allows you passage.",
   "spareTextByPercent": [
-    { "minPercent": 1,  "text": "Dor Ben Dor is weakened and is ready to give up." }
+    { "minPercent": 0,  "text": "Dor Ben Dor has no intention of letting you pass." }
+  ],
+  "turnNarrationBySpare": [
+    { "minPercent": 0,   "text": " * Dor Ben Dor stands imposing before you." },
+    { "minPercent": 100, "text": " * Dor Ben Dor is weakened and is ready to give up." }
   ],
   "turnNarrationByHp": [
     { "minPercent": 0,  "text": " * Dor Ben Dor stands imposing before you." }

@@ -23,6 +23,7 @@ namespace FinalProject.Battle
             ["GarlicGun"]    = () => new GarlicGunPattern(), // only if you bring up the photo
             ["Napoleon"]     = () => new NapoleonPattern(),
             ["Hexagon"]      = () => new HexagonPattern(),
+            ["Punch"]        = () => new PunchPattern(),
             ["Boat"]         = () => new BoatPattern(),
             ["Cloverbyte"]   = () => new CloverbytePattern(),
             ["Chess"]        = () => new ChessPattern(),

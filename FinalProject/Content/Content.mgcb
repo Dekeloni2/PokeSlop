@@ -302,6 +302,12 @@
 /processorParam:Quality=Best
 /build:Audio/Music/dbd_theme.ogg
 
+#begin Audio/Music/david_theme.ogg
+/importer:OggImporter
+/processor:SongProcessor
+/processorParam:Quality=Best
+/build:Audio/Music/david_theme.ogg
+
 #begin Audio/Music/mus_elevator.ogg
 /importer:OggImporter
 /processor:SongProcessor

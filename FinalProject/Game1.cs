@@ -100,6 +100,7 @@ namespace FinalProject
             // battle themes, teachers name theirs in their JSON
             SoundManager.AddSong("yakirTheme", "Audio/Music/yakir_theme");
             SoundManager.AddSong("dbdTheme",   "Audio/Music/dbd_theme");
+            SoundManager.AddSong("davidTheme", "Audio/Music/david_theme");
             SoundManager.AddSong("game_over",  "Audio/Music/game_over");
             // menus, shared by anything that has a cursor
             SoundManager.AddSound(SoundManager.MenuMove,   "Audio/SFX/snd_squeak");

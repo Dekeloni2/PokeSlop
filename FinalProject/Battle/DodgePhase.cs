@@ -66,6 +66,11 @@ namespace FinalProject.Battle
         internal float     Elapsed        => _elapsed;
         internal Rectangle BaseBox        => _baseBox;
         internal Vector2   HitboxPosition => _hitbox.Position;
+
+        // the teacher's own rig (sheet, parts, offsets), for attacks that draw
+        // and animate his actual body instead of a separate hazard. null if his
+        // JSON has no "sprite" block
+        internal TeacherSpriteData TeacherSpriteData => _teacher.Stats.Sprite;
         internal bool      HitboxIsMoving => _hitbox.IsMoving;
         internal Point     HitboxTile     => _hitbox.Tile;
 
@@ -171,6 +176,11 @@ namespace FinalProject.Battle
             // board, frame and pieces all belong to the pattern
             if (_pattern is ChessPattern chess)
                 chess.Draw(spriteBatch, pixel);
+
+            // draws David's own rig — hop/windup/punch/leap all live on the
+            // pattern, this call is the only thing DodgePhase does for it
+            if (_pattern is PunchPattern punch)
+                punch.Draw(spriteBatch, pixel, font);
 
             if (_pattern is GarlicGunPattern garlic && (garlic.IsCharging || garlic.IsFiring || garlic.IsVanishing))
             {

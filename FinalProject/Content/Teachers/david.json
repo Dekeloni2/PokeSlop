@@ -5,6 +5,8 @@
   "baseHp": 48,
   "baseAtk": 4,
   "goldReward": 35,
+  "theme": "davidTheme",
+  "themeVolume": 0.4,
   "sequentialMoves": true,
   "sprite": {
     "sheet": "david",
@@ -38,11 +40,11 @@
   },
   "moves": [
     {
-      "name": "Hexagon",
+      "name": "Haymaker",
       "power": 1,
       "accuracy": 100,
-      "description": "Hexagons bloom across the arena.",
-      "pattern": "Hexagon"
+      "description": "David winds up and drives a fist across the arena.",
+      "pattern": "Punch"
     }
   ],
   "actOptions": [

@@ -1,6 +1,7 @@
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
+using FinalProject.Data;
 
 namespace FinalProject.Battle
 {
@@ -101,6 +102,11 @@ namespace FinalProject.Battle
         // put the teacher on screen during the attack and give him a line
         public void SetTeacherVisible(bool visible) => _phase.SetTeacherVisible(visible);
         public void SetTeacherSpeech(string text)   => _phase.SetTeacherSpeech(text);
+
+        // the teacher's own multi part rig, for attacks that draw and animate
+        // his actual body (see PunchPattern) instead of a separate hazard or
+        // the passive floating idle. null if his JSON has no "sprite" block
+        public TeacherSpriteData TeacherSprite => _phase.TeacherSpriteData;
 
         // a line authored in the teacher's JSON for a named beat of this attack,
         // falling back to what the pattern passes when the file doesn't cover it.

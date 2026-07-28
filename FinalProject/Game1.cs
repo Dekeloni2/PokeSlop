@@ -112,6 +112,7 @@ namespace FinalProject
             SoundManager.AddSound("snd_break1", "Audio/SFX/snd_break1");
             SoundManager.AddSound("snd_break2", "Audio/SFX/snd_break2");
             SoundManager.AddSound("snd_txtasg", "Audio/SFX/snd_txtasg");
+            SoundManager.AddSound("snd_txtdavid", "Audio/SFX/snd_txtdavid");
             // napoleon sfx
             SoundManager.AddSound("rumble", "Audio/SFX/rumble");
             SoundManager.AddSound("thud",   "Audio/SFX/thud");

@@ -412,6 +412,12 @@
 /processorParam:Quality=Best
 /build:Audio/SFX/snd_txtasg.wav
 
+#begin Audio/SFX/snd_txtdavid.wav
+/importer:WavImporter
+/processor:SoundEffectProcessor
+/processorParam:Quality=Best
+/build:Audio/SFX/snd_txtdavid.wav
+
 #begin Audio/SFX/snd_damage.wav
 /importer:WavImporter
 /processor:SoundEffectProcessor

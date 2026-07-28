@@ -1,6 +1,7 @@
 using System;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
+using FinalProject.Core.Audio;
 
 namespace FinalProject.Battle
 {
@@ -9,6 +10,11 @@ namespace FinalProject.Battle
     // (a brief non-damaging telegraph), grows to a max radius, then explodes:
     // each edge detaches and slides straight out along its normal until it
     // leaves the box. DodgePhase owns the list and applies the damage.
+    //
+    // Several of these can be alive at once, each on its own timeline, so the
+    // sound for each stage lives here rather than in HexagonPattern — the
+    // pattern only ever sees an aggregate HexCount, not which hex is doing
+    // what, so it has no way to know when any one of them changes phase.
     public class HexHazard
     {
         public const  int   Damage         = 6;
@@ -21,6 +27,17 @@ namespace FinalProject.Battle
         private const float ChargeSeconds  = 0.5f;  // how long the wind-up lasts
         private const float ShakeMagnitude = 3f;    // px of jitter at the peak of the charge
         private const float PulseHz        = 8f;    // red-pulse cycles per second
+
+        // spawn: the same "something's emerging" cue Cloverbyte's tongue and
+        // David's punch telegraph use, so the vocabulary carries across
+        // teachers instead of every attack inventing its own "pay attention" sound
+        private const string SpawnSound = "snd_spearrise";
+        // charge: this is the one warning the edges are about to go live, so
+        // it needs to read as clearly distinct from the spawn cue above
+        private const string ChargeSound = "snd_screenshake";
+        // explode: the same weight Cloverbyte's sweep and the punch's strike
+        // use, this is the moment the hex actually becomes what it's for
+        private const string ExplodeSound = "snd_heavydamage";
 
         private enum Phase { FadeIn, Grow, Charge, Explode, Done }
 
@@ -50,6 +67,10 @@ namespace FinalProject.Battle
             _growSeconds  = growSeconds;
             _explodeSpeed = explodeSpeed;
             _radius       = startRadius;
+
+            // FadeIn starts the instant this exists, so the spawn cue plays
+            // right here rather than waiting for the first Update
+            SoundManager.Play(SpawnSound);
         }
 
         public void Update(float dt, Rectangle box)
@@ -66,7 +87,12 @@ namespace FinalProject.Battle
                 case Phase.Grow:
                     float t = MathHelper.Clamp(_timer / _growSeconds, 0f, 1f);
                     _radius = MathHelper.Lerp(_startRadius, _maxRadius, t);
-                    if (t >= 1f) { _phase = Phase.Charge; _timer = 0f; }
+                    if (t >= 1f)
+                    {
+                        _phase = Phase.Charge;
+                        _timer = 0f;
+                        SoundManager.Play(ChargeSound);
+                    }
                     break;
 
                 case Phase.Charge:
@@ -83,6 +109,7 @@ namespace FinalProject.Battle
                         _phase       = Phase.Explode;
                         _timer       = 0f;
                         _shakeOffset = Vector2.Zero;
+                        SoundManager.Play(ExplodeSound);
                     }
                     break;
 

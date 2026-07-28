@@ -105,6 +105,7 @@ public class PunchPattern : IBulletPattern
     private const string HopSound       = "thud";
     private const string TelegraphSound = "snd_spearrise";   // plays as the coil finishes, right before the snap
     private const string StrikeSound    = "snd_heavydamage";
+    private const string JumpSound      = "slash";           // the crouch releasing into the launch
     private const string LandSound      = "thud";
     private const string ShakeSound     = "snd_screenshake"; // rides along with every shake, see Shake()
 
@@ -184,10 +185,14 @@ public class PunchPattern : IBulletPattern
         _scaleX = 1f; _scaleY = 1f; _rotation = 0f;
         _visible = true;
 
-        float perPunch = HopSeconds + WindupSeconds + TelegraphSeconds + StrikeSeconds + HoldSeconds
-                       + RetractSeconds + UnsquishSeconds + RestSeconds
-                       + LeapChargeSeconds + LaunchSeconds + FallSeconds + LandSquashSeconds;
-        _duration = EnterSeconds + perPunch * PunchCount + DurationSlack;
+        // every punch through the leap's charge and launch; only the ones
+        // that land also pay for the fall and the squash — the last leap
+        // exits mid air instead, see Phase.Launch
+        float punchToLaunch = HopSeconds + WindupSeconds + TelegraphSeconds + StrikeSeconds + HoldSeconds
+                             + RetractSeconds + UnsquishSeconds + RestSeconds
+                             + LeapChargeSeconds + LaunchSeconds;
+        float landing = FallSeconds + LandSquashSeconds;
+        _duration = EnterSeconds + punchToLaunch * PunchCount + landing * (PunchCount - 1) + DurationSlack;
     }
 
     public void Update(GameTime gameTime, DodgeContext context)
@@ -322,7 +327,16 @@ public class PunchPattern : IBulletPattern
                 float t = Progress(UnsquishSeconds);
                 _scaleX = MathHelper.Lerp(WindupScaleX, 1f, t);
                 _scaleY = MathHelper.Lerp(WindupScaleY, 1f, t);
-                if (_timer >= UnsquishSeconds) { _scaleX = 1f; _scaleY = 1f; Advance(Phase.Rest); }
+                if (_timer >= UnsquishSeconds)
+                {
+                    _scaleX = 1f; _scaleY = 1f;
+                    // counted here, the moment a punch is actually finished
+                    // recovering, not once the leap that follows it happens
+                    // to land — the leap after the LAST punch doesn't land
+                    // at all, see Launch
+                    _punchesDone++;
+                    Advance(Phase.Rest);
+                }
                 break;
             }
 
@@ -343,7 +357,11 @@ public class PunchPattern : IBulletPattern
                 float t = Progress(LeapChargeSeconds);
                 _scaleX = MathHelper.Lerp(1f, LeapChargeScaleX, t);
                 _scaleY = MathHelper.Lerp(1f, LeapChargeScaleY, t);
-                if (_timer >= LeapChargeSeconds) Advance(Phase.Launch);
+                if (_timer >= LeapChargeSeconds)
+                {
+                    SoundManager.Play(JumpSound);
+                    Advance(Phase.Launch);
+                }
                 break;
             }
 
@@ -361,6 +379,17 @@ public class PunchPattern : IBulletPattern
 
                 if (_timer >= LaunchSeconds)
                 {
+                    // that was the last one — he's leaving for good, so the
+                    // exit is the leap itself, not a leap that happens to be
+                    // followed by nothing. no landing, no extra punch that
+                    // was never coming
+                    if (_punchesDone >= PunchCount)
+                    {
+                        _visible = false;
+                        Advance(Phase.Done);
+                        break;
+                    }
+
                     // fully off screen now — free to reposition and flip for
                     // the new side with nobody able to see the snap happen
                     _side = _landSide;
@@ -412,19 +441,11 @@ public class PunchPattern : IBulletPattern
 
                 if (_timer >= LandSquashSeconds)
                 {
+                    // reaching a landing at all means there's another punch
+                    // due — the final leap skips straight from Launch to
+                    // Done and never falls back in, see there
                     _scaleX = 1f; _scaleY = 1f;
-                    _punchesDone++;
-                    if (_punchesDone >= PunchCount)
-                    {
-                        _visible = false;
-                        Advance(Phase.Done);
-                    }
-                    else
-                    {
-                        // straight into the next one from wherever he landed —
-                        // Enter only ever plays once, before the first punch
-                        Advance(Phase.Hop);
-                    }
+                    Advance(Phase.Hop);
                 }
                 break;
             }

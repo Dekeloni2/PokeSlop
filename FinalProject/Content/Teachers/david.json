@@ -5,6 +5,7 @@
   "baseHp": 48,
   "baseAtk": 4,
   "goldReward": 35,
+  "speakingVoice": "snd_txtdavid",
   "theme": "davidTheme",
   "themeVolume": 0.4,
   "sequentialMoves": true,
@@ -26,11 +27,16 @@
       "Show your work. I'm not marking that."
     ],
     "onAct": [
-      "Everything in a game is math.|Movement, collision, the curve on a jump.|You've been doing my homework all along.",
+      "Everything in a game is math.|Movement, collision, the curve on a jump.|My lessons should be translated into your work in Unity.",
       "Students think geometry is decoration.|Then they wonder why their hitboxes feel wrong.",
       "A hexagon tiles the plane with the least perimeter per area.|Nature worked that out before either of us did.",
       "You're not bad at this.|You're just impatient.",
-      "Numbers don't care how you feel about them.|That's the nicest thing about them."
+      "Numbers don't care how you feel about them.|That's the nicest thing about them.",
+      "I once tried to invert a matrix on a first date.|We did not have a second date.",
+      "A vector has direction and magnitude.|My GPS has neither, and somehow we still get places.",
+      "The dot product of two vectors can be zero.|So can my raise this year. We call both of them 'orthogonal to reality.'",
+      "The cross product needs exactly three dimensions to work.|My apartment has two, and a lot of regrets.",
+      "Every point on a circle is the same distance from the center.|Unlike my students, who all sit as far from the front as legally possible."
     ],
     "onSpare": [
       "Mercy isn't a theorem. You can't prove it to me."
@@ -45,13 +51,20 @@
       "accuracy": 100,
       "description": "David winds up and drives a fist across the arena.",
       "pattern": "Punch"
+    },
+    {
+      "name": "Haymaker",
+      "power": 1,
+      "accuracy": 100,
+      "description": "David winds up and drives a fist across the arena.",
+      "pattern": "Hexagon"
     }
   ],
   "actOptions": [
     {
       "name": "Check",
       "descriptionByHp": [
-        { "minPercent": 0, "text": "David - HP 48, ATK 4. Teaches math at Tiltan.|Somehow both an ogre and a mathematician." }
+        { "minPercent": 0, "text": "David - HP 48, ATK 4. Teaches math at Tiltan.|Somehow weaker than Yakir? Who designed this game?|Ah wait, David's damage is doubled against students.|Good job game designer!." }
       ],
       "spareGain": 0
     },
@@ -59,13 +72,25 @@
       "name": "Flex",
       "description": "You flex back at David.",
       "extraMessages": [ "David sizes up your form.|He seems to approve of the symmetry." ],
-      "spareGain": 30
+      "spareGain": 20
     },
     {
-      "name": "Homework",
-      "description": "You ask David for an extension on the homework.",
-      "extraMessages": [ "David considers it for a long, quiet moment.|He does not say no." ],
-      "spareGain": 30
+      "name": "Final Project Score",
+      "description": "You ask David about Math 1 final project score.",
+      "extraMessages": [ "David is looking at you with a blank face.|He wants to say something, but is probably just coming up with an excuse" ],
+      "spareGain": 20
+    },
+    {
+      "name": "Test Score",
+      "description": "You ask David about Math 2 test score.",
+      "extraMessages": [ "David is looking at you with a blank face.|He wants to say something, but is probably just coming up with an excuse|Oh wait, he actually already gave you the tests back." ],
+      "spareGain": 20
+    },
+    {
+      "name": "Shrek",
+      "description": "You ask David about watching Shrek 2 during the class.",
+      "extraMessages": [ "David uses the TV remove to go to Shrek 2.|''You need a subscription to watch this movie''|David is audibly pissed off and throws the remote across the room." ],
+      "spareGain": 20
     }
   ],
   "spareSuccessAt": 100,

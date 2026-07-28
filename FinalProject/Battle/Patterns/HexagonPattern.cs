@@ -33,6 +33,9 @@ public class HexagonPattern : IBulletPattern
         var expanded = new Rectangle(b.Center.X - newW / 2, b.Y, newW, b.Height);
         context.ResizeBoxTo(expanded, ExpandSeconds);
 
+        // he stands over the widened arena and drops the hexagons himself
+        context.SetTeacherVisible(true);
+
         _spawnTimer = 0f;
     }
 

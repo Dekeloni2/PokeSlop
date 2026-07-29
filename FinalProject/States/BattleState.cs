@@ -98,6 +98,10 @@ namespace FinalProject.States
         // where a sequential teacher is up to in his move list
         private int _moveIndex;
 
+        // the turn being dodged came off the lesson plan rather than an ACT, so
+        // getting through it clean is allowed to advance a gated teacher
+        private bool _dodgingLesson;
+
         // the turn currently being dodged is the ultimate. once he's fired his
         // best shot he's out of material, so surviving it opens up mercy
         private bool _ultimateDodging;
@@ -178,6 +182,8 @@ namespace FinalProject.States
             _endingStarted = false;
             _ultimateUsed  = false;
             _ultimateDodging = false;
+            _dodgingLesson   = false;
+            _moveIndex       = 0;
             _yielded         = false;
             _yieldStarted    = false;
             _tookDamage      = false;
@@ -758,7 +764,10 @@ namespace FinalProject.States
         // of the teacher's JSON instead of holding them in code
         private void StartDodge(IBulletPattern pattern, MoveData move)
         {
-            _dodgePhase = new DodgePhase(pattern, _teacher, Game.PlayerData, DodgeBoxRect, move);
+            // a provoked pattern has no move behind it, so it isn't part of the
+            // lesson plan and can't count as clearing one
+            _dodgingLesson = move != null;
+            _dodgePhase = new DodgePhase(pattern, _teacher, Game.PlayerData, DodgeBoxRect, move, WideBoxRect);
 
             _box.ResizeTo(DodgeBoxRect, ShrinkSeconds);
             _phaseAfterTransition = BattlePhase.Dodging;
@@ -825,7 +834,11 @@ namespace FinalProject.States
 
             if (_dodgePhase.IsFinished)
             {
+                // read before the phase goes, the gate below needs it
+                bool clearedCleanly = _dodgePhase.PlayerHitCount == 0;
                 _dodgePhase = null;
+
+                AdvanceGatedLesson(clearedCleanly);
 
                 // he threw everything he had and you're still standing, so the
                 // fight is winding down whether he likes it or not
@@ -1075,11 +1088,41 @@ namespace FinalProject.States
             if (_teacher.Stats.SequentialMoves)
             {
                 int i = Math.Min(_moveIndex, normal.Count - 1);
-                _moveIndex++;
+
+                // a gated teacher doesn't step forward here — UpdateDodging
+                // does it, and only if the player got through untouched, so a
+                // lesson repeats until it actually lands
+                if (!_teacher.Stats.GatedMoves) _moveIndex++;
                 return normal[i];
             }
 
             return normal[_rng.Next(normal.Count)];
+        }
+
+        // a gated teacher only moves on when the player got through the last
+        // attack without being hit, so each lesson repeats until it's understood
+        // rather than scrolling past on a timer. clearing the last one is what
+        // opens up mercy — the same handover surviving an ultimate gets
+        private void AdvanceGatedLesson(bool clearedCleanly)
+        {
+            if (!_teacher.Stats.SequentialMoves || !_teacher.Stats.GatedMoves) return;
+            if (!_dodgingLesson || !clearedCleanly) return;
+
+            _moveIndex++;
+
+            if (_moveIndex >= NormalMoveCount)
+                _teacher.IncreaseSparePercent(100);
+        }
+
+        // his attacks minus the ultimate, which isn't part of a lesson plan
+        private int NormalMoveCount
+        {
+            get
+            {
+                int n = 0;
+                foreach (MoveData m in _teacher.Moves) if (!m.IsUltimate) n++;
+                return n;
+            }
         }
 
         // a teacher with a lesson plan holds his ultimate until he's actually

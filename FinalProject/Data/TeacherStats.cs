@@ -65,6 +65,12 @@ namespace FinalProject.Data
         // attacks are lessons that build on each other, like Yakir
         public bool SequentialMoves { get; }
 
+        // with SequentialMoves, only step to the next move when the player got
+        // through the last one untouched — so a lesson repeats until it lands.
+        // clearing the final move is also what hands over mercy. for the
+        // training dummy, where the attacks are the tutorial
+        public bool GatedMoves { get; set; }
+
         // SoundManager key for his text blip while speaking. null means the
         // default "beep" is used.
         public string SpeakingVoice { get; }

@@ -29,7 +29,11 @@ namespace FinalProject.States
 
         private readonly string        _title;
         private readonly List<string>  _pages;
-        private readonly Typewriter    _typer = new Typewriter("snd_txtasg");
+        // slower than the default typewriter speed — the game-over text is meant
+        // to sit and linger rather than blip by like regular dialogue
+        private const float TextCharsPerSecond = 28f;
+
+        private readonly Typewriter    _typer = new Typewriter("snd_txtasg", TextCharsPerSecond);
 
         private int   _page;
         private float _fadeT;
@@ -90,7 +94,9 @@ namespace FinalProject.States
 
             if (Game.Input.IsKeyPressed(Keys.Z) || Game.Input.IsKeyPressed(Keys.Enter))
             {
-                if (!_typer.IsFullyShown) { _typer.SkipToEnd(); return; }
+                // like Undertale: a press while the text is still typing does
+                // nothing at all, it doesn't even skip to the full line
+                if (!_typer.IsFullyShown) return;
 
                 // advance to the next page, or on the last one start the fade-out
                 // (keeping _page valid so the final line fades out with the title)

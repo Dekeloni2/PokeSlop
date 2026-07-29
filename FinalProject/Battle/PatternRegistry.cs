@@ -27,6 +27,12 @@ namespace FinalProject.Battle
             ["Boat"]         = () => new BoatPattern(),
             ["Cloverbyte"]   = () => new CloverbytePattern(),
             ["Chess"]        = () => new ChessPattern(),
+
+            // the training dummy's three lessons — one class, one entry per
+            // rule it teaches. see TrainingLinePattern
+            ["TrainingWhite"]  = () => new TrainingLinePattern(TrainingLinePattern.Kind.White),
+            ["TrainingBlue"]   = () => new TrainingLinePattern(TrainingLinePattern.Kind.Blue),
+            ["TrainingOrange"] = () => new TrainingLinePattern(TrainingLinePattern.Kind.Orange),
         };
 
         public static Func<IBulletPattern> Resolve(string name)

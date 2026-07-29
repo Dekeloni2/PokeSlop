@@ -25,6 +25,7 @@ namespace FinalProject.Battle
         private readonly List<HexHazard>  _hexes       = new();
 
         private readonly Rectangle   _baseBox;
+        private readonly Rectangle   _menuBox;
         private readonly TweeningBox _box;
         private readonly ParticleSystem _particles = new();
         private InputManager _input;
@@ -65,6 +66,10 @@ namespace FinalProject.Battle
 
         internal float     Elapsed        => _elapsed;
         internal Rectangle BaseBox        => _baseBox;
+
+        // the wide menu box the arena shrank out of, for attacks that want to
+        // play out across that shape instead of the square dodge arena
+        internal Rectangle MenuBox        => _menuBox;
         internal Vector2   HitboxPosition => _hitbox.Position;
 
         // the teacher's own rig (sheet, parts, offsets), for attacks that draw
@@ -84,12 +89,13 @@ namespace FinalProject.Battle
         // move is optional: a pattern provoked by an ACT isn't backed by one, so
         // anything that reads it has to cope with null
         public DodgePhase(IBulletPattern pattern, Teacher teacher, PlayerData playerData,
-            Rectangle baseBox, MoveData move = null)
+            Rectangle baseBox, MoveData move = null, Rectangle? menuBox = null)
         {
             _pattern    = pattern;
             _teacher    = teacher;
             _playerData = playerData;
             _baseBox    = baseBox;
+            _menuBox    = menuBox ?? baseBox;
             _move       = move; // before Start, patterns read their lines in there
             _box        = new TweeningBox(baseBox);
             _hitbox     = new PlayerHitbox(new Vector2(baseBox.Center.X, baseBox.Center.Y));
@@ -176,6 +182,10 @@ namespace FinalProject.Battle
             // board, frame and pieces all belong to the pattern
             if (_pattern is ChessPattern chess)
                 chess.Draw(spriteBatch, pixel);
+
+            // the sweeping line, drawn from the same rects it collides with
+            if (_pattern is TrainingLinePattern line)
+                line.Draw(spriteBatch, pixel);
 
             // draws David's own rig — hop/windup/punch/leap all live on the
             // pattern, this call is the only thing DodgePhase does for it

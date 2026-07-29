@@ -94,7 +94,11 @@ namespace FinalProject.States
         void ElevatorSequence.IElevatorHost.ChangeMap(string map, int spawnX, int spawnY)
             => BeginMapChange(map, spawnX, spawnY);
 
-        public override void Resume() => _fadeInLeft = FadeInSeconds;
+        public override void Resume()
+        {
+            _fadeInLeft = FadeInSeconds;
+            RefreshNpcs(); // an NPC's fight may have just been resolved
+        }
 
         public override void Update(GameTime gameTime)
         {
@@ -171,8 +175,7 @@ namespace FinalProject.States
             _player.Update(gameTime, _map);
             _camera.Follow(_player, _map);
 
-            // TODO: teacher fights still only start from the debug key. they'll
-            // hook in around here or through TryInteract once encounters exist
+            if (CheckNpcBump()) return; // battle just started, this state is paused
 
             CheckTransitions();
             CheckWarps();
@@ -196,6 +199,7 @@ namespace FinalProject.States
                 transformMatrix: view
             );
             _map?.Draw(spriteBatch, _camera);
+            DrawNpcs(spriteBatch);
             _player.Draw(spriteBatch);
             spriteBatch.End();
 
@@ -242,6 +246,93 @@ namespace FinalProject.States
             _dialogueBox.Open(interactable.Text);
         }
 
+        // ── NPCs ─────────────────────────────────────────────────────────────
+
+        // keeps the map's dynamic collision in sync with which NPCs are still
+        // unresolved. called on every map load and every time this state
+        // resumes, since a battle fought against one of them can flip its
+        // RouteTracker entry while this instance was paused underneath it
+        private void RefreshNpcs()
+        {
+            if (_map == null) return;
+
+            foreach (NpcSpawn npc in _map.Npcs)
+                _map.SetTileBlocked(npc.TileX, npc.TileY, !Game.Route.IsResolved(npc.Id));
+        }
+
+        private void DrawNpcs(SpriteBatch spriteBatch)
+        {
+            if (_map == null) return;
+
+            foreach (NpcSpawn npc in _map.Npcs)
+            {
+                if (Game.Route.IsResolved(npc.Id)) continue;
+
+                Spritesheet sheet = SpriteManager.GetSprite(npc.SpriteName);
+                if (sheet?.Texture == null) continue;
+
+                Rectangle src = sheet[0, 0];
+
+                // scaled to standing height first, then bottom-anchored to its
+                // tile off the SCALED size — same idea as the player's own draw
+                // offset, so a tall sprite stands on the tile instead of
+                // floating in it or sinking through the floor
+                int tileSize = _map.TileWidth;
+                int w = (int)(src.Width  * npc.Scale);
+                int h = (int)(src.Height * npc.Scale);
+
+                var dst = new Rectangle(
+                    (int)(npc.TileX * tileSize + tileSize / 2f - w / 2f),
+                    npc.TileY * tileSize + tileSize - h,
+                    w, h);
+
+                spriteBatch.Draw(sheet.Texture, dst, src, Color.White);
+            }
+        }
+
+        // solid NPCs block movement (see TileMap.IsWalkable), so "colliding"
+        // with one means the player is facing it and pushing into it. Returns
+        // true if a battle was started, so Update can bail out immediately —
+        // this state is about to be paused underneath BattleTransition
+        private bool CheckNpcBump()
+        {
+            if (_map == null || _transitioning || !_player.IsMoving) return false;
+
+            Point facingTile = _player.Facing.GetNeighbour(_player.TilePosition);
+
+            foreach (NpcSpawn npc in _map.Npcs)
+            {
+                if (Game.Route.IsResolved(npc.Id)) continue;
+                if (npc.TileX != facingTile.X || npc.TileY != facingTile.Y) continue;
+
+                StartNpcBattle(npc);
+                return true;
+            }
+
+            return false;
+        }
+
+        private void StartNpcBattle(NpcSpawn npc)
+        {
+            string teachersDir = Path.GetFullPath(
+                Path.Combine(AppContext.BaseDirectory, "..", "..", "..", "Content", "Teachers"));
+            string path = Path.Combine(teachersDir, npc.Id + ".json");
+            if (!File.Exists(path))
+            {
+                LogDebug($"NPC BATTLE ERROR: no teacher file for \"{npc.Id}\" at {path}");
+                return;
+            }
+
+            TeacherStats stats  = TeacherLoader.Load(path);
+            var          teacher = new Teacher(stats);
+
+            float tileSize = _map.TileWidth;
+            Vector2 soulStart = Vector2.Transform(
+                _player.WorldPosition + new Vector2(tileSize / 2f, tileSize / 2f),
+                _camera.GetTransform());
+            StateManager.Push(new BattleTransition(Game, StateManager, teacher, _player, soulStart, GameSettings.Zoom));
+        }
+
 #if DEBUG
         // builds a test teacher and starts a battle. Push (not Replace) so
         // this state resumes when the battle pops itself
@@ -250,7 +341,7 @@ namespace FinalProject.States
             string teachersDir = Path.GetFullPath(
                 Path.Combine(AppContext.BaseDirectory, "..", "..", "..", "Content", "Teachers"));
             // swap this filename to whoever you're testing (dorbendor.json, yakir.json, david.json, substitute.json)
-            TeacherStats stats = TeacherLoader.Load(Path.Combine(teachersDir, "david.json"));
+            TeacherStats stats = TeacherLoader.Load(Path.Combine(teachersDir, "dorbendor.json"));
             var teacher = new Teacher(stats);
 
             // the Undertale-style intro plays first, then hands off to the battle.
@@ -340,6 +431,7 @@ namespace FinalProject.States
             _player.Teleport(spawnX, spawnY);
             _transitions = LoadTransitions(mapsDir, mapName);
             _warps       = LoadWarps(mapsDir, mapName);
+            RefreshNpcs();
 
             EventBus.Instance.Publish(new AreaChangedEvent(_currentAreaName));
         }

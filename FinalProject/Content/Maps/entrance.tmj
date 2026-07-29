@@ -100,9 +100,48 @@
          "visible":true,
          "x":0,
          "y":0
+        },
+        {
+         "draworder":"topdown",
+         "id":7,
+         "name":"NPCs",
+         "objects":[
+                {
+                 "height":20,
+                 "id":7,
+                 "name":"training_dummy",
+                 "opacity":1,
+                 "properties":[
+                        {
+                         "name":"Id",
+                         "type":"string",
+                         "value":"training_dummy"
+                        },
+                        {
+                         "name":"Sprite",
+                         "type":"string",
+                         "value":"dummy"
+                        },
+                        {
+                         "name":"Scale",
+                         "type":"float",
+                         "value":0.55
+                        }],
+                 "rotation":0,
+                 "type":"",
+                 "visible":true,
+                 "width":20,
+                 "x":280,
+                 "y":320
+                }],
+         "opacity":1,
+         "type":"objectgroup",
+         "visible":true,
+         "x":0,
+         "y":0
         }],
- "nextlayerid":7,
- "nextobjectid":7,
+ "nextlayerid":8,
+ "nextobjectid":8,
  "orientation":"orthogonal",
  "renderorder":"right-down",
  "tiledversion":"1.12.2",

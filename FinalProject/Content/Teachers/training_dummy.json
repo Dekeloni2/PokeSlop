@@ -1,0 +1,98 @@
+{
+  "name": "Training Dummy",
+  "id": "training_dummy",
+  "spriteName": "dummy_battle",
+  "baseHp": 20,
+  "baseAtk": 1,
+  "goldReward": 0,
+  "sequentialMoves": true,
+  "gatedMoves": true,
+  "sprite": {
+    "sheet": "dummy_battle",
+    "anchor": [ 0, 0 ],
+    "scale": 1.25,
+    "parts": [
+      { "name": "body", "src": [ 0, 0, 77, 106 ], "offset": [ 0, 0 ], "bobX": 0, "bobY": 0, "speed": 0, "phase": 0 }
+    ]
+  },
+  "battleDialogue": {
+    "onAttack": [
+      "FIGHT lowers an enemy's HP. That is all it does.",
+      "The dummy is still here. Violence was optional."
+    ],
+    "onAct": [
+      "ACT is how you deal with an enemy without fighting.|Every enemy has its own options.|Some of them are the only way to end a fight peacefully.",
+      "CHECK shows you an enemy's HP and ATK.|When you don't know what an enemy does, start there.",
+      "Talking is a real move here. Remember that."
+    ],
+    "onSpare": [
+      "MERCY ends a fight without killing.|It only works once the enemy is ready to be spared."
+    ]
+  },
+  "moves": [
+    {
+      "name": "White Line",
+      "power": 1,
+      "accuracy": 100,
+      "description": "A white line with a gap in it.",
+      "pattern": "TrainingWhite",
+      "speech": {
+        "warn": [ "Move with the ARROW KEYS.|Get into the gap." ],
+        "cleared": [ "That is dodging.|Now the colours." ],
+        "hit": [ "WHITE always hurts you.|Move into the gap and try again." ]
+      }
+    },
+    {
+      "name": "Blue Line",
+      "power": 1,
+      "accuracy": 100,
+      "description": "A blue line, no gap.",
+      "pattern": "TrainingBlue",
+      "speech": {
+        "warn": [ "This one has no gap. It will pass through you.|BLUE only hurts you if you MOVE.|Let go of the keys. Stand still." ],
+        "cleared": [ "Correct.|BLUE means hold still." ],
+        "hit": [ "You moved.|BLUE only hurts you if you move. Stand still." ]
+      }
+    },
+    {
+      "name": "Orange Line",
+      "power": 1,
+      "accuracy": 100,
+      "description": "An orange line, no gap.",
+      "pattern": "TrainingOrange",
+      "speech": {
+        "warn": [ "Same line. Opposite rule.|ORANGE only hurts you if you STAND STILL.|Keep walking. Move through it." ],
+        "cleared": [ "Correct.|ORANGE means keep moving.|You are ready. Show me MERCY." ],
+        "hit": [ "You stopped.|ORANGE only hurts you if you stand still. Keep moving." ]
+      }
+    }
+  ],
+  "actOptions": [
+    {
+      "name": "Check",
+      "descriptionByHp": [
+        { "minPercent": 0, "text": "Training Dummy - HP 20, ATK 1. It cannot be killed by being ignored." }
+      ],
+      "spareGain": 0
+    },
+    {
+      "name": "Talk",
+      "description": "You talk to the dummy. It does not talk back.",
+      "extraMessages": [ "But you feel like it is listening.|ACT options like this one are how you raise an enemy's MERCY." ],
+      "spareGain": 0
+    }
+  ],
+  "spareSuccessAt": 100,
+  "spareSuccessText": "You spared the Training Dummy.",
+  "spareTextByPercent": [
+    { "minPercent": 0,   "text": "The dummy isn't finished teaching you yet." },
+    { "minPercent": 100, "text": "The dummy is ready to be spared." }
+  ],
+  "turnNarrationByHp": [
+    { "minPercent": 0, "text": " * The Training Dummy waits. Press Z on any button to use it. Press the arrows to select options." }
+  ],
+  "turnNarrationBySpare": [
+    { "minPercent": 0,   "text": " * The Training Dummy waits. Press Z on any button to use it. Press the arrows to select options." },
+    { "minPercent": 100, "text": " * The Training Dummy has taught you everything. Use MERCY." }
+  ]
+}

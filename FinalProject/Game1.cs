@@ -85,6 +85,11 @@ namespace FinalProject
             SpriteManager.AddSprite("yakir", "Sprites/BattleTeachers/yakir");
             SpriteManager.AddSprite("dorbendor", "Sprites/BattleTeachers/dorbendor");
             SpriteManager.AddSprite("david", "Sprites/BattleTeachers/david");
+            // two different drawings of the training dummy — the small one it
+            // stands as on the map, and the big one it fights as. separate keys
+            // because both files are called dummy.png
+            SpriteManager.AddSprite("dummy", "Sprites/World/dummy");
+            SpriteManager.AddSprite("dummy_battle", "Sprites/BattleTeachers/dummy");
             SpriteManager.AddSprite("attackSlash", "Sprites/Battle/attack", 6, 1);
             // digits aren't a even grid ("1" is narrower), DamageDisplay has the rects
             SpriteManager.AddSprite("damageNumbers", "Sprites/Battle/damage");

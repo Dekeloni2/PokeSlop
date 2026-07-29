@@ -26,6 +26,21 @@ namespace FinalProject.World
         private readonly TileLayer         _objectsLayer;
         private readonly TileLayer         _elevatorDoorLayer;
         private readonly List<Interactable> _interactables;
+        private readonly List<NpcSpawn>     _npcs;
+
+        // tiles blocked by something that isn't baked into the Objects layer —
+        // right now just NPCs that haven't been resolved yet. OverworldState
+        // keeps this in sync with RouteTracker every time it loads or resumes.
+        private readonly HashSet<Point> _blockedTiles = new();
+
+        public IReadOnlyList<NpcSpawn> Npcs => _npcs;
+
+        public void SetTileBlocked(int tileX, int tileY, bool blocked)
+        {
+            var tile = new Point(tileX, tileY);
+            if (blocked) _blockedTiles.Add(tile);
+            else         _blockedTiles.Remove(tile);
+        }
 
         // Optional overlay layer drawn on top of the map — the elevator door.
         // Flip ElevatorDoorVisible to "close"/"open" it without swapping maps.
@@ -37,7 +52,8 @@ namespace FinalProject.World
                        List<TilesetInfo> tilesets,
                        TileLayer groundLayer, TileLayer objectsLayer,
                        TileLayer elevatorDoorLayer = null,
-                       List<Interactable> interactables = null)
+                       List<Interactable> interactables = null,
+                       List<NpcSpawn> npcs = null)
         {
             Width         = width;
             Height        = height;
@@ -48,6 +64,7 @@ namespace FinalProject.World
             _objectsLayer = objectsLayer;
             _elevatorDoorLayer = elevatorDoorLayer;
             _interactables = interactables ?? new List<Interactable>();
+            _npcs          = npcs ?? new List<NpcSpawn>();
         }
 
         // true on the tiles the elevator door covers, used to catch the player
@@ -65,6 +82,9 @@ namespace FinalProject.World
         {
             // Out of bounds is never walkable
             if (!_groundLayer.InBounds(tileX, tileY))
+                return false;
+
+            if (_blockedTiles.Contains(new Point(tileX, tileY)))
                 return false;
 
             // Any tile on the Objects layer blocks movement

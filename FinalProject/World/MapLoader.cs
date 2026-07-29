@@ -49,6 +49,7 @@ namespace FinalProject.World
             TileLayer objectsLayer = null;
             TileLayer elevatorDoor = null;
             var interactables = new List<Interactable>();
+            var npcs = new List<NpcSpawn>();
 
             foreach (JsonElement layerEl in root.GetProperty("layers").EnumerateArray())
             {
@@ -63,6 +64,8 @@ namespace FinalProject.World
                     // both spellings, tiled maps here use either
                     if (groupName == "Interactables" || groupName == "Interactable")
                         interactables.AddRange(ParseInteractables(layerEl, tileWidth, tileHeight));
+                    if (groupName == "NPCs" || groupName == "NPC")
+                        npcs.AddRange(ParseNpcs(layerEl, tileWidth, tileHeight));
                     continue;
                 }
 
@@ -87,7 +90,7 @@ namespace FinalProject.World
                 throw new Exception("Map is missing a layer named 'Objects'.");
 
             return new TileMap(mapWidth, mapHeight, tileWidth, tileHeight,
-                               tilesets, groundLayer, objectsLayer, elevatorDoor, interactables);
+                               tilesets, groundLayer, objectsLayer, elevatorDoor, interactables, npcs);
         }
 
         // Reads every object in an "Interactables" object layer into a list of
@@ -127,6 +130,47 @@ namespace FinalProject.World
                 }
 
                 results.Add(new Interactable(minTileX, minTileY, maxTileX, maxTileY, text));
+            }
+
+            return results;
+        }
+
+        // Reads every object in an "NPCs" object layer. "Id" is required — it's
+        // both the RouteTracker key and the Teachers/{id}.json filename. "Sprite"
+        // is optional and falls back to Id, for when the SpriteManager key
+        // happens to match (rare — most NPCs will set it explicitly).
+        private static List<NpcSpawn> ParseNpcs(JsonElement layerEl, int tileWidth, int tileHeight)
+        {
+            var results = new List<NpcSpawn>();
+
+            if (!layerEl.TryGetProperty("objects", out JsonElement objectsEl))
+                return results;
+
+            foreach (JsonElement objEl in objectsEl.EnumerateArray())
+            {
+                double x = objEl.GetProperty("x").GetDouble();
+                double y = objEl.GetProperty("y").GetDouble();
+
+                int tileX = (int)Math.Floor(x / tileWidth);
+                int tileY = (int)Math.Floor(y / tileHeight);
+
+                string id     = null;
+                string sprite = null;
+                float  scale  = 1f;
+                if (objEl.TryGetProperty("properties", out JsonElement propsEl))
+                {
+                    foreach (JsonElement propEl in propsEl.EnumerateArray())
+                    {
+                        string name = propEl.GetProperty("name").GetString();
+                        if (name == "Id")     id     = propEl.GetProperty("value").GetString();
+                        if (name == "Sprite") sprite = propEl.GetProperty("value").GetString();
+                        if (name == "Scale")  scale  = (float)propEl.GetProperty("value").GetDouble();
+                    }
+                }
+
+                if (string.IsNullOrEmpty(id)) continue; // can't spawn a battle or track it without one
+
+                results.Add(new NpcSpawn(tileX, tileY, id, sprite ?? id, scale));
             }
 
             return results;

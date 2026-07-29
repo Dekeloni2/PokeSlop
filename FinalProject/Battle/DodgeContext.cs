@@ -16,6 +16,10 @@ namespace FinalProject.Battle
         public float     Elapsed        => _phase.Elapsed;
         public Rectangle BaseBox        => _phase.BaseBox;
         public Rectangle CurrentBox     => _phase.CurrentBox;
+
+        // the wide menu box, for attacks that want the arena to take that shape
+        // rather than hardcoding its geometry a second time
+        public Rectangle MenuBox        => _phase.MenuBox;
         public Vector2   HitboxPosition => _phase.HitboxPosition;
 
         // for undertale style blue/orange attacks: blue only hurts you while

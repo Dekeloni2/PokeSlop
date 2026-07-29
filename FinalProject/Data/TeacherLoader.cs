@@ -48,6 +48,7 @@ namespace FinalProject.Data
             // a file without an explicit id falls back to the display name, so
             // older teacher files keep working untouched
             stats.Id         = string.IsNullOrWhiteSpace(data.Id) ? data.Name : data.Id;
+            stats.GatedMoves   = data.GatedMoves;
             stats.Requires     = data.Requires ?? new List<string>();
             stats.LockedText   = data.LockedText;
             stats.UltimateAtHp = data.UltimateAtHp;
@@ -154,6 +155,7 @@ namespace FinalProject.Data
             public string Theme { get; set; }
             public float ThemeVolume { get; set; } = 1f;
             public bool SequentialMoves { get; set; }
+            public bool GatedMoves { get; set; }
         }
 
         private class DialogueJson

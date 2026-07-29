@@ -36,7 +36,8 @@ Every teacher has a hidden mercy value. The right ACT choices raise it; the wron
 On the teacher's turn the battle box becomes the arena and you control your soul inside it with the arrow keys. Each teacher has their own **bullet patterns**, and the patterns are the characterisation:
 
 - **Yakir**, the C# teacher, doesn't attack so much as *teach*. His turns are a four-lesson curriculum — data types, conditionals, loops, and finally a program that runs against the battle box itself, resizing and dragging the arena while code rains down. His ultimate is the single pixel he has spent his whole career failing to draw.
-- **Dor Ben Dor** sets a chess board and takes your free movement away, making you step one square at a time against pieces that hunt using real chess moves.
+- **David**, The math teacher, uses both his body and shapes to attack you. 
+- **Dor Ben Dor** uses objects that are close to him or to his profession. Such as a Chess board, a boat that he fought over with his sister, or cloverbyte. Each time he uses those attacks, they evolve and become stronger and harder.
 
 Getting hit costs HP and grants brief invulnerability frames. Run out and it's game over.
 
@@ -66,7 +67,7 @@ Debug builds only:
 
 ## Gameplay
 
-You start in the entrance hall and move freely — movement is pixel-based, not tile-locked, so you walk rather than step.
+You start in the entrance hall and move freely — movement is pixel-based
 
 Pressing `Z` at a doorway, sign, or person opens a dialogue box. The **elevator** works the same way: interact with the panel inside and a floor menu opens. Pick a floor and the doors shut, the lift judders upward with its own music, a bell rings, and the doors open somewhere new. Walking out of them takes you to that floor.
 
@@ -90,7 +91,7 @@ FinalProject/
 ├── Battle/          Everything that happens inside a fight
 │   └── Patterns/        One class per attack, all implementing IBulletPattern
 ├── World/           Tile maps, map loading, warps, the elevator
-├── Entities/        The player
+├── Entities/        The player, NPCs
 ├── Data/            Plain data objects and the JSON loaders that build them
 ├── Events/          Event definitions for the event bus
 ├── UI/              Dialogue boxes, speech bubbles, HUD, choice menus
@@ -185,7 +186,7 @@ Content is built automatically from `FinalProject/Content/Content.mgcb` as part 
 
 ## Current State
 
-The battle system is complete and the teachers are data-driven. Two teachers are implemented — **Yakir** (five attacks including a full four-lesson arc) and **Dor Ben Dor** (chess and cloverbyte) — alongside a debug "Substitute" used for testing patterns in isolation.
+The battle system is complete and the teachers are data-driven. Three teachers are implemented — **Yakir** (five attacks including a full four-lesson arc), **David** (Hexagons, Haymayker) and **Dor Ben Dor** (chess, cloverbyte, boat, napoleon) — alongside a debug "Substitute" used for testing patterns in isolation.
 
 The overworld supports free movement, map transitions, warps, interactables, dialogue, and a working elevator between floors.
 

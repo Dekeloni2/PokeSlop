@@ -263,10 +263,10 @@ namespace FinalProject.Battle
 
             foreach (Projectile p in _projectiles)
                 p.Draw(spriteBatch, pixel, font);
+            
+            _pattern.Draw(spriteBatch, pixel, new DodgeContext(this));
 
             _hitbox.Draw(spriteBatch);
-            
-            
         }
 
         // ── DodgeContext surface ─────────────────────────────────────────────

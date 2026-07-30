@@ -1,4 +1,5 @@
 using Microsoft.Xna.Framework;
+using Microsoft.Xna.Framework.Graphics;
 
 namespace FinalProject.Battle
 {
@@ -16,5 +17,7 @@ namespace FinalProject.Battle
 
         void Start(DodgeContext context);
         void Update(GameTime gameTime, DodgeContext context);
+        
+        void Draw(SpriteBatch spriteBatch, Texture2D pixel, DodgeContext context) { } // added for onion rings
     }
 }

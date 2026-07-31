@@ -58,6 +58,13 @@
       "accuracy": 100,
       "description": "David winds up and drives a fist across the arena.",
       "pattern": "Hexagon"
+    },
+    {
+      "name": "Onion",
+      "power": 1,
+      "accuracy": 100,
+      "description": "Onions have many layers.",
+      "pattern": "Onion"
     }
   ],
   "actOptions": [

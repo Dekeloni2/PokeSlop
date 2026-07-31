@@ -27,6 +27,8 @@ public class OnionPattern : IBulletPattern
             context.BaseBox.Width, context.BaseBox.Height);
 
         context.ResizeBoxTo(box, 0.5f);
+        
+        context.SetTeacherVisible(true);
     }
 
     public void Update(GameTime gameTime, DodgeContext context)

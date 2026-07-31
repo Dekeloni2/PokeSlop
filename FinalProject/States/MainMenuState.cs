@@ -17,6 +17,15 @@ namespace FinalProject.States
         private static readonly Color TextColor       = Color.White;
         private static readonly Color SelectedColor   = Color.Yellow;
         
+        // real scales, already including the x2 the old helper hid. measuring and
+        // drawing have to agree or centring silently goes wrong
+        private const float BodyScale   = 2.4f;
+        private const float OptionScale = 2.6f;
+        private const float HintScale   = 1.8f;
+
+        private const int LeftMargin = 140;
+        private const int TopMargin  = 40;
+
         private enum ScreenState { Main, Settings }
         private ScreenState _currentScreen = ScreenState.Main;
         
@@ -147,16 +156,10 @@ namespace FinalProject.States
 
             spriteBatch.Begin(samplerState: SamplerState.PointClamp);
 
-            int startX = 140; 
-            int startY = 40;
-            float textScale = 1.2f;
-            
             string header = (_currentScreen == ScreenState.Main) ? "--- Instruction ---" : "--- Settings ---";
-            Vector2 headerSize = Game.DialogueFont.MeasureString(header) * textScale;
-            Vector2 headerPos  = new Vector2((GameSettings.WindowWidth - headerSize.X - 150) / 2f, startY);
-            DrawText(spriteBatch, header, headerPos, HeaderColor, textScale);
-            
-            int lineY = startY + 50;
+            DrawCentered(spriteBatch, header, TopMargin, HeaderColor, BodyScale);
+
+            int lineY = TopMargin + 50;
 
             if (_currentScreen == ScreenState.Main)
             {
@@ -173,7 +176,7 @@ namespace FinalProject.States
 
                 foreach (string line in instructions)
                 {
-                    DrawText(spriteBatch, line, new Vector2(startX, lineY), TextColor, textScale);
+                    DrawText(spriteBatch, line, new Vector2(LeftMargin, lineY), TextColor, BodyScale);
                     lineY += lineHeight;
                 }
 
@@ -183,7 +186,7 @@ namespace FinalProject.States
                     bool isSelected = (i == _selectedIndex);
                     Color color = isSelected ? SelectedColor : TextColor;
 
-                    DrawText(spriteBatch, _menuOptions[i], new Vector2(startX, lineY), color, textScale + 0.1f);
+                    DrawText(spriteBatch, _menuOptions[i], new Vector2(LeftMargin, lineY), color, OptionScale);
                     lineY += 36;
                 }
             }
@@ -207,17 +210,20 @@ namespace FinalProject.States
                         optionText = $"FPS Target   : < {_fpsOptions[_fpsIndex]} FPS >";
                     }
 
-                    DrawText(spriteBatch, optionText, new Vector2(startX, lineY), color, textScale + 0.1f);
+                    DrawText(spriteBatch, optionText, new Vector2(LeftMargin, lineY), color, OptionScale);
                     lineY += lineHeight;
                 }
 
                 // Draw helper key tip at bottom
-                DrawText(spriteBatch, "[LEFT/RIGHT] Adjust    [X] Back", new Vector2(startX, lineY + 30), Color.DarkGray, 0.9f);
+                DrawText(spriteBatch, "[LEFT/RIGHT] Adjust    [X] Back",
+                    new Vector2(LeftMargin, lineY + 30), Color.DarkGray, HintScale);
             }
 
             spriteBatch.End();
         }
         
+        // draws at exactly the scale it's given — no hidden multiplier, so
+        // MeasureString at the same scale gives the size that actually lands
         private void DrawText(SpriteBatch spriteBatch, string text, Vector2 position, Color color, float scale)
         {
             spriteBatch.DrawString(
@@ -227,10 +233,19 @@ namespace FinalProject.States
                 color,
                 0f,
                 Vector2.Zero,
-                scale * 2, // * 2 to increase size
+                scale,
                 SpriteEffects.None,
                 0f
             );
+        }
+
+        // horizontally centred on the window. only correct because DrawText no
+        // longer scales behind our back — that mismatch is what the old "- 150"
+        // was quietly compensating for
+        private void DrawCentered(SpriteBatch spriteBatch, string text, float y, Color color, float scale)
+        {
+            float width = Game.DialogueFont.MeasureString(text).X * scale;
+            DrawText(spriteBatch, text, new Vector2((GameSettings.WindowWidth - width) / 2f, y), color, scale);
         }
     }
 }

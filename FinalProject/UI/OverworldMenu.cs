@@ -3,6 +3,7 @@ using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
 using FinalProject.Core;
+using FinalProject.Core.Audio;
 using FinalProject.Core.Input;
 using FinalProject.Data;
 
@@ -87,16 +88,19 @@ namespace FinalProject.UI
             
             if (input.IsKeyPressed(Keys.Up))
             {
+                SoundManager.Play(SoundManager.MenuMove);
                 _mainIndex = (_mainIndex - 1 + _mainOptions.Length) % _mainOptions.Length;
             }
             else if (input.IsKeyPressed(Keys.Down))
             {
+                SoundManager.Play(SoundManager.MenuMove);
                 _mainIndex = (_mainIndex + 1) % _mainOptions.Length;
             }
 
             // Proceed with Z or Enter
             if (input.IsKeyPressed(Keys.Z) || input.IsKeyPressed(Keys.Enter))
             {
+                SoundManager.Play(SoundManager.MenuSelect);
                 if (_mainIndex == 0) // ITEM
                 {
                     _state = MenuState.Item;
@@ -118,6 +122,7 @@ namespace FinalProject.UI
             // Back out to main menu
             if (input.IsKeyPressed(Keys.X) || input.IsKeyPressed(Keys.C) || input.IsKeyPressed(Keys.Escape))
             {
+                SoundManager.Play(SoundManager.MenuSelect);
                 _state = MenuState.Main;
                 return;
             }
@@ -128,15 +133,18 @@ namespace FinalProject.UI
 
             if (input.IsKeyPressed(Keys.Up))
             {
+                SoundManager.Play(SoundManager.MenuMove);
                 _itemIndex = (_itemIndex - 1 + inventory.Count) % inventory.Count;
             }
             else if (input.IsKeyPressed(Keys.Down))
             {
+                SoundManager.Play(SoundManager.MenuMove);
                 _itemIndex = (_itemIndex + 1) % inventory.Count;
             }
 
             if (input.IsKeyPressed(Keys.Z) || input.IsKeyPressed(Keys.Enter))
             {
+                SoundManager.Play(SoundManager.MenuSelect);
                 ItemData item = inventory[_itemIndex];
 
                 // Heal if item has HealAmount property

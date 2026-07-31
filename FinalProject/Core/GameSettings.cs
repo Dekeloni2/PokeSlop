@@ -1,6 +1,6 @@
 using System;
 using Microsoft.Xna.Framework;
-using Microsoft.Xna.Framework.Audio;
+using FinalProject.Core.Audio;
 
 namespace FinalProject.Core;
 
@@ -28,8 +28,15 @@ public static class GameSettings
     public static void SetVolume(int volume)
     {
         MasterVolume = MathHelper.Clamp(volume, 0, 100);
-        // Sets MonoGame's global sound volume (0.0f to 1.0f)
-        SoundEffect.MasterVolume = MasterVolume / 100f; 
+        float targetVolume = MasterVolume / 100f;
+
+        // Tell SoundManager the new volumes!
+        SoundManager.SfxVolume   = targetVolume;
+        SoundManager.MusicVolume = targetVolume;
+
+        // Immediately apply to the live song player
+        SoundManager.SetMusicVolume(1f);
+        
     }
 
     public static void SetTargetFps(Game game, int fps)

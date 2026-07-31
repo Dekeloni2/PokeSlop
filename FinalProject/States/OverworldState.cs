@@ -8,6 +8,7 @@ using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
 using FinalProject.Battle;
 using FinalProject.Core;
+using FinalProject.Core.Audio;
 using FinalProject.Core.Graphics;
 using FinalProject.Core.StateMachine;
 using FinalProject.Data;
@@ -158,6 +159,7 @@ namespace FinalProject.States
             // Open Menu when C is pressed ─
             if (Game.Input.IsKeyPressed(Keys.C))
             {
+                SoundManager.Play(SoundManager.MenuSelect);
                 _menu.Open();
                 return;
             }

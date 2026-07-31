@@ -2,6 +2,7 @@ using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
 using FinalProject.Core;
+using FinalProject.Core.Audio;
 using FinalProject.Core.StateMachine;
 
 namespace FinalProject.States
@@ -45,6 +46,7 @@ namespace FinalProject.States
             {
                 if (_currentScreen == ScreenState.Settings)
                 {
+                    SoundManager.Play(SoundManager.MenuSelect);
                     _currentScreen = ScreenState.Main;
                     _selectedIndex = 1; // Highlight "Settings" on main menu
                     return;
@@ -59,6 +61,8 @@ namespace FinalProject.States
                 _selectedIndex--;
                 if (_selectedIndex < 0)
                     _selectedIndex = optionCount - 1;
+                
+                SoundManager.Play(SoundManager.MenuMove);
             }
 
             // Cycle Down
@@ -67,6 +71,8 @@ namespace FinalProject.States
                 _selectedIndex++;
                 if (_selectedIndex >= optionCount)
                     _selectedIndex = 0;
+                
+                SoundManager.Play(SoundManager.MenuMove);
             }
 
             if (_currentScreen == ScreenState.Settings)
@@ -74,16 +80,20 @@ namespace FinalProject.States
                 if (Game.Input.IsKeyPressed(Keys.Left))
                 {
                     AdjustSetting(-1);
+                    SoundManager.Play(SoundManager.MenuMove);
                 }
                 if (Game.Input.IsKeyPressed(Keys.Right))
                 {
                     AdjustSetting(1);
+                    SoundManager.Play(SoundManager.MenuMove);
                 }
             }
             
             // Confirm Selection
             if (Game.Input.IsKeyPressed(Keys.Z) || Game.Input.IsKeyPressed(Keys.Enter))
             {
+                SoundManager.Play(SoundManager.MenuSelect);
+                
                 if (_currentScreen == ScreenState.Main)
                 {
                     if (_selectedIndex == 0)
@@ -96,7 +106,11 @@ namespace FinalProject.States
                 }
                 else if (_currentScreen == ScreenState.Settings)
                 {
-                    if (_selectedIndex == 2) // Back option
+                    if (_selectedIndex == 1) // <--- THIS WAS MISSING
+                    {
+                        AdjustSetting(1);
+                    }
+                    else if (_selectedIndex == 2) // Back option
                     {
                         _currentScreen = ScreenState.Main;
                         _selectedIndex = 1;
@@ -115,9 +129,14 @@ namespace FinalProject.States
             }
             else if (_selectedIndex == 1) // Target FPS
             {
-                _fpsIndex = MathHelper.Clamp(_fpsIndex + direction, 0, _fpsOptions.Length - 1);
+                _fpsIndex += direction;
+
+                if (_fpsIndex < 0)
+                    _fpsIndex = _fpsOptions.Length - 1;
+                else if (_fpsIndex >= _fpsOptions.Length)
+                    _fpsIndex = 0;
+
                 int targetFps = _fpsOptions[_fpsIndex];
-                
                 GameSettings.SetTargetFps(Game, targetFps);
             }
         }

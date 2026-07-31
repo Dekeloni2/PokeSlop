@@ -155,8 +155,8 @@ namespace FinalProject.States
                 return;
             }
 
-            // Open Menu when C or Ctrl is pressed ─
-            if (Game.Input.IsKeyPressed(Keys.C) || Game.Input.IsKeyPressed(Keys.LeftControl))
+            // Open Menu when C is pressed ─
+            if (Game.Input.IsKeyPressed(Keys.C))
             {
                 _menu.Open();
                 return;

@@ -64,6 +64,13 @@ namespace FinalProject
             PixelTexture.SetData(new[] { Color.White });
 
             DialogueFont = Content.Load<SpriteFont>("Fonts/DialogueFont");
+
+            // Pixel Operator 8 builds with LineSpacing 9, and its descenders (g,
+            // p, y) reach a full 8px below the origin — 1px of leading, so two
+            // wrapped lines read as one smeared block. every text widget derives
+            // its spacing from the font, so fixing it here fixes the speech
+            // bubble, the dialogue box, the choice box and the action menu at once
+            DialogueFont.LineSpacing = 11;
             
             new SpriteManager(Content);
             SpriteManager.AddSprite("student_world", "Sprites/Player/student_world", 4, 3);

@@ -27,8 +27,12 @@ namespace FinalProject.UI
         private readonly Typewriter _typer = new();
         private readonly List<string> _pages = new();
 
-        private int  _page;
-        private bool _active;
+        // how long a finished page sits before auto advancing, see UpdateText
+        private const float AutoPageHold = 1.4f;
+
+        private int   _page;
+        private bool  _active;
+        private float _autoHold;
 
         public bool HasText  => _pages.Count > 0;
         public bool IsActive => _active;
@@ -60,7 +64,8 @@ namespace FinalProject.UI
         {
             if (!HasText) return;
 
-            _page = 0;
+            _page     = 0;
+            _autoHold = 0f;
             _typer.BeepSound = BeepSound ?? SoundManager.TextBeepName;
             _typer.SetText(_pages[0]);
             _active = true;
@@ -75,10 +80,30 @@ namespace FinalProject.UI
         }
 
         // advances the typing only. Update() is the version that also reads Z
-        // and closes the bubble, which a non conversation line shouldn't do
+        // and closes the bubble, which a non conversation line shouldn't do.
+        //
+        // pages still have to turn though, and during an attack the player is
+        // busy dodging and can't press Z for them — so once a page has finished
+        // typing it holds for a beat and then moves on by itself. without this
+        // everything after the first '|' simply never appears, which quietly
+        // swallowed most of the training dummy's instructions
         public void UpdateText(float dt)
         {
-            if (_active) _typer.Update(dt);
+            if (!_active) return;
+
+            _typer.Update(dt);
+
+            if (!_typer.IsFullyShown) return;
+            if (_page >= _pages.Count - 1) return; // last page stays up
+
+            // the hold only starts once the page is fully typed, so a long page
+            // gets its full reading time rather than being cut off early
+            _autoHold += dt;
+            if (_autoHold < AutoPageHold) return;
+
+            _autoHold = 0f;
+            _page++;
+            _typer.SetText(_pages[_page]);
         }
 
         public void Clear()

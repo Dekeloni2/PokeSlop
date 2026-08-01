@@ -39,7 +39,7 @@ public class AllStarPattern : IBulletPattern
     private int _wordIndex = 0;
     private float _spawnTimer = 0f;
     private const float SpawnInterval = 0.35f; // Delay between word spawns
-    private int _spawnSide = 0; // Rotates between 0: Top, 1: Left, 2: Right
+    private int _spawnSide = 0; // Randoms between 0: Top, 1: Left, 2: Right
     
     private SpriteFont _cachedFont;
     
@@ -47,11 +47,15 @@ public class AllStarPattern : IBulletPattern
     {
         context.SetTeacherVisible(false);
 
-        // Slightly compress the box for extra tension
         Rectangle box = context.CurrentBox;
-        Rectangle patternBox = new Rectangle(box.X + 20, box.Y, box.Width - 40, box.Height);
-        context.ResizeBoxTo(patternBox, 0.5f);
-        
+        Rectangle grandBox = new Rectangle(
+            box.X - 50, 
+            box.Y - 30, 
+            box.Width + 100, 
+            box.Height + 60
+        );
+        context.ResizeBoxTo(grandBox, 0.4f);
+
         _wordIndex = 0;
         _spawnTimer = 0f;
     }
@@ -80,28 +84,28 @@ public class AllStarPattern : IBulletPattern
         Vector2 spawnPos;
         Vector2 velocity;
 
-        // Base speed scale
-        float speed = GameSettings.DodgeProjectileSpeed * 1.1f;
+        // Changable speed
+        float speed = GameSettings.DodgeProjectileSpeed * 0.9f;
 
-        // Rotate sides 
+        // Change sides at random
         switch (_spawnSide)
         {
-            case 0: // Rain down from top
+            case 0: // Top
                 float randomX = Random.Shared.Next(box.Left + 10, box.Right - 30);
-                spawnPos = new Vector2(randomX, box.Top - 5); // Changed from -10
+                spawnPos = new Vector2(randomX, box.Top - 5); 
                 velocity = new Vector2(0f, speed);
                 break;
 
-            case 1: // Sweep in from left
+            case 1: // Left
                 float randomYLeft = Random.Shared.Next(box.Top + 10, box.Bottom - 10);
-                spawnPos = new Vector2(box.Left - 5, randomYLeft); // Changed from -20
+                spawnPos = new Vector2(box.Left - 5, randomYLeft); 
                 velocity = new Vector2(speed * 0.9f, 0f);
                 break;
 
-            case 2: // Sweep in from right
+            case 2: // Right
             default:
                 float randomYRight = Random.Shared.Next(box.Top + 10, box.Bottom - 10);
-                spawnPos = new Vector2(box.Right + 5, randomYRight); // Changed from +20
+                spawnPos = new Vector2(box.Right + 5, randomYRight); 
                 velocity = new Vector2(-speed * 0.9f, 0f);
                 break;
         }

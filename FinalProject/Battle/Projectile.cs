@@ -172,7 +172,7 @@ namespace FinalProject.Battle
                         font,
                         Text,
                         Position,
-                        Color.Yellow,
+                        new Color(176, 191, 26), // shrek green
                         0f,
                         origin,
                         Scale,

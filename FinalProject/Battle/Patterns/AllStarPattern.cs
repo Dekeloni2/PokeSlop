@@ -65,9 +65,10 @@ public class AllStarPattern : IBulletPattern
 
         _spawnTimer += dt;
 
-        if (_spawnTimer >= SpawnInterval && _wordIndex < Lyrics.Length)
+        // Use 'while' instead of 'if' so lag spikes don't queue up or skip timing
+        while (_spawnTimer >= SpawnInterval && _wordIndex < Lyrics.Length)
         {
-            _spawnTimer -= SpawnInterval; // Prevents skipping
+            _spawnTimer -= SpawnInterval;
             SpawnWordProjectile(context, Lyrics[_wordIndex]);
             _wordIndex++;
         }
@@ -82,25 +83,25 @@ public class AllStarPattern : IBulletPattern
         // Base speed scale
         float speed = GameSettings.DodgeProjectileSpeed * 1.1f;
 
-        // Rotate sides to create varied bullet directions
+        // Rotate sides 
         switch (_spawnSide)
         {
-            case 0: // Rain down from the top
+            case 0: // Rain down from top
                 float randomX = Random.Shared.Next(box.Left + 10, box.Right - 30);
-                spawnPos = new Vector2(randomX, box.Top - 10);
+                spawnPos = new Vector2(randomX, box.Top - 5); // Changed from -10
                 velocity = new Vector2(0f, speed);
                 break;
 
-            case 1: // Sweep in from the left
+            case 1: // Sweep in from left
                 float randomYLeft = Random.Shared.Next(box.Top + 10, box.Bottom - 10);
-                spawnPos = new Vector2(box.Left - 20, randomYLeft);
+                spawnPos = new Vector2(box.Left - 5, randomYLeft); // Changed from -20
                 velocity = new Vector2(speed * 0.9f, 0f);
                 break;
 
-            case 2: // Sweep in from the right
+            case 2: // Sweep in from right
             default:
                 float randomYRight = Random.Shared.Next(box.Top + 10, box.Bottom - 10);
-                spawnPos = new Vector2(box.Right + 20, randomYRight);
+                spawnPos = new Vector2(box.Right + 5, randomYRight); // Changed from +20
                 velocity = new Vector2(-speed * 0.9f, 0f);
                 break;
         }
@@ -108,13 +109,11 @@ public class AllStarPattern : IBulletPattern
         // Cycle spawn side for next word
         _spawnSide = (_spawnSide + 1) % 3;
 
-        // Passing _cachedFont (or null) safely instantiates the word bullet
-        context.SpawnProjectile(spawnPos, velocity, word, _cachedFont, 3f);
+        context.SpawnProjectile(spawnPos, velocity, word, _cachedFont, 2f);
     }
     
     public void DrawUi(SpriteBatch spriteBatch, Texture2D pixel, SpriteFont font, Rectangle box)
     {
-        // Captures the active battle font as soon as rendering starts
         if (font != null)
             _cachedFont = font;
     }

@@ -5,29 +5,59 @@ using Microsoft.Xna.Framework.Graphics;
 
 namespace FinalProject.Battle.Patterns;
 
+// Also runs as one beat inside David's ultimate — see AllStarPattern. In that
+// mode the host owns the arena and the teacher, and asks for a fixed number of
+// layers rather than a stretch of time. The host keeps calling Update after the
+// last one is spawned so the rings still close in and clear on their own.
 public class OnionPattern : IBulletPattern
 {
     public float Duration => 15f;
-    
+
     private readonly List<OnionRing> _rings = new();
     private float _spawnTimer;
     private float _spawnInterval = 1.8f; // Time between new onion layers
     private float _ringSpeed = 60f;      // How fast layers shrink inward
     private Random _rnd = new();
-    
-    
+
+    private readonly bool _ownsArena; // false when a host pattern is driving it
+    private readonly int  _maxRings;  // 0 = keep layering for the full Duration
+    private int _spawnedRings;
+
+    // so a host can tell whether there's still something live out there
+    public bool HasRings => _rings.Count > 0;
+
+    public OnionPattern(bool ownsArena = true, int maxRings = 0)
+    {
+        _ownsArena = ownsArena;
+        _maxRings  = maxRings;
+    }
+
+    // unlike the hexagons, the rings are drawn and collided by this pattern, so
+    // a host has to keep it alive until the last one has closed — not just
+    // until the last one has spawned
+    public bool Finished => _maxRings > 0 && _spawnedRings >= _maxRings && _rings.Count == 0;
+
     public void Start(DodgeContext context)
     {
         _rings.Clear();
-        _spawnTimer = 0f;
-            
+        _spawnTimer   = 0f;
+        _spawnedRings = 0;
+
+        if (!_ownsArena)
+        {
+            // the host already shaped the arena — open with a ring straight
+            // away instead of waiting out a full interval first
+            _spawnTimer = _spawnInterval;
+            return;
+        }
+
         // Standard square battle box for ring patterns
         Rectangle box = new Rectangle(
             context.BaseBox.X, context.BaseBox.Y,
             context.BaseBox.Width, context.BaseBox.Height);
 
         context.ResizeBoxTo(box, 0.5f);
-        
+
         context.SetTeacherVisible(true);
     }
 
@@ -37,9 +67,11 @@ public class OnionPattern : IBulletPattern
         _spawnTimer += dt;
 
         // spawn new "layers"
-        if (_spawnTimer >= _spawnInterval)
+        bool canSpawn = _maxRings <= 0 || _spawnedRings < _maxRings;
+        if (canSpawn && _spawnTimer >= _spawnInterval)
         {
             _spawnTimer = 0f;
+            _spawnedRings++;
 
             // max radius based on the box dimensions
             float startRadius = context.CurrentBox.Width * 0.7f;

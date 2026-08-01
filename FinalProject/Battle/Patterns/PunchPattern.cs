@@ -63,8 +63,30 @@ public class PunchPattern : IBulletPattern
     private const float DurationSlack   = 0.3f;
 
     // how many times he throws the punch before he's done — each one ends
-    // with the same leap, so this is also how many times he swaps sides
-    private const int PunchCount = 3;
+    // with the same leap, so this is also how many times he swaps sides.
+    // David's ultimate borrows this pattern for a single hit, so the count is
+    // a constructor argument with the standalone attack's value as the default
+    private const int DefaultPunchCount = 3;
+
+    private readonly int _punchCount;
+
+    // standalone he walks on and stands there a beat before the first hop. as a
+    // beat of the ultimate there's no room for an entrance that reads as
+    // waiting, so he drops in from above frame instead — the same Fall the
+    // attack already uses to swap sides, just moved to the front
+    private readonly bool _entersFromSky;
+
+    public PunchPattern(int punchCount = DefaultPunchCount, bool entersFromSky = false)
+    {
+        _punchCount    = punchCount;
+        _entersFromSky = entersFromSky;
+    }
+
+    // for a host pattern sequencing this as one beat — Duration is its own
+    // estimate of the run, this is the animation actually having finished.
+    // deliberately not IBulletPattern.IsComplete: standalone, the turn should
+    // still run out the clock it budgeted rather than cutting off at Done
+    public bool Finished => _phase == Phase.Done;
 
     // ── layout ───────────────────────────────────────────────────────────────
     private const float GapIdle       = 46f; // clear of the box while he's just standing there
@@ -185,6 +207,18 @@ public class PunchPattern : IBulletPattern
         _scaleX = 1f; _scaleY = 1f; _rotation = 0f;
         _visible = true;
 
+        // drop in instead of standing there. Fall already lerps from OffscreenY
+        // down to his feet and hands off to LandSquash, which hands off to Hop —
+        // so starting parked at the top of that is the whole entrance, no new
+        // phase needed. it also means the landing shake and smoke come for free
+        if (_entersFromSky)
+        {
+            _phase     = Phase.Fall;
+            _bodyPos.Y = OffscreenY;
+            _scaleX    = FallStretchX;
+            _scaleY    = FallStretchY;
+        }
+
         // every punch through the leap's charge and launch; only the ones
         // that land also pay for the fall and the squash — the last leap
         // exits mid air instead, see Phase.Launch
@@ -192,7 +226,12 @@ public class PunchPattern : IBulletPattern
                              + RetractSeconds + UnsquishSeconds + RestSeconds
                              + LeapChargeSeconds + LaunchSeconds;
         float landing = FallSeconds + LandSquashSeconds;
-        _duration = EnterSeconds + punchToLaunch * PunchCount + landing * (PunchCount - 1) + DurationSlack;
+
+        // arriving from the sky costs a fall and a landing instead of the
+        // stand-and-wait, so the budget has to swap those too or the turn ends
+        // while he's still mid animation
+        float entry = _entersFromSky ? landing : EnterSeconds;
+        _duration = entry + punchToLaunch * _punchCount + landing * (_punchCount - 1) + DurationSlack;
     }
 
     public void Update(GameTime gameTime, DodgeContext context)
@@ -383,7 +422,7 @@ public class PunchPattern : IBulletPattern
                     // exit is the leap itself, not a leap that happens to be
                     // followed by nothing. no landing, no extra punch that
                     // was never coming
-                    if (_punchesDone >= PunchCount)
+                    if (_punchesDone >= _punchCount)
                     {
                         _visible = false;
                         Advance(Phase.Done);

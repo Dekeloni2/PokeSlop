@@ -46,25 +46,12 @@
   },
   "moves": [
     {
-      "name": "Haymaker",
+      "name": "All Star",
       "power": 1,
       "accuracy": 100,
-      "description": "David winds up and drives a fist across the arena.",
-      "pattern": "AllStar" 
-    },
-    {
-      "name": "Hexagons",
-      "power": 1,
-      "accuracy": 100,
-      "description": "David winds up and drives a fist across the arena.",
-      "pattern": "Hexagon"
-    },
-    {
-      "name": "Onion",
-      "power": 1,
-      "accuracy": 100,
-      "description": "Onions have many layers.",
-      "pattern": "Onion"
+      "description": "David puts the song on and teaches the whole lesson at once.",
+      "pattern": "AllStar",
+      "isUltimate": true
     }
   ],
   "actOptions": [

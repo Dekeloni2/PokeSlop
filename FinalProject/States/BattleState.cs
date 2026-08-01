@@ -767,7 +767,7 @@ namespace FinalProject.States
             // a provoked pattern has no move behind it, so it isn't part of the
             // lesson plan and can't count as clearing one
             _dodgingLesson = move != null;
-            _dodgePhase = new DodgePhase(pattern, _teacher, Game.PlayerData, DodgeBoxRect, move, WideBoxRect);
+            _dodgePhase = new DodgePhase(pattern, _teacher, Game.PlayerData, DodgeBoxRect, move, WideBoxRect, Game.DialogueFont);
 
             _box.ResizeTo(DodgeBoxRect, ShrinkSeconds);
             _phaseAfterTransition = BattlePhase.Dodging;

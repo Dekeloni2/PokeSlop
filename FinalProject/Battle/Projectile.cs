@@ -35,6 +35,17 @@ namespace FinalProject.Battle
         private const float PixelHaloAlpha = 0.28f;
         private const float PixelPulseHz   = 2.2f;
 
+        // words arrive as a continuous stream rather than as the occasional
+        // bullet, so one landing is worth much less than a normal hit — at a
+        // teacher's full attack the lyrics on their own would end the fight
+        // well before the attack they're the backdrop for finished
+        public const int WordDamage = 2;
+
+        // what this bullet costs on contact. everything that isn't a word deals
+        // the teacher's own attack, the way every pattern's bullets always have
+        public int DamageAgainst(int teacherAttack)
+            => Type == ProjectileType.Word ? WordDamage : teacherAttack;
+
         private int _wordWidth;
         private int _wordHeight;
         

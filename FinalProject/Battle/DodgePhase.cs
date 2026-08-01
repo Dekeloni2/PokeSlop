@@ -27,6 +27,10 @@ namespace FinalProject.Battle
         private readonly Rectangle   _baseBox;
         private readonly Rectangle   _menuBox;
         private readonly TweeningBox _box;
+        // the battle's font, handed in up front rather than picked up at the
+        // first Draw — word bullets are measured the moment they spawn, which
+        // can be before anything has been drawn at all
+        private readonly SpriteFont  _font;
         private readonly ParticleSystem _particles = new();
         private InputManager _input;
 
@@ -89,7 +93,7 @@ namespace FinalProject.Battle
         // move is optional: a pattern provoked by an ACT isn't backed by one, so
         // anything that reads it has to cope with null
         public DodgePhase(IBulletPattern pattern, Teacher teacher, PlayerData playerData,
-            Rectangle baseBox, MoveData move = null, Rectangle? menuBox = null)
+            Rectangle baseBox, MoveData move = null, Rectangle? menuBox = null, SpriteFont font = null)
         {
             _pattern    = pattern;
             _teacher    = teacher;
@@ -97,6 +101,7 @@ namespace FinalProject.Battle
             _baseBox    = baseBox;
             _menuBox    = menuBox ?? baseBox;
             _move       = move; // before Start, patterns read their lines in there
+            _font       = font;
             _box        = new TweeningBox(baseBox);
             _hitbox     = new PlayerHitbox(new Vector2(baseBox.Center.X, baseBox.Center.Y));
 
@@ -192,6 +197,12 @@ namespace FinalProject.Battle
             if (_pattern is PunchPattern punch)
                 punch.Draw(spriteBatch, pixel, font);
 
+            // his ultimate borrows that same punch for one of its beats, so it
+            // needs the same slot behind the box — the lyrics and rings it owns
+            // are drawn later, through the interface Draw further down
+            if (_pattern is AllStarPattern allStar)
+                allStar.DrawBehind(spriteBatch, pixel, font);
+
             if (_pattern is GarlicGunPattern garlic && (garlic.IsCharging || garlic.IsFiring || garlic.IsVanishing))
             {
                 Rectangle laneRect = garlic.BeamStrip(CurrentBox);
@@ -274,10 +285,14 @@ namespace FinalProject.Battle
         internal void SpawnProjectile(Vector2 position, Vector2 velocity, ProjectileType type = ProjectileType.Normal)
             => _projectiles.Add(new Projectile(position, velocity,  type));
         
-        // words
+        // words. patterns don't have to source a font themselves — passing null
+        // falls back to the one the battle draws with, which is the same font
+        // Draw hands the projectile later. without this the bullet is sized by
+        // Projectile's rough character-count guess while being *drawn* from the
+        // real font, so the hitbox and the glyphs disagree
         public void SpawnProjectile(Vector2 position, Vector2 velocity, string text, SpriteFont font = null, float scale = 0.85f)
         {
-            _projectiles.Add(new Projectile(position, velocity, text, font, scale));
+            _projectiles.Add(new Projectile(position, velocity, text, font ?? _font, scale));
         }
 
         internal Beam AddBeam(Rectangle bounds, Texture2D texture = null)
@@ -291,9 +306,11 @@ namespace FinalProject.Battle
 
         internal int HexCount => _hexes.Count;
 
+        internal int ProjectileCount => _projectiles.Count;
+
         internal void SpawnHex(Vector2 center, float startRadius, float maxRadius,
-            float rotation, float growSeconds, float explodeSpeed)
-            => _hexes.Add(new HexHazard(center, startRadius, maxRadius, rotation, growSeconds, explodeSpeed));
+            float rotation, float growSeconds, float explodeSpeed, HexRule rule = HexRule.None)
+            => _hexes.Add(new HexHazard(center, startRadius, maxRadius, rotation, growSeconds, explodeSpeed, rule));
 
         internal void ResizeBoxTo(Rectangle target, float overSeconds)
             => _box.ResizeTo(target, overSeconds);
@@ -384,7 +401,7 @@ namespace FinalProject.Battle
 
                 if (p.Bounds.Intersects(_hitbox.Bounds))
                 {
-                    HitPlayer(_teacher.Attack);
+                    HitPlayer(p.DamageAgainst(_teacher.Attack));
                     p.Expire(); // so the same bullet can't hit twice
                 }
             }
@@ -471,7 +488,7 @@ namespace FinalProject.Battle
             if (_hitbox.IsInvulnerable) return;
 
             foreach (HexHazard hex in _hexes)
-                if (hex.TickDamage(_hitbox.Bounds))
+                if (hex.TickDamage(_hitbox.Bounds, _hitbox.IsMoving))
                     HitPlayer(HexHazard.Damage);
         }
 

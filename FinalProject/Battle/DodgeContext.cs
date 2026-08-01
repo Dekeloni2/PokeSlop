@@ -56,12 +56,20 @@ namespace FinalProject.Battle
         public Beam AddBeam(Rectangle bounds, Texture2D texture = null) => _phase.AddBeam(bounds, texture);
         public void RemoveBeam(Beam beam)     => _phase.RemoveBeam(beam);
 
+        // live bullets, for patterns that cap what's on screen at once instead
+        // of trusting a fixed spawn rate to stay readable — how long a bullet
+        // survives depends on the box size and its speed, so the same interval
+        // means very different clutter in different arenas
+        public int ProjectileCount => _phase.ProjectileCount;
+
         // hexagon hazards — DodgePhase owns them, grows/draws them and applies
         // their continuous edge damage; the pattern just spawns and counts them
         public int  HexCount => _phase.HexCount;
+        // rule is the undertale blue/orange gate — None is a plain hex that
+        // always hurts, see HexRule
         public void SpawnHex(Vector2 center, float startRadius, float maxRadius,
-            float rotation, float growSeconds, float explodeSpeed)
-            => _phase.SpawnHex(center, startRadius, maxRadius, rotation, growSeconds, explodeSpeed);
+            float rotation, float growSeconds, float explodeSpeed, HexRule rule = HexRule.None)
+            => _phase.SpawnHex(center, startRadius, maxRadius, rotation, growSeconds, explodeSpeed, rule);
 
         // for attacks that hurt the player through something other than a
         // hazard, like getting a quiz answer wrong. goes through the same

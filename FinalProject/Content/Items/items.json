@@ -1,4 +1,4 @@
 [
-  { "name": "Cheese Toast", "description": "A warm slice of cheese toast.", "healAmount": 20 },
-  { "name": "Juice Box", "description": "A small box of apple juice.", "healAmount": 10 }
+  { "name": "Cheese Toast", "description": "A warm slice of cheese toast.", "healAmount": 20, "price": 15 },
+  { "name": "Juice Box", "description": "A small box of apple juice.", "healAmount": 10, "price": 15 }
 ]

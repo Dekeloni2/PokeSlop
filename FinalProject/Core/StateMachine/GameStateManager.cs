@@ -14,6 +14,9 @@ namespace FinalProject.Core.StateMachine
     {
         private readonly Stack<GameState> _stack = new Stack<GameState>();
 
+        // Added this so Game1 can read 
+        public GameState CurrentState => _stack.Count > 0 ? _stack.Peek() : null;
+        
         public GameState Current => _stack.Count > 0 ? _stack.Peek() : null;
 
         public void Replace(GameState newState)

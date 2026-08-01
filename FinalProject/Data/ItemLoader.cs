@@ -19,7 +19,7 @@ namespace FinalProject.Data
 
             var items = new List<ItemData>();
             foreach (ItemJson i in data)
-                items.Add(new ItemData(i.Name, i.Description, i.HealAmount));
+                items.Add(new ItemData(i.Name, i.Description, i.HealAmount, i.Price));
             return items;
         }
 
@@ -28,6 +28,7 @@ namespace FinalProject.Data
             public string Name { get; set; }
             public string Description { get; set; }
             public int HealAmount { get; set; }
+            public int Price { get; set; }
         }
     }
 }

@@ -24,6 +24,7 @@ namespace FinalProject.Battle
             ["Napoleon"]     = () => new NapoleonPattern(),
             ["Hexagon"]      = () => new HexagonPattern(),
             ["Onion"] = () => new OnionPattern(),
+            ["AllStar"] = () => new AllStarPattern(), // david's ultimate
             ["Punch"]        = () => new PunchPattern(),
             ["Boat"]         = () => new BoatPattern(),
             ["Cloverbyte"]   = () => new CloverbytePattern(),

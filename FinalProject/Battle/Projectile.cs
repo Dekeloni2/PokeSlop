@@ -13,7 +13,8 @@ namespace FinalProject.Battle
         Smoke, // ship attack
         Laser, // garlic gun
         Pixel, // yakir's single pixel
-        Code   // yakir's lessons, letters and numbers instead of bullets
+        Code,   // yakir's lessons, letters and numbers instead of bullets
+        Word 
     }
     
     public class Projectile
@@ -23,6 +24,8 @@ namespace FinalProject.Battle
         public bool IsExpired { get; private set; }
 
         public ProjectileType Type {get; private set;}
+        
+        public string Text { get; private set; }
 
         // the battle draws at 1:1, so a literal 2px pixel is invisible in
         // practice. 4px still reads as "one pixel" next to the 6px bullets,
@@ -32,18 +35,23 @@ namespace FinalProject.Battle
         private const float PixelHaloAlpha = 0.28f;
         private const float PixelPulseHz   = 2.2f;
 
+        private int _wordWidth;
+        private int _wordHeight;
+        
         public int ProjectileWidth => Type switch
         {
             ProjectileType.Smoke => 25,
             ProjectileType.Laser => 40,
             ProjectileType.Pixel => PixelSize,
+            ProjectileType.Word  => _wordWidth,
             _ => GameSettings.DodgeProjectileSize // default size
         };
-
+        
         public int ProjectileHeight => Type switch {
             ProjectileType.Smoke => 25,
             ProjectileType.Laser => 50,
             ProjectileType.Pixel => PixelSize,
+            ProjectileType.Word  => _wordHeight,
             _ => GameSettings.DodgeProjectileSize // default size
         };
         
@@ -71,6 +79,27 @@ namespace FinalProject.Battle
 
             if (type == ProjectileType.Code)
                 _glyph = CodeGlyphs[Random.Shared.Next(CodeGlyphs.Length)];
+        }
+        
+        public float Scale { get; private set; } = 1.0f; // added default scale 
+        
+        public Projectile(Vector2 position, Vector2 velocity, string text, SpriteFont font, float scale = 0.85f)
+            : this(position, velocity, ProjectileType.Word)
+        {
+            Text = text ?? string.Empty;
+            Scale = scale;
+
+            if (font != null && !string.IsNullOrEmpty(Text))
+            {
+                Vector2 measured = font.MeasureString(Text) * scale;
+                _wordWidth = (int)Math.Ceiling(measured.X);
+                _wordHeight = (int)Math.Ceiling(measured.Y);
+            }
+            else
+            {
+                _wordWidth = (int)(Text.Length * 8 * Scale);
+                _wordHeight = (int)(14 * Scale);
+            }
         }
         
         private float _lifeTime;
@@ -130,6 +159,33 @@ namespace FinalProject.Battle
                     (int)Position.X - PixelHaloSize / 2,
                     (int)Position.Y - PixelHaloSize / 2,
                     PixelHaloSize, PixelHaloSize), Color.White * (PixelHaloAlpha * pulse));
+            }
+            
+            if (Type == ProjectileType.Word)
+            {
+                if (font != null && !string.IsNullOrEmpty(Text))
+                {
+                    Vector2 textSize = font.MeasureString(Text);
+                    Vector2 origin = textSize / 2f;
+
+                    spriteBatch.DrawString(
+                        font,
+                        Text,
+                        Position,
+                        Color.Yellow,
+                        0f,
+                        origin,
+                        Scale,
+                        SpriteEffects.None,
+                        0f
+                    );
+                    return;
+                }
+                else
+                {
+                    spriteBatch.Draw(pixel, Bounds, Color.Yellow);
+                }
+                return;
             }
 
             Color renderColor = Type switch

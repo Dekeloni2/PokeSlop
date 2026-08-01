@@ -50,10 +50,10 @@
       "power": 1,
       "accuracy": 100,
       "description": "David winds up and drives a fist across the arena.",
-      "pattern": "Punch"
+      "pattern": "AllStar" 
     },
     {
-      "name": "Haymaker",
+      "name": "Hexagons",
       "power": 1,
       "accuracy": 100,
       "description": "David winds up and drives a fist across the arena.",

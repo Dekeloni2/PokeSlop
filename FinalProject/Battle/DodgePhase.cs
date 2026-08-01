@@ -273,6 +273,12 @@ namespace FinalProject.Battle
 
         internal void SpawnProjectile(Vector2 position, Vector2 velocity, ProjectileType type = ProjectileType.Normal)
             => _projectiles.Add(new Projectile(position, velocity,  type));
+        
+        // words
+        public void SpawnProjectile(Vector2 position, Vector2 velocity, string text, SpriteFont font = null, float scale = 0.85f)
+        {
+            _projectiles.Add(new Projectile(position, velocity, text, font, scale));
+        }
 
         internal Beam AddBeam(Rectangle bounds, Texture2D texture = null)
         {

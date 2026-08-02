@@ -1,5 +1,6 @@
     // Game1.cs
 using System;
+using System.Collections.Generic;
 using System.IO;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
@@ -11,6 +12,7 @@ using FinalProject.Core.Input;
 using FinalProject.Core.StateMachine;
 using FinalProject.Data;
 using FinalProject.States;
+using FinalProject.UI;
 
 namespace FinalProject
 {
@@ -34,6 +36,9 @@ namespace FinalProject
         // whole run. subscribes on construction, so build it before any battle
         public RouteTracker Route { get; private set; } = new();
 
+        private VendingMachineMenu _vendingMachine;
+        private List<ItemData> _vendingMachineItems;
+        
         public Game1()
         {
             _graphics = new GraphicsDeviceManager(this)
@@ -141,6 +146,11 @@ namespace FinalProject
 
 #if DEBUG
             LoadStartingInventory();
+            
+            string itemsPath = Path.GetFullPath(
+                Path.Combine(AppContext.BaseDirectory, "..", "..", "..", "Content", "Items", "items.json"));
+            _vendingMachineItems = ItemLoader.LoadAll(itemsPath);
+            _vendingMachine = new VendingMachineMenu(PixelTexture, DialogueFont);
 #endif
 
             StateManager.Replace(new MainMenuState(this, StateManager));
@@ -154,7 +164,30 @@ namespace FinalProject
             if (Input.IsKeyPressed(Keys.Escape))
                 Exit();
 
-            StateManager.Update(gameTime);
+#if DEBUG
+            // Press 'V' to open the vending machine anywhere in debug mode
+            if (Input.IsKeyPressed(Keys.V) && _vendingMachine != null)
+            {
+                if (_vendingMachine.IsActive)
+                {
+                    _vendingMachine.Close();
+                }
+                else if (StateManager.CurrentState is OverworldState)
+                {
+                    _vendingMachine.Open(_vendingMachineItems);
+                }
+            }
+#endif
+            
+            if (_vendingMachine != null && _vendingMachine.IsActive)
+            {
+                _vendingMachine.Update(Input, PlayerData);
+            }
+            else
+            {
+                StateManager.Update(gameTime);
+            }
+            
             base.Update(gameTime);
         }
 
@@ -173,6 +206,14 @@ namespace FinalProject
         {
             GraphicsDevice.Clear(Color.Black);
             StateManager.Draw(_spriteBatch);
+            
+            if (_vendingMachine != null && _vendingMachine.IsActive)
+            {
+                _spriteBatch.Begin();
+                _vendingMachine.Draw(_spriteBatch, PlayerData);
+                _spriteBatch.End();
+            }
+            
             base.Draw(gameTime);
         }
     }

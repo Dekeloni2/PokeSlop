@@ -6,12 +6,14 @@ namespace FinalProject.Data
         public string Name        { get; }
         public string Description { get; }
         public int    HealAmount  { get; }
+        public int    Price       { get; }
 
-        public ItemData(string name, string description, int healAmount)
+        public ItemData(string name, string description, int healAmount, int price)
         {
             Name        = name;
             Description = description;
             HealAmount  = healAmount;
+            Price       = price;
         }
     }
 }

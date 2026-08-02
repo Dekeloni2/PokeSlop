@@ -74,18 +74,23 @@ public class BoatPattern : IBulletPattern
     // the arc is solved so it is exactly there at exactly this time. that's what
     // lets the laser be waiting at the meeting point instead of chasing the
     // bomb around — the two were authored against the same coordinates
-    private const float InterceptSeconds = 0.55f;
+    // the soul moves at 100 px/s and the blast band below is 44 tall, so getting
+    // clear of one costs about 0.26s of travel from the worst starting spot.
+    // add human reaction time on top and the warning has to be somewhere north
+    // of half a second or the hit is unavoidable rather than hard
+    private const float InterceptSeconds = 0.8f;
 
     // ── laser ─────────────────────────────────────────────────────────────────
-    // the aim window is deliberately short and sits INSIDE the flight, ending
-    // exactly at the intercept. so the whole beat is lob → line → hit in about
-    // half a second, and it reads as one shot rather than two separate events
-    private const float AimSeconds   = 0.22f;
+    // the aim window sits INSIDE the flight and ends exactly at the intercept,
+    // so the beat still reads as one shot. it is NOT the warning though — the
+    // band preview is, and that's up from the moment the bomb leaves the deck.
+    // this is the "now" cue on the end of it
+    private const float AimSeconds   = 0.3f;
     private const float FlashSeconds = 0.1f;  // it brightens, then the bomb goes
     private const float HoldFireChance = 0.25f; // he just lets this one sail past
 
     // ── the blast ─────────────────────────────────────────────────────────────
-    private const int   BlastStartHeight = 54;   // tall enough that you have to be clear of the band
+    private const int   BlastStartHeight = 44;   // tall enough that you have to be clear of the band
     private const float BlastSeconds     = 0.3f; // collapses to nothing this fast
     private const int   BlastDamage      = 6;
 
@@ -472,9 +477,41 @@ public class BoatPattern : IBulletPattern
     // bullets instead, so a bomb can't be lost behind a cloud of smoke
     public void Draw(SpriteBatch spriteBatch, Texture2D pixel, DodgeContext context)
     {
+        DrawWarnings(spriteBatch, pixel);
         DrawBombs(spriteBatch, pixel);
         DrawShot(spriteBatch, pixel, context);
         DrawBlasts(spriteBatch, pixel);
+    }
+
+    // the actual warning, and the reason any of this is dodgeable: the band the
+    // blast will occupy, drawn from the moment the bomb is launched. the meeting
+    // point is known at launch, so there's no reason to sit on it — the laser
+    // arriving later is the "now", not the "where".
+    //
+    // only for bombs he means to shoot. one he's holding fire on gets no line,
+    // so the preview is never a lie about what's coming
+    private void DrawWarnings(SpriteBatch spriteBatch, Texture2D pixel)
+    {
+        foreach (Bomb bomb in _bombs)
+        {
+            if (!bomb.Doomed) continue;
+
+            // creeps up as the moment approaches rather than sitting flat, so
+            // the last stretch reads as urgent without a second effect
+            float t = MathHelper.Clamp(bomb.Age / InterceptSeconds, 0f, 1f);
+            float alpha = MathHelper.Lerp(0.16f, 0.5f, t * t);
+
+            var band = new Rectangle(
+                0, (int)(bomb.Intercept.Y - BlastStartHeight / 2f),
+                GameSettings.WindowWidth, BlastStartHeight);
+
+            // hollow, so it can't be mistaken for the solid bar that hurts —
+            // two thin edges marking out exactly the space to be out of
+            spriteBatch.Draw(pixel, new Rectangle(band.X, band.Y, band.Width, 1),
+                Color.OrangeRed * alpha);
+            spriteBatch.Draw(pixel, new Rectangle(band.X, band.Bottom - 1, band.Width, 1),
+                Color.OrangeRed * alpha);
+        }
     }
 
     private void DrawBombs(SpriteBatch spriteBatch, Texture2D pixel)

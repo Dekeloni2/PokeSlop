@@ -5,13 +5,6 @@ using FinalProject.Core.Audio;
 
 namespace FinalProject.Battle
 {
-    // which undertale style rule a hexagon plays by, if any. None is a plain
-    // white hex that always hurts, which is what the standalone attack spawns —
-    // the coloured ones are David's ultimate quoting the rule his punch and
-    // Dor's lash already teach, so the player has seen it before it shows up
-    // on a hexagon
-    public enum HexRule { None, Blue, Orange }
-
     // An expanding hexagon hazard. Only its 6 edges hurt (continuous damage) —
     // the interior is safe, so it can grow right over the player. It fades in
     // (a brief non-damaging telegraph), grows to a max radius, then explodes:
@@ -46,12 +39,6 @@ namespace FinalProject.Battle
         // use, this is the moment the hex actually becomes what it's for
         private const string ExplodeSound = "snd_heavydamage";
 
-        // same values the punch, the training lines and Cloverbyte's lash use —
-        // the colour is the whole tell, so it has to be the identical blue and
-        // orange or it reads as a different rule
-        private static readonly Color BlueColor   = new Color(60, 130, 255);
-        private static readonly Color OrangeColor = new Color(255, 150, 40);
-
         private enum Phase { FadeIn, Grow, Charge, Explode, Done }
 
         private readonly Vector2 _center;
@@ -59,8 +46,8 @@ namespace FinalProject.Battle
         private readonly float   _startRadius;
         private readonly float   _maxRadius;
         private readonly float   _growSeconds;
-        private readonly float   _explodeSpeed;
-        private readonly HexRule _rule;
+        private readonly float      _explodeSpeed;
+        private readonly HazardRule _rule;
 
         private Phase   _phase = Phase.FadeIn;
         private float   _timer;
@@ -72,7 +59,7 @@ namespace FinalProject.Battle
         public bool IsFinished => _phase == Phase.Done;
 
         public HexHazard(Vector2 center, float startRadius, float maxRadius,
-            float rotation, float growSeconds, float explodeSpeed, HexRule rule = HexRule.None)
+            float rotation, float growSeconds, float explodeSpeed, HazardRule rule = HazardRule.White)
         {
             _center       = center;
             _startRadius  = startRadius;
@@ -147,7 +134,7 @@ namespace FinalProject.Battle
             // currently answering correctly shouldn't burn the cooldown, or
             // standing still in a blue edge would eat a tick the moment they
             // moved again rather than starting a fresh interval
-            if (!Connects(playerMoving)) return false;
+            if (!_rule.Connects(playerMoving)) return false;
             if (_damageCooldown > 0f) return false;
 
             Vector2 p = hitbox.Center.ToVector2();
@@ -165,25 +152,11 @@ namespace FinalProject.Battle
             return false;
         }
 
-        // blue only catches you moving, orange only catches you standing still —
-        // the same way round as the punch's fist and the training lines
-        private bool Connects(bool moving) => _rule switch
-        {
-            HexRule.Blue   => moving,
-            HexRule.Orange => !moving,
-            _              => true,
-        };
-
         // what the hex is drawn in when it isn't doing anything special. a ruled
         // hex is its rule colour from the very first frame of the fade in, so
         // there's never a moment where it's on screen without saying which one
         // it is
-        private Color BaseColor => _rule switch
-        {
-            HexRule.Blue   => BlueColor,
-            HexRule.Orange => OrangeColor,
-            _              => Color.White,
-        };
+        private Color BaseColor => _rule.Tint();
 
         public void Draw(SpriteBatch sb, Texture2D pixel)
         {
@@ -202,7 +175,7 @@ namespace FinalProject.Battle
                 // flash still reads as a warning, the hue survives it
                 float charge = MathHelper.Clamp(_timer / ChargeSeconds, 0f, 1f);
                 float pulse  = (MathF.Sin(_timer * PulseHz * MathHelper.TwoPi) + 1f) * 0.5f;
-                Color peak   = _rule == HexRule.None ? Color.Red : Color.White;
+                Color peak   = _rule == HazardRule.White ? Color.Red : Color.White;
                 color = Color.Lerp(BaseColor, peak, pulse * charge);
             }
             else

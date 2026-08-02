@@ -309,7 +309,7 @@ namespace FinalProject.Battle
         internal int ProjectileCount => _projectiles.Count;
 
         internal void SpawnHex(Vector2 center, float startRadius, float maxRadius,
-            float rotation, float growSeconds, float explodeSpeed, HexRule rule = HexRule.None)
+            float rotation, float growSeconds, float explodeSpeed, HazardRule rule = HazardRule.White)
             => _hexes.Add(new HexHazard(center, startRadius, maxRadius, rotation, growSeconds, explodeSpeed, rule));
 
         internal void ResizeBoxTo(Rectangle target, float overSeconds)

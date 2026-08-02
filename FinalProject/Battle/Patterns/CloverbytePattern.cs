@@ -135,12 +135,6 @@ public class CloverbytePattern : IBulletPattern
     private const float WindUpPulseHz  = 6f;
 
     private static readonly Color TongueColor = Color.White;
-    private static readonly Color BlueColor   = new Color(60, 130, 255);
-    private static readonly Color OrangeColor = new Color(255, 150, 40);
-
-    // undertale's rule: blue only connects while you're moving, orange only
-    // while you're standing still, white always connects
-    private enum HazardColor { White, Blue, Orange }
 
     private const int TongueDamage = 5;
     private const int SwipeDamage  = 7;
@@ -183,7 +177,7 @@ public class CloverbytePattern : IBulletPattern
     private float _prevAngle;    // last frame's angle, so the sweep can't tunnel
     private float _length;
     private float _extend;       // 0 retracted, 1 fully out
-    private HazardColor _color = HazardColor.White;
+    private HazardRule _color = HazardRule.White;
     private float _swipeStartAngle;
     private float _trailFromAngle;         // where the swept wedge is drawn from
     private float _trailAlpha = 1f;        // wedge hangs after the swipe, then fades
@@ -277,7 +271,7 @@ public class CloverbytePattern : IBulletPattern
                 // it was on the last frame. that's the tell — move after this.
                 // always opens white: a colour sweep starts life as an ordinary
                 // lash so there's nothing to read until it has already landed
-                _color = HazardColor.White;
+                _color = HazardRule.White;
                 AimAt(context.HitboxPosition);
                 _extend = 0f;
                 if (_timer >= AimSeconds)
@@ -379,7 +373,7 @@ public class CloverbytePattern : IBulletPattern
                 if (_timer >= FeintStrikeSeconds)
                 {
                     _extend          = 1f;
-                    _color           = HazardColor.Blue;
+                    _color           = HazardRule.Blue;
                     _length          = SwipeRadius;
                     _swipeStartAngle = _angle;
                     _trailFromAngle  = _angle;
@@ -427,7 +421,7 @@ public class CloverbytePattern : IBulletPattern
                     // every sweep lands here, so this is the fork back out
                     if (_tier == Tier.TeachOrange && !_returnSwipeDone)
                     {
-                        _color = HazardColor.Orange;
+                        _color = HazardRule.Orange;
                         context.SetTeacherSpeech(Line(context, BeatOrange, "ORANGE. Now MOVE."));
                         Advance(Phase.ReturnWindUp);
                     }
@@ -499,9 +493,9 @@ public class CloverbytePattern : IBulletPattern
     {
         if (_extend <= 0.01f) return;
         if (!IsDamagingPhase) return;
-        if (!Connects(_color, context.IsPlayerMoving)) return;
+        if (!_color.Connects(context.IsPlayerMoving)) return;
 
-        bool sweep  = _color != HazardColor.White;
+        bool sweep  = _color != HazardRule.White;
         float reach = (sweep ? SwipeWidth : TongueWidth) / 2f + GameSettings.DodgeHitboxSize / 2f;
 
         // Testing only the angle the tongue is at RIGHT NOW misses the sweeps
@@ -534,15 +528,6 @@ public class CloverbytePattern : IBulletPattern
     private bool IsDamagingPhase => _phase is Phase.Strike or Phase.Hold
         or Phase.Recolour or Phase.WindUp or Phase.Swipe or Phase.Impact
         or Phase.ReturnWindUp or Phase.SwipeBack;
-
-    // the sweep passes right over you either way, the colour decides whether it
-    // actually connects. blue wants you still, orange wants you moving
-    private static bool Connects(HazardColor color, bool moving) => color switch
-    {
-        HazardColor.Blue   => moving,
-        HazardColor.Orange => !moving,
-        _                  => true,
-    };
 
     // ── drawing ──────────────────────────────────────────────────────────────
 
@@ -585,7 +570,7 @@ public class CloverbytePattern : IBulletPattern
         Color color = TongueColor;
         float width = TongueWidth;
 
-        if (_color != HazardColor.White)
+        if (_color != HazardRule.White)
         {
             width = SwipeWidth;
             color = SweepColor;
@@ -664,7 +649,7 @@ public class CloverbytePattern : IBulletPattern
     // or the lash itself leaking which one is coming
     private void BeginColourSweep()
     {
-        _color      = Random.Shared.Next(2) == 0 ? HazardColor.Blue : HazardColor.Orange;
+        _color      = Random.Shared.Next(2) == 0 ? HazardRule.Blue : HazardRule.Orange;
         _sweepDir   = Random.Shared.Next(2) == 0 ? 1f : -1f;
         _lashLength = _length;
         _trailAlpha = 1f;
@@ -684,7 +669,7 @@ public class CloverbytePattern : IBulletPattern
     // fast off the mark, decelerating into the follow through
     private static float EaseOut(float t) => 1f - MathF.Pow(1f - t, 3f);
 
-    private Color SweepColor => _color == HazardColor.Orange ? OrangeColor : BlueColor;
+    private Color SweepColor => _color.Tint();
 
     private int LandTop(DodgeContext context) => context.BaseBox.Center.Y - LogoH / 2;
 

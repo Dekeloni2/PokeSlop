@@ -32,9 +32,9 @@ namespace FinalProject.Battle
 
             // the training dummy's three lessons — one class, one entry per
             // rule it teaches. see TrainingLinePattern
-            ["TrainingWhite"]  = () => new TrainingLinePattern(TrainingLinePattern.Kind.White),
-            ["TrainingBlue"]   = () => new TrainingLinePattern(TrainingLinePattern.Kind.Blue),
-            ["TrainingOrange"] = () => new TrainingLinePattern(TrainingLinePattern.Kind.Orange),
+            ["TrainingWhite"]  = () => new TrainingLinePattern(HazardRule.White),
+            ["TrainingBlue"]   = () => new TrainingLinePattern(HazardRule.Blue),
+            ["TrainingOrange"] = () => new TrainingLinePattern(HazardRule.Orange),
         };
 
         public static Func<IBulletPattern> Resolve(string name)

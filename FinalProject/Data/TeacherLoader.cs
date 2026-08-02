@@ -24,7 +24,8 @@ namespace FinalProject.Data
                 moves.Add(new MoveData(m.Name, m.Power, m.Accuracy, m.Description,
                     PatternRegistry.Resolve(m.Pattern), m.IsUltimate, ToSpeech(m.Speech))
                 {
-                    Intro = m.Intro,
+                    Intro     = m.Intro,
+                    IntroLeap = m.IntroLeap,
                 });
 
             List<ActOption> actOptions = ToActOptions(data.ActOptions);
@@ -200,6 +201,10 @@ namespace FinalProject.Data
 
             // optional. a cutscene before the attack, see MoveData.Intro
             public string Intro { get; set; }
+
+            // optional. he leaps off screen once the intro is read, see
+            // MoveData.IntroLeap
+            public bool IntroLeap { get; set; }
 
             // optional. beat name -> lines, see MoveData.Line
             public Dictionary<string, List<string>> Speech { get; set; }

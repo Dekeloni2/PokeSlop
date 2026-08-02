@@ -55,8 +55,9 @@ public class PunchPattern : IBulletPattern
     // then reappear above frame and fall back down — the mirror of how
     // Cloverbyte's logo arrives, run backwards for the takeoff and forwards
     // again for the landing
-    private const float LeapChargeSeconds = 0.16f;
-    private const float LaunchSeconds     = 0.30f;
+    // the leap itself is shared with the ultimate's intro, see TeacherLeap
+    private const float LeapChargeSeconds = TeacherLeap.ChargeSeconds;
+    private const float LaunchSeconds     = TeacherLeap.LaunchSeconds;
     private const float FallSeconds       = 0.50f;
     private const float LandSquashSeconds = 0.30f;
 
@@ -113,10 +114,10 @@ public class PunchPattern : IBulletPattern
 
     // the leap — deep crouch, then a launch/fall stretch in the direction of
     // travel, then a hard landing squash that settles back to normal
-    private const float LeapChargeScaleX = 1.35f;
-    private const float LeapChargeScaleY = 0.55f;
-    private const float LaunchStretchX   = 0.80f;
-    private const float LaunchStretchY   = 1.35f;
+    private const float LeapChargeScaleX = TeacherLeap.ChargeScaleX;
+    private const float LeapChargeScaleY = TeacherLeap.ChargeScaleY;
+    private const float LaunchStretchX   = TeacherLeap.StretchX;
+    private const float LaunchStretchY   = TeacherLeap.StretchY;
     private const float FallStretchX     = 0.88f;
     private const float FallStretchY     = 1.20f;
     private const float LandSquashX      = 1.30f;
@@ -131,18 +132,14 @@ public class PunchPattern : IBulletPattern
     private const string LandSound      = "thud";
     private const string ShakeSound     = "snd_screenshake"; // rides along with every shake, see Shake()
 
-    // charge glow and the two undertale-style fist rules — same colours
-    // Cloverbyte uses, so the player doesn't have to relearn what they mean
+    // the red glow while he charges. the fist's own colour is the shared
+    // blue/orange rule instead, see HazardRule
     private static readonly Color ChargeColor = new Color(255, 60, 60);
-    private static readonly Color BlueColor   = new Color(60, 130, 255);
-    private static readonly Color OrangeColor = new Color(255, 150, 40);
 
-    // blue only hurts while you're moving, orange only while you're standing
-    // still — same rule as Dor's cloverbyte lash, decided fresh each punch so
-    // repeating the move doesn't repeat the same answer
-    private enum FistColor { Blue, Orange }
-    private FistColor _fistColor;
-    private Color FistBaseColor => _fistColor == FistColor.Blue ? BlueColor : OrangeColor;
+    // decided fresh each punch, so repeating the move doesn't repeat the answer.
+    // never White here — the fist always plays by one of the two
+    private HazardRule _fistColor;
+    private Color FistBaseColor => _fistColor.Tint();
 
     private enum Side  { Left, Right }
     private enum Phase
@@ -276,7 +273,7 @@ public class PunchPattern : IBulletPattern
                     // decided here so the whole telegraph shows the real
                     // colour — springing a fresh one at the strike would give
                     // no time to read it
-                    _fistColor = Random.Shared.Next(2) == 0 ? FistColor.Blue : FistColor.Orange;
+                    _fistColor = Random.Shared.Next(2) == 0 ? HazardRule.Blue : HazardRule.Orange;
                     SoundManager.Play(TelegraphSound);
                     Advance(Phase.Telegraph);
                 }
@@ -509,18 +506,9 @@ public class PunchPattern : IBulletPattern
     {
         if (!_ready || !IsDamagingPhase) return;
         if (!TouchesPlayer(context)) return;
-        if (!Connects(_fistColor, context.IsPlayerMoving)) return;
+        if (!_fistColor.Connects(context.IsPlayerMoving)) return;
         context.DamagePlayer(PunchDamage);
     }
-
-    // same undertale rule Cloverbyte's lash teaches: blue only catches you
-    // moving, orange only catches you standing still
-    private static bool Connects(FistColor color, bool moving) => color switch
-    {
-        FistColor.Blue   => moving,
-        FistColor.Orange => !moving,
-        _                => true,
-    };
 
     private bool TouchesPlayer(DodgeContext context)
     {

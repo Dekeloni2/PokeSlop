@@ -116,9 +116,9 @@ public class HexagonPattern : IBulletPattern
         // rolled per hexagon rather than per burst, so two on screen together
         // can disagree and the player has to read each one instead of learning
         // the answer once and coasting
-        HexRule rule = _colorCoded
-            ? (Random.Shared.Next(2) == 0 ? HexRule.Blue : HexRule.Orange)
-            : HexRule.None;
+        HazardRule rule = _colorCoded
+            ? (Random.Shared.Next(2) == 0 ? HazardRule.Blue : HazardRule.Orange)
+            : HazardRule.White;
 
         float maxRadius = MaxRadiusFrac * box.Height;
         context.SpawnHex(center, StartRadius, maxRadius, 0f, GrowSeconds, ExplodeSpeed, rule);

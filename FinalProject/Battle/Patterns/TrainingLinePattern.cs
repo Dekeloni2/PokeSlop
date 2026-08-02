@@ -32,14 +32,11 @@ namespace FinalProject.Battle.Patterns;
 // Draws itself, DodgePhase forwards the call.
 public class TrainingLinePattern : IBulletPattern
 {
-    // which rule this line is teaching. white always connects, blue only while
-    // you're moving, orange only while you're still — same convention as
-    // CloverbytePattern, see Connects below
-    public enum Kind { White, Blue, Orange }
+    // which rule this line is teaching — see HazardRule. this pattern is where
+    // the player meets it for the first time, one colour per lesson
+    private readonly HazardRule _kind;
 
-    private readonly Kind _kind;
-
-    public TrainingLinePattern(Kind kind) => _kind = kind;
+    public TrainingLinePattern(HazardRule kind) => _kind = kind;
 
     // ── timing ───────────────────────────────────────────────────────────────
     private const float ExpandSeconds  = 0.5f;
@@ -67,10 +64,6 @@ public class TrainingLinePattern : IBulletPattern
     private const int GapInset = 10;
 
     private const int Damage = 3; // out of 20, so a fumbled lesson isn't fatal
-
-    private static readonly Color WhiteColor  = Color.White;
-    private static readonly Color BlueColor   = new(60, 130, 255);
-    private static readonly Color OrangeColor = new(255, 150, 40);
 
     // pulses while parked, so it's clear the colour means something before it
     // starts moving
@@ -186,7 +179,7 @@ public class TrainingLinePattern : IBulletPattern
 
     private void ApplyDamage(DodgeContext context)
     {
-        if (!Connects(_kind, context.IsPlayerMoving)) return;
+        if (!_kind.Connects(context.IsPlayerMoving)) return;
 
         int half = GameSettings.DodgeHitboxSize / 2;
         var soul = new Rectangle(
@@ -205,22 +198,13 @@ public class TrainingLinePattern : IBulletPattern
         }
     }
 
-    // undertale's rule: blue only connects while you're moving, orange only
-    // while you're standing still, white always connects
-    private static bool Connects(Kind kind, bool moving) => kind switch
-    {
-        Kind.Blue   => moving,
-        Kind.Orange => !moving,
-        _           => true,
-    };
-
     // the white line is split by its gap, the colours are one solid bar. both
     // collision and drawing read this, so they can never disagree
     private Rectangle[] Segments()
     {
         int x = (int)_lineX;
 
-        if (_kind != Kind.White)
+        if (_kind != HazardRule.White)
             return new[] { new Rectangle(x, _arena.Top, LineWidth, _arena.Height) };
 
         int gapBottom = _gapTop + GapHeight;
@@ -253,12 +237,7 @@ public class TrainingLinePattern : IBulletPattern
 
     // ── helpers ──────────────────────────────────────────────────────────────
 
-    private Color LineColor => _kind switch
-    {
-        Kind.Blue   => BlueColor,
-        Kind.Orange => OrangeColor,
-        _           => WhiteColor,
-    };
+    private Color LineColor => _kind.Tint();
 
     // one variant per kind isn't needed — each colour is its own move in the
     // JSON, so each gets its own speech block and index 0 is the only entry
@@ -267,22 +246,22 @@ public class TrainingLinePattern : IBulletPattern
 
     private string DefaultWarn => _kind switch
     {
-        Kind.Blue   => "BLUE. Do NOT move. Hold still and let it pass.",
-        Kind.Orange => "ORANGE. Keep MOVING. Walk straight through it.",
+        HazardRule.Blue   =>"BLUE. Do NOT move. Hold still and let it pass.",
+        HazardRule.Orange =>"ORANGE. Keep MOVING. Walk straight through it.",
         _           => "Move to the gap. Anything white will hurt you.",
     };
 
     private string DefaultCleared => _kind switch
     {
-        Kind.Blue   => "That's blue. Still means safe.",
-        Kind.Orange => "That's orange. Moving means safe.",
+        HazardRule.Blue   =>"That's blue. Still means safe.",
+        HazardRule.Orange =>"That's orange. Moving means safe.",
         _           => "That's dodging. Now the colours.",
     };
 
     private string DefaultHit => _kind switch
     {
-        Kind.Blue   => "You moved. BLUE only hurts you if you move.",
-        Kind.Orange => "You stopped. ORANGE only hurts you if you stand still.",
+        HazardRule.Blue   =>"You moved. BLUE only hurts you if you move.",
+        HazardRule.Orange =>"You stopped. ORANGE only hurts you if you stand still.",
         _           => "White always hurts. Get into the gap.",
     };
 

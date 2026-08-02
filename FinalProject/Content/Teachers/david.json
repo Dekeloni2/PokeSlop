@@ -51,7 +51,9 @@
       "accuracy": 100,
       "description": "David puts the song on and teaches the whole lesson at once.",
       "pattern": "AllStar",
-      "isUltimate": true
+      "isUltimate": true,
+      "intro": "You've been patient with me. I'll return the favour.|Everything I've taught you was one idea at a time.|Shapes. Layers. Curves.|That was the courtesy.|Now let's see you hold all of it at once.",
+      "introLeap": true
     }
   ],
   "actOptions": [

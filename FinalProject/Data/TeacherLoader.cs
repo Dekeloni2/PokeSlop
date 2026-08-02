@@ -14,7 +14,21 @@ namespace FinalProject.Data
         public static TeacherStats Load(string jsonPath)
         {
             string json = File.ReadAllText(jsonPath);
-            var options = new JsonSerializerOptions { PropertyNameCaseInsensitive = true };
+            // comments aren't legal JSON, but these files are authored by hand
+            // and get edited constantly — being able to // out a move to test
+            // one attack in isolation, or leave a note next to a number, is
+            // worth more here than staying strict.
+            //
+            // AllowTrailingCommas goes with it: commenting out the LAST entry
+            // in a list always leaves the comma on the one before it, and
+            // hunting that down every time is exactly the friction this is
+            // meant to remove
+            var options = new JsonSerializerOptions
+            {
+                PropertyNameCaseInsensitive = true,
+                ReadCommentHandling         = JsonCommentHandling.Skip,
+                AllowTrailingCommas         = true,
+            };
 
             TeacherJson data = JsonSerializer.Deserialize<TeacherJson>(json, options)
                 ?? throw new Exception($"Empty or invalid teacher JSON: {jsonPath}");

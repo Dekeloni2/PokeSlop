@@ -213,6 +213,7 @@ namespace FinalProject.States
             // uses in a static, so a new fight has to start them from zero
             CloverbytePattern.ResetUseCount();
             ChessPattern.ResetBoard();
+            BoatPattern.ResetUseCount();
             _moveIndex     = 0;
             _lastDodgeSpeech = null;
             _victoryShown  = false;
@@ -1260,6 +1261,21 @@ namespace FinalProject.States
                 _actSpeech = null;
             }
 
+            // once he's yielded he has stopped fighting, so none of his combat
+            // dialogue applies any more — not the HP lines, not the per action
+            // lists. a yield ACT option with its own line still speaks, that's
+            // _actSpeech above; anything else leaves him silent.
+            //
+            // without this, using an ITEM after the yield falls through to
+            // OnAct (see the Item mapping above, which fires for any teacher
+            // without its own onItem lines) and he answers with banter from the
+            // fight he already conceded
+            if (_yielded)
+            {
+                Speak(line);
+                return;
+            }
+
             if (string.IsNullOrEmpty(line) && d.ByHp != null && d.ByHp.Count > 0)
                 line = PercentThresholdText.Resolve(d.ByHp, CurrentHpPercent());
 
@@ -1282,6 +1298,13 @@ namespace FinalProject.States
                 }
             }
 
+            Speak(line);
+        }
+
+        // an empty line isn't a line — clear the bubble rather than leaving the
+        // last one up, which would read as him repeating himself
+        private void Speak(string line)
+        {
             if (string.IsNullOrEmpty(line)) _bubble.Clear();
             else                            _bubble.Prepare(line, Game.DialogueFont);
         }

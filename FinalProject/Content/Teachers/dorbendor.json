@@ -61,8 +61,7 @@
     "onSpared": "You truly are remakable.|You survived everything I threw at you, yet you still show mercy?|I shouldn't have been so harsh with you.|Thank you for giving me a chance to see the world through your eyes.|I will let you go, but I hope you will remember this lesson for the rest of your life."
   },
   "moves": [
-    {
-      "name": "Cloverbyte",
+ /*     "name": "Cloverbyte",
       "power": 1,
       "accuracy": 100,
       "description": "Dor unleashes a cloverbyte.",
@@ -126,6 +125,13 @@
           "You endure. The storm does not tire."
         ]
       }
+    },*/
+    {
+      "name": "Boat",
+      "power": 1,
+      "accuracy": 100,
+      "description": "Dor Ben Dor revs the engine and starts shelling the arena.",
+      "pattern": "Boat"
     },
     {
       "name": "Napoleon",

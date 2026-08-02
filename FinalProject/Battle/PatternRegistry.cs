@@ -10,7 +10,7 @@ namespace FinalProject.Battle
     // TESTING: yakir's lesson arc, the one he only throws if you provoke him,
     // and the two the substitute is being used to test. the rest are still in
     // Battle/Patterns, add their lines back when you need them:
-    //   Rain, ExpandingBox, Boat
+    //   Rain, ExpandingBox
     public static class PatternRegistry
     {
         private static readonly Dictionary<string, Func<IBulletPattern>> Patterns = new()

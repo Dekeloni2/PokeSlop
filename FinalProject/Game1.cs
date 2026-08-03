@@ -11,6 +11,7 @@ using FinalProject.Core.Graphics;
 using FinalProject.Core.Input;
 using FinalProject.Core.StateMachine;
 using FinalProject.Data;
+using FinalProject.Events;
 using FinalProject.States;
 using FinalProject.UI;
 
@@ -194,6 +195,33 @@ namespace FinalProject
                 {
                     _vendingMachine.Open(Items);
                 }
+            }
+            
+            // Press 1, 2 or 3 to test diffrent endings
+            // Press 1 to test Pacifist Ending
+            if (Input.IsKeyPressed(Keys.D1))
+            {
+                Route.Reset();
+                StateManager.Replace(new EndingState(this, StateManager));
+            }
+
+            // Press 2 to test Neutral Ending (Simulates 1 kill)
+            if (Input.IsKeyPressed(Keys.D2))
+            {
+                Route.Reset();
+                EventBus.Instance.Publish(new TeacherResolvedEvent("yakir", BattleOutcome.Killed));
+                EventBus.Instance.Publish(new TeacherResolvedEvent("david", BattleOutcome.Spared));
+                StateManager.Replace(new EndingState(this, StateManager));
+            }
+
+            // Press 3 to test Genocide Ending (Simulates all teachers killed)
+            if (Input.IsKeyPressed(Keys.D3))
+            {
+                Route.Reset();
+                EventBus.Instance.Publish(new TeacherResolvedEvent("yakir", BattleOutcome.Killed));
+                EventBus.Instance.Publish(new TeacherResolvedEvent("dorbendor", BattleOutcome.Killed));
+                EventBus.Instance.Publish(new TeacherResolvedEvent("david", BattleOutcome.Killed));
+                StateManager.Replace(new EndingState(this, StateManager));
             }
 #endif
             

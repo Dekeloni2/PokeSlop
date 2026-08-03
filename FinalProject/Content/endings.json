@@ -25,6 +25,7 @@
       "titleColor": [200, 200, 200],
       "lines": [
         { "text": "* Ring, Ring..." },
+        { "delay": 0.5 },
         { "speaker": "dorbendor", "text": "Hello, Clover? Are you there?|...I don't think they're here, David." },
         { "speaker": "david", "text": "It's fine. Just leave a message for them.|They'll pick up the phone at some point." },
         { "music": "tiltantale_ending" },
@@ -37,7 +38,9 @@
         { "speaker": "dorbendor", "text": "Which is what makes it so hard to understand.|Why would you do this, Clover?|We may never know." },
         { "speaker": "dorbendor", "text": "But I know one thing.|And if you ever set foot in this college again" },
         { "musicCut": true, "delay": 0.0 },
-        { "speaker": "dorbendor", "text": "You won't come out of it alive.|That's a promise." }
+        { "speaker": "dorbendor", "text": "You won't come out of it alive.|That's a promise." },
+        { "delay": 0.2 },
+        { "text": "* (Click...)" }
       ],
       "pages": []
     },
@@ -49,9 +52,32 @@
       "titleColor": [200, 200, 200],
       "lines": [
         { "text": "* Ring, Ring...." },
+        { "speaker": "yakir", "text": "Hello? Clover? Are you there?" },
+        { "speaker": "dorbendor", "text": "They are probably not going to answer you.|Why would you even call them to begin with? Are you stupid?" },
+        { "speaker": "yakir", "text": "Let me be hopeful.|I want to believe they are still out there, somewhere." },
+        { "delay": 0.5 },
+        { "speaker": "yakir", "text": "Anyway, we just wanted to call you to say a couple of things." },
         { "music": "tiltantale_ending" },
-        { "speaker": "yakir", "text": "TODO: Yakir calls. David is missing from it." },
-        { "speaker": "dorbendor", "text": "TODO: Dor Ben Dor responds." }
+        { "speaker": "yakir", "text": "First, we want to say that we forgive you.|We know you had your reasons, and we don't hold it against you." },
+        { "speaker": "dorbendor", "text": "I don't know if I can forgive you.|But I do know that I will never forget you." },
+        { "speaker": "yakir", "text": "Second, we want to say that we hope you are doing well.|We hope you are happy, wherever you are.|I know David could be harsh. Harder on his students than he needed to be.|Maybe something happened between you two. Maybe that doesn't excuse it.|But I don't want to believe you did it for no reason at all." },
+        { "speaker": "dorbendor", "text": "Yakir, I still don't understand the point of this call.|Are you seriously thinking this person has any shred of goodness?" },
+        { "speaker": "yakir", "text": "I... don't know, honestly.|But when they first walked into my class, they were just a student.|I could tell their intentions were good. They truly wanted to learn.|So why did it end so differently for David?" },
+        { "speaker": "dorbendor", "text": "Are you really still asking these questions?|Questions. That is all you left us with, Clover." },
+        { "speaker": "yakir", "text": "I am sorry if you feel like I am wasting your time, Dor...|......|But I grew attached to Clover.|We had a real bond. A student and their teacher." },
+        { "speaker": "dorbendor", "text": "I understand.|But I don't think you should be calling them.|They are not the same person you knew." },
+        { "speaker": "yakir", "text": "I know, Dor...|Maybe you are right about all of this.|But if there is even a small chance they can hear me, then I want to try." },
+        { "delay": 0.4 },
+        { "speaker": "dorbendor", "text": "...Fine.|Say what you need to say.|I won't stop you." },
+        { "delay": 0.7 },
+        { "speaker": "yakir", "text": "Clover.|I don't know who you are anymore.|But I still remember who you were when you walked into my class." },
+        { "delay": 0.4 },
+        { "speaker": "yakir", "text": "That student is someone I was proud of.|And I am still proud of them. Even now.|Even after everything that happened." },
+        { "delay": 0.5 },
+        { "speaker": "yakir", "text": "I don't think I will call again. I think we both know that.|So take care of yourself, Clover.|Wherever you ended up." },
+        { "musicStop": true },
+        { "delay": 0.8 },
+        { "text": "* (Click...)" }
       ],
       "pages": []
     },

@@ -8,6 +8,7 @@
   "baseHp": 100,
   "baseAtk": 5,
   "goldReward": 100,
+  "endsGame": true,
   "theme": "dbdTheme",
   "themeVolume": 0.4,
   "sequentialMoves": false,
@@ -126,13 +127,6 @@
           "You endure. The storm does not tire."
         ]
       }
-    },
-    {
-      "name": "Boat",
-      "power": 1,
-      "accuracy": 100,
-      "description": "Dor Ben Dor revs the engine and starts shelling the arena.",
-      "pattern": "Boat"
     },
     {
       "name": "Napoleon",

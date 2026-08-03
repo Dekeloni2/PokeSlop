@@ -11,7 +11,7 @@ namespace FinalProject.Core.Audio
     // short cues are SoundEffects, background tracks are Songs (MediaPlayer).
     // files that aren't imported yet get skipped instead of throwing, so a
     // missing sound just stays silent
-    public class  SoundManager
+    public class SoundManager
     {
         private static readonly Dictionary<string, SoundEffect> _sounds = new();
         private static readonly Dictionary<string, Song>        _songs  = new();
@@ -105,6 +105,9 @@ namespace FinalProject.Core.Audio
 
         // anything that puts HP back, wherever it comes from
         public const string HealSound  = "snd_heal_c";
+
+        // the ending's phone call
+        public const string PhoneRing  = "snd_phone";
 
         public static void PlayTextBeep() => Play(TextBeepName);
 

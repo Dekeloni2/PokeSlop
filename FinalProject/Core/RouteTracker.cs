@@ -32,6 +32,15 @@ namespace FinalProject.Core
         public int Killed => _resolved.Values.Count(o => o == BattleOutcome.Killed);
         public int Spared => _resolved.Values.Count(o => o == BattleOutcome.Spared);
 
+        // which teachers specifically, not just how many. the ending picks its
+        // script by the exact set of who was killed, so "spared Yakir, killed
+        // David" is a different ending from the other way round
+        public IEnumerable<string> KilledIds
+            => _resolved.Where(p => p.Value == BattleOutcome.Killed).Select(p => p.Key);
+
+        public IEnumerable<string> SparedIds
+            => _resolved.Where(p => p.Value == BattleOutcome.Spared).Select(p => p.Key);
+
         // how many fights have been settled either way
         public int ResolvedCount => _resolved.Count;
 

@@ -62,23 +62,6 @@ namespace FinalProject.States
             (int)TeacherAnchor.X, (int)TeacherAnchor.Y,
             (int)_teacherSprite.Size.X, (int)_teacherSprite.Size.Y);
 
-        // the buttons are gone for anything that reads as a cutscene: his last
-        // stand, a move announcing itself, the leap out of that announcement,
-        // and the box shrinking down into an attack.
-        //
-        // that last one is why this is a property rather than an inline check —
-        // BoxTransition runs in both directions, and only the way in belongs
-        // with the cutscene beats. on the way back out the buttons should be
-        // returning as the box grows, which is where they're going anyway
-        private bool MenuVisible => _phase switch
-        {
-            BattlePhase.Yielding  => false,
-            BattlePhase.MoveIntro => false,
-            BattlePhase.IntroLeap => false,
-            BattlePhase.BoxTransition => _phaseAfterTransition != BattlePhase.Dodging,
-            _ => true,
-        };
-
         // slash + damage number + the teacher's HP bar, shown right after a hit
         private readonly DamageDisplay _damageDisplay = new();
 
@@ -131,7 +114,7 @@ namespace FinalProject.States
         // an attack waiting behind its intro cutscene, started once he's done
         private IBulletPattern _pendingPattern;
         private MoveData       _pendingMove;
-        private const int YieldedHitDamage = 9999999;
+        private const int YieldedHitDamage = 9999;
 
         // whether anything has got through all fight. drives the extra line in
         // his yield speech, so it has to survive across every dodge phase
@@ -200,7 +183,6 @@ namespace FinalProject.States
             _ultimateUsed  = false;
             _ultimateDodging = false;
             _dodgingLesson   = false;
-            _teacherLeapt    = false;
             _moveIndex       = 0;
             _yielded         = false;
             _yieldStarted    = false;
@@ -213,7 +195,6 @@ namespace FinalProject.States
             // uses in a static, so a new fight has to start them from zero
             CloverbytePattern.ResetUseCount();
             ChessPattern.ResetBoard();
-            BoatPattern.ResetUseCount();
             _moveIndex     = 0;
             _lastDodgeSpeech = null;
             _victoryShown  = false;
@@ -281,10 +262,6 @@ namespace FinalProject.States
                     UpdateDodging(gameTime);
                     break;
 
-                case BattlePhase.IntroLeap:
-                    UpdateIntroLeap(gameTime);
-                    break;
-
                 case BattlePhase.MoveIntro:
                     UpdateMoveIntro(gameTime);
                     break;
@@ -302,7 +279,7 @@ namespace FinalProject.States
                     break;
 
                 case BattlePhase.BattleOver:
-                    StateManager.Pop();
+                    FinishBattle(gameTime);
                     break;
             }
         }
@@ -354,17 +331,8 @@ namespace FinalProject.States
             else
             {
                 // not drawn while dodging, attacks like napoleon take over the
-                // whole screen and it would just clash. mid leap he squashes and
-                // launches off the top of the window, see IntroLeapPose
-                if (_phase == BattlePhase.IntroLeap)
-                {
-                    IntroLeapPose(out Vector2 leapOffset, out Vector2 leapScale);
-                    _teacherSprite.Draw(spriteBatch, TeacherAnchor + leapOffset, leapScale);
-                }
-                else if (!_teacherLeapt)
-                {
-                    _teacherSprite.Draw(spriteBatch, TeacherAnchor);
-                }
+                // whole screen and it would just clash
+                _teacherSprite.Draw(spriteBatch, TeacherAnchor);
 
                 // slash/number/HP bar, only alive right after a hit
                 _damageDisplay.Draw(spriteBatch, Game.PixelTexture);
@@ -402,7 +370,7 @@ namespace FinalProject.States
                 // while dodging), the soul only sits on them while choosing.
                 // his last stand takes them away too — nothing to press until
                 // he's finished talking
-                if (MenuVisible)
+                if (_phase != BattlePhase.Yielding && _phase != BattlePhase.MoveIntro)
                     _menu.Draw(spriteBatch, showSoul: _phase == BattlePhase.SelectingMove);
             }
 
@@ -537,17 +505,6 @@ namespace FinalProject.States
 
         private void UseItem(ItemData item)
         {
-            // armor is worn rather than eaten — without this it would be
-            // swallowed for 0 HP and lost. Either way it costs the turn.
-            if (item.IsEquipment)
-            {
-                Game.PlayerData.EquipArmorFromInventory(Game.PlayerData.Inventory.IndexOf(item));
-                PushMessageSequence(
-                    new List<string> { $"You equipped the {item.Name}." },
-                    PlayerMoveList.Item);
-                return;
-            }
-
             Game.PlayerData.Heal(item.HealAmount);
             SoundManager.Play(SoundManager.HealSound);
             Game.PlayerData.Inventory.Remove(item);
@@ -755,7 +712,7 @@ namespace FinalProject.States
             {
                 // player death plays the soul shatter, the teacher going down gets a scene
                 if (Game.PlayerData.IsAlive) BeginEnding();
-                else BeginPlayerDeath();
+                else                         BeginPlayerDeath();
                 return;
             }
 
@@ -810,7 +767,7 @@ namespace FinalProject.States
             // a provoked pattern has no move behind it, so it isn't part of the
             // lesson plan and can't count as clearing one
             _dodgingLesson = move != null;
-            _dodgePhase = new DodgePhase(pattern, _teacher, Game.PlayerData, DodgeBoxRect, move, WideBoxRect, Game.DialogueFont);
+            _dodgePhase = new DodgePhase(pattern, _teacher, Game.PlayerData, DodgeBoxRect, move, WideBoxRect);
 
             _box.ResizeTo(DodgeBoxRect, ShrinkSeconds);
             _phaseAfterTransition = BattlePhase.Dodging;
@@ -828,66 +785,10 @@ namespace FinalProject.States
             if (_bubble.IsActive) return; // let him finish
 
             _bubble.Clear();
-
-            // he's finished talking. a move can ask for one more beat before the
-            // attack — he leaves the screen, and the pattern starts on an empty
-            // stage rather than with him standing there having just announced it
-            if (_pendingMove?.IntroLeap == true)
-            {
-                _leapTimer = 0f;
-                SoundManager.Play(LeapSound);
-                _phase = BattlePhase.IntroLeap;
-                return;
-            }
-
             StartDodge(_pendingPattern, _pendingMove);
 
             _pendingPattern = null;
             _pendingMove    = null;
-        }
-
-        // ── Phase: IntroLeap ─────────────────────────────────────────────────
-
-        // crouch, then rocket straight up off the top of the screen. the motion
-        // is TeacherLeap, the same one his haymaker leaps with — run here on the
-        // passive sprite rather than his rig, because this happens before the
-        // dodge phase exists and there's no pattern around to animate him yet
-        private const string LeapSound = "slash";
-
-        private float _leapTimer;
-
-        // he's left the screen and hasn't come back. without this he'd be drawn
-        // standing at his anchor again the moment the leap handed over — the box
-        // is still shrinking at that point, and the passive sprite doesn't know
-        // anything about the leap that just happened
-        private bool _teacherLeapt;
-
-        private void UpdateIntroLeap(GameTime gameTime)
-        {
-            _leapTimer += (float)gameTime.ElapsedGameTime.TotalSeconds;
-
-            if (_leapTimer < TeacherLeap.TotalSeconds) return;
-
-            _teacherLeapt = true;
-            StartDodge(_pendingPattern, _pendingMove);
-
-            _pendingPattern = null;
-            _pendingMove    = null;
-        }
-
-        // where the sprite sits and how it's deformed partway through the leap.
-        // the crouch is pure squash — the pivot is at his feet, so there's no
-        // separate dip to apply, he compresses into the floor on his own
-        private void IntroLeapPose(out Vector2 offset, out Vector2 scale)
-        {
-            TeacherLeap.Pose(_leapTimer, out float rise, out float scaleX, out float scaleY);
-
-            // far enough that he clears the top of the window whatever the
-            // teacher's assembled height is, with room for the launch stretch
-            float travel = TeacherAnchor.Y + _teacherSprite.Size.Y * TeacherLeap.StretchY + 40f;
-
-            offset = new Vector2(0f, -travel * rise);
-            scale  = new Vector2(scaleX, scaleY);
         }
 
         // ── Phase: BoxTransition ─────────────────────────────────────────────
@@ -956,11 +857,6 @@ namespace FinalProject.States
                 // around into the menu phase
                 _bubble.Clear();
                 _lastDodgeSpeech = null;
-
-                // whatever he did to get off screen, the turn's over and he's
-                // back at his post for the menu
-                _teacherLeapt = false;
-
                 _box.ResizeTo(WideBoxRect, GrowSeconds);
                 // a finished enemy turn is a fresh turn — force the narration to
                 // re-type. Prime it to zero now (during the box transition, before
@@ -1034,6 +930,30 @@ namespace FinalProject.States
         }
 
         // ── Helpers ──────────────────────────────────────────────────────────
+
+        // A beat of held black between the battle's fade-out and the ending, so
+        // the phone doesn't start ringing on the same frame the fade landed.
+        private const float EndingHoldSeconds = 1.2f;
+        private float _endingHold;
+
+        // Every fight but the last one just drops back to the overworld. The
+        // final teacher (endsGame in his JSON) rolls straight into the ending —
+        // the screen is already fully black here, so the hold reads as a pause
+        // rather than a freeze. Losing never reaches this phase; a death goes to
+        // GameOverState from PlayerDying instead.
+        private void FinishBattle(GameTime gameTime)
+        {
+            if (!_teacher.Stats.EndsGame)
+            {
+                StateManager.Pop();
+                return;
+            }
+
+            _endingHold += (float)gameTime.ElapsedGameTime.TotalSeconds;
+            if (_endingHold < EndingHoldSeconds) return;
+
+            StateManager.Replace(new EndingState(Game, StateManager));
+        }
 
         private bool IsBattleOver()
             => !Game.PlayerData.IsAlive || !_teacher.IsAlive || _teacher.IsSpared;
@@ -1115,25 +1035,7 @@ namespace FinalProject.States
             {
                 _victoryShown = true;
                 Game.PlayerData.Money += _teacher.Stats.GoldReward;
-
-                string text = $"* YOU WON!\n* You earned {_teacher.Stats.GoldReward} gold.";
-
-                // teachers who hand over equipment name it in their JSON. a full
-                // bag means it's lost, same as Undertale — say so rather than
-                // silently dropping it
-                ItemData drop = Game.FindItem(_teacher.Stats.ItemReward);
-                if (drop != null)
-                {
-                    if (Game.PlayerData.IsInventoryFull)
-                        text += $"\n* {drop.Name} was left behind. Your bag is full.";
-                    else
-                    {
-                        Game.PlayerData.Inventory.Add(drop);
-                        text += $"\n* You got the {drop.Name}!";
-                    }
-                }
-
-                _victoryTyper.SetText(text);
+                _victoryTyper.SetText($"* YOU WON!\n* You earned {_teacher.Stats.GoldReward} gold.");
             }
 
             if (_fading)
@@ -1290,21 +1192,6 @@ namespace FinalProject.States
                 _actSpeech = null;
             }
 
-            // once he's yielded he has stopped fighting, so none of his combat
-            // dialogue applies any more — not the HP lines, not the per action
-            // lists. a yield ACT option with its own line still speaks, that's
-            // _actSpeech above; anything else leaves him silent.
-            //
-            // without this, using an ITEM after the yield falls through to
-            // OnAct (see the Item mapping above, which fires for any teacher
-            // without its own onItem lines) and he answers with banter from the
-            // fight he already conceded
-            if (_yielded)
-            {
-                Speak(line);
-                return;
-            }
-
             if (string.IsNullOrEmpty(line) && d.ByHp != null && d.ByHp.Count > 0)
                 line = PercentThresholdText.Resolve(d.ByHp, CurrentHpPercent());
 
@@ -1327,13 +1214,6 @@ namespace FinalProject.States
                 }
             }
 
-            Speak(line);
-        }
-
-        // an empty line isn't a line — clear the bubble rather than leaving the
-        // last one up, which would read as him repeating himself
-        private void Speak(string line)
-        {
             if (string.IsNullOrEmpty(line)) _bubble.Clear();
             else                            _bubble.Prepare(line, Game.DialogueFont);
         }
@@ -1364,5 +1244,5 @@ namespace FinalProject.States
 
     public enum PlayerMoveList { Attack, Act, Item, Spare }
 
-    public enum BattlePhase { SelectingMove, ActionMenu, AttackMinigame, ExecutingTurn, TurnFeedback, BoxTransition, MoveIntro, IntroLeap, Dodging, Yielding, Ending, PlayerDying, BattleOver }
+    public enum BattlePhase { SelectingMove, ActionMenu, AttackMinigame, ExecutingTurn, TurnFeedback, BoxTransition, MoveIntro, Dodging, Yielding, Ending, PlayerDying, BattleOver }
 }

@@ -1,0 +1,128 @@
+{
+  "//": "Which ending plays is decided by 'killed' — the exact set of teachers killed that run. Order and casing don't matter, but each combination must appear exactly once. 'lines' is the phone call (speaker = a teacher id, omit it for narration); 'pages' is the closing narration shown under the title afterwards.",
+
+  "endings": [
+    {
+      "id": "pacifist",
+      "killed": [],
+      "title": "PACIFIST ENDING",
+      "titleColor": [255, 214, 90],
+      "lines": [
+        { "text": "* Ring, Ring...." },
+        { "music": "tiltantale_ending" },
+        { "speaker": "yakir", "text": "Hello? Clover? Are you there?" },
+        { "speaker": "david", "text": "TODO: David agrees, in his own way." },
+        { "speaker": "dorbendor", "text": "TODO: Dor Ben Dor has the last word on the student's kindness." },
+        { "speaker": "yakir", "text": "TODO: they land on the student's own studio and their dream game." }
+      ],
+      "pages": []
+    },
+
+    {
+      "id": "killed_yakir",
+      "killed": ["yakir"],
+      "title": "NEUTRAL ENDING",
+      "titleColor": [200, 200, 200],
+      "lines": [
+        { "text": "* Ring, Ring...." },
+        {"speaker": "dorbendor", "text":  "Hello, Clover? Are you there?|I don't think here is here David."},
+        {"speaker": "david", "text": "Its fine. Just leave a message for them.|They will pick up the phone at some point"},
+        { "music": "tiltantale_ending" },
+        { "speaker": "dorbendor", "text": "It has been a while since you have left Tiltan.|I still fondly remember our clash, how you still showed mercy to me." },
+        { "speaker": "david", "text": "I remember that too. I was surprised.|When you first arrived in my class, I still felt something pure in you.|You really wanted to study, even if the subject was hard.|You didn't give up, even if I threw everything at you." },
+        {"speaker": "dorbendor", "text": "But its weird....|Why out of all of the teachers in Tiltan, Yakir was the only one you decided to not show mercy towards?|What was the main reason behind this course of action?" },
+        { "speaker": "david", "text": "This is actually still being investigated by the Tiltan authorities.|I don't know the answer to that question either.|In fact, no one actually does. There was no sign of intentional killing...|Or any clue as to why would you do it....|But we would like to think of one reason.|You find Yakir to just not be likeable for some reason." },
+        { "speaker": "dorbendor", "text": "Yakir was a good soul. I had to take his place as the C# teacher for a few years.|I actually liked it a bit more than being the Game Design teacher." },
+        { "speaker": "david", "text": "I think Yakir was a good teacher too.|He was a bit strict, but he was fair and honest.|He was also very passionate about his subject, and he really wanted to teach it to everyone.|He always saw the good in other students even if they were reckless." },
+        {"speaker": "dorbendor", "text": "Which is still weird... Why would Clover do this?|We may never know.|But I do know one thing. And if you ever step foot in this college again" },
+        {"musicStop": true },
+        {"speaker": "dorbendor", "text": "You won't come out of it alive. That is a promise" }
+      ],
+      "pages": []
+    },
+
+    {
+      "id": "killed_david",
+      "killed": ["david"],
+      "title": "NEUTRAL ENDING",
+      "titleColor": [200, 200, 200],
+      "lines": [
+        { "text": "* Ring, Ring...." },
+        { "music": "tiltantale_ending" },
+        { "speaker": "yakir", "text": "TODO: Yakir calls. David is missing from it." },
+        { "speaker": "dorbendor", "text": "TODO: Dor Ben Dor responds." }
+      ],
+      "pages": []
+    },
+
+    {
+      "id": "killed_dorbendor",
+      "killed": ["dorbendor"],
+      "title": "NEUTRAL ENDING",
+      "titleColor": [200, 200, 200],
+      "lines": [
+        { "text": "* Ring, Ring...." },
+        { "music": "tiltantale_ending" },
+        { "speaker": "yakir", "text": "TODO: Yakir calls. Dor Ben Dor is gone." },
+        { "speaker": "david", "text": "TODO: David responds." }
+      ],
+      "pages": []
+    },
+
+    {
+      "id": "killed_yakir_david",
+      "killed": ["yakir", "david"],
+      "title": "NEUTRAL ENDING",
+      "titleColor": [200, 200, 200],
+      "lines": [
+        { "text": "* Ring, Ring...." },
+        { "music": "tiltantale_ending" },
+        { "speaker": "dorbendor", "text": "TODO: Dor Ben Dor calls alone. He is the only one left to call." }
+      ],
+      "pages": []
+    },
+
+    {
+      "id": "killed_yakir_dorbendor",
+      "killed": ["yakir", "dorbendor"],
+      "title": "NEUTRAL ENDING",
+      "titleColor": [200, 200, 200],
+      "lines": [
+        { "text": "* Ring, Ring...." },
+        { "music": "tiltantale_ending" },
+        { "speaker": "david", "text": "TODO: David calls alone." }
+      ],
+      "pages": []
+    },
+
+    {
+      "id": "killed_david_dorbendor",
+      "killed": ["david", "dorbendor"],
+      "title": "NEUTRAL ENDING",
+      "titleColor": [200, 200, 200],
+      "lines": [
+        { "text": "* Ring, Ring...." },
+        { "music": "tiltantale_ending" },
+        { "speaker": "yakir", "text": "TODO: Yakir calls alone." }
+      ],
+      "pages": []
+    },
+
+    {
+      "id": "genocide",
+      "killed": ["yakir", "david", "dorbendor"],
+      "title": "GENOCIDE ENDING",
+      "titleColor": [190, 40, 40],
+      "lines": [
+        { "text": "* Ring, Ring...." },
+        { "text": "* Ring, Ring...." },
+        { "text": "* ..." },
+        { "music": "tiltantale_ending" },
+        { "text": "* There is no one left to answer." }
+      ],
+      "pages": [
+        "TODO: the closing narration for a run with nothing left behind it."
+      ]
+    }
+  ]
+}

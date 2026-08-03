@@ -5,6 +5,7 @@
   "baseHp": 51,
   "baseAtk": 4,
   "goldReward": 30,
+  "itemReward": "Faded Hoodie",
   "theme": "yakirTheme",
   "themeVolume": 0.4,
   "sequentialMoves": true,

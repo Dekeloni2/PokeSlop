@@ -5,6 +5,7 @@
   "baseHp": 48,
   "baseAtk": 4,
   "goldReward": 35,
+  "itemReward": "Lab Coat",
   "speakingVoice": "snd_txtdavid",
   "theme": "davidTheme",
   "themeVolume": 0.4,

@@ -64,6 +64,7 @@ namespace FinalProject.Data
             // older teacher files keep working untouched
             stats.Id         = string.IsNullOrWhiteSpace(data.Id) ? data.Name : data.Id;
             stats.GatedMoves   = data.GatedMoves;
+            stats.ItemReward   = data.ItemReward;
             stats.Requires     = data.Requires ?? new List<string>();
             stats.LockedText   = data.LockedText;
             stats.UltimateAtHp = data.UltimateAtHp;
@@ -167,6 +168,7 @@ namespace FinalProject.Data
             public SpriteJson Sprite { get; set; }
             public DialogueJson BattleDialogue { get; set; }
             public int GoldReward { get; set; }
+            public string ItemReward { get; set; }
             public string Theme { get; set; }
             public float ThemeVolume { get; set; } = 1f;
             public bool SequentialMoves { get; set; }

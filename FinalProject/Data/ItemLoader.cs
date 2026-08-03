@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Text.Json;
+using System.Text.Json.Serialization;
 
 namespace FinalProject.Data
 {
@@ -12,14 +13,19 @@ namespace FinalProject.Data
         public static List<ItemData> LoadAll(string jsonPath)
         {
             string json = File.ReadAllText(jsonPath);
-            var options = new JsonSerializerOptions { PropertyNameCaseInsensitive = true };
+            var options = new JsonSerializerOptions
+            {
+                PropertyNameCaseInsensitive = true,
+                // so "kind": "armor" reads without having to match the casing
+                Converters = { new JsonStringEnumConverter() }
+            };
 
             List<ItemJson> data = JsonSerializer.Deserialize<List<ItemJson>>(json, options)
                 ?? throw new Exception($"Empty or invalid item JSON: {jsonPath}");
 
             var items = new List<ItemData>();
             foreach (ItemJson i in data)
-                items.Add(new ItemData(i.Name, i.Description, i.HealAmount, i.Price));
+                items.Add(new ItemData(i.Name, i.Description, i.HealAmount, i.Price, i.Kind, i.Defense));
             return items;
         }
 
@@ -29,6 +35,11 @@ namespace FinalProject.Data
             public string Description { get; set; }
             public int HealAmount { get; set; }
             public int Price { get; set; }
+
+            // omitting "kind" leaves an item a consumable, so the existing
+            // food entries keep working untouched
+            public ItemKind Kind { get; set; } = ItemKind.Consumable;
+            public int Defense { get; set; }
         }
     }
 }

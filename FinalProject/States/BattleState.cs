@@ -537,6 +537,17 @@ namespace FinalProject.States
 
         private void UseItem(ItemData item)
         {
+            // armor is worn rather than eaten — without this it would be
+            // swallowed for 0 HP and lost. Either way it costs the turn.
+            if (item.IsEquipment)
+            {
+                Game.PlayerData.EquipArmorFromInventory(Game.PlayerData.Inventory.IndexOf(item));
+                PushMessageSequence(
+                    new List<string> { $"You equipped the {item.Name}." },
+                    PlayerMoveList.Item);
+                return;
+            }
+
             Game.PlayerData.Heal(item.HealAmount);
             SoundManager.Play(SoundManager.HealSound);
             Game.PlayerData.Inventory.Remove(item);
@@ -1104,7 +1115,25 @@ namespace FinalProject.States
             {
                 _victoryShown = true;
                 Game.PlayerData.Money += _teacher.Stats.GoldReward;
-                _victoryTyper.SetText($"* YOU WON!\n* You earned {_teacher.Stats.GoldReward} gold.");
+
+                string text = $"* YOU WON!\n* You earned {_teacher.Stats.GoldReward} gold.";
+
+                // teachers who hand over equipment name it in their JSON. a full
+                // bag means it's lost, same as Undertale — say so rather than
+                // silently dropping it
+                ItemData drop = Game.FindItem(_teacher.Stats.ItemReward);
+                if (drop != null)
+                {
+                    if (Game.PlayerData.IsInventoryFull)
+                        text += $"\n* {drop.Name} was left behind. Your bag is full.";
+                    else
+                    {
+                        Game.PlayerData.Inventory.Add(drop);
+                        text += $"\n* You got the {drop.Name}!";
+                    }
+                }
+
+                _victoryTyper.SetText(text);
             }
 
             if (_fading)

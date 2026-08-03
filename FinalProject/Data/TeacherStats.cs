@@ -56,6 +56,10 @@ namespace FinalProject.Data
         // handed to the player when the fight is won, either way it ended
         public int GoldReward { get; }
 
+        // name of an item from items.json dropped alongside the gold, for the
+        // teachers who hand over a piece of equipment. null means gold only
+        public string ItemReward { get; set; }
+
         // SoundManager key for his battle music, null means the fight is silent.
         // ThemeVolume is 0..1 for balancing it against everything else
         public string Theme { get; }

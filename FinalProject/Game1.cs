@@ -36,8 +36,22 @@ namespace FinalProject
         // whole run. subscribes on construction, so build it before any battle
         public RouteTracker Route { get; private set; } = new();
 
+        // the item catalog, straight from items.json
+        public List<ItemData> Items { get; private set; } = new();
+
+        // by name, as teacher JSON refers to them. null if nothing matches
+        public ItemData FindItem(string name)
+        {
+            if (string.IsNullOrWhiteSpace(name)) return null;
+
+            foreach (ItemData item in Items)
+                if (string.Equals(item.Name, name, StringComparison.OrdinalIgnoreCase))
+                    return item;
+
+            return null;
+        }
+
         private VendingMachineMenu _vendingMachine;
-        private List<ItemData> _vendingMachineItems;
         
         public Game1()
         {
@@ -145,12 +159,15 @@ namespace FinalProject
             SoundManager.AddSound("snd_heal_c",      "Audio/SFX/snd_heal_c");
             // SoundManager.AddSong("battle", "Audio/battle_theme");
 
-#if DEBUG
-            LoadStartingInventory();
-            
+            // every item in the game, loaded once. the shop sells from it and
+            // teacher drops resolve their reward name against it, so it can't
+            // be debug-only the way the vending machine is
             string itemsPath = Path.GetFullPath(
                 Path.Combine(AppContext.BaseDirectory, "..", "..", "..", "Content", "Items", "items.json"));
-            _vendingMachineItems = ItemLoader.LoadAll(itemsPath);
+            Items = ItemLoader.LoadAll(itemsPath);
+
+#if DEBUG
+            LoadStartingInventory();
             _vendingMachine = new VendingMachineMenu(PixelTexture, DialogueFont);
 #endif
 
@@ -175,14 +192,14 @@ namespace FinalProject
                 }
                 else if (StateManager.CurrentState is OverworldState)
                 {
-                    _vendingMachine.Open(_vendingMachineItems);
+                    _vendingMachine.Open(Items);
                 }
             }
 #endif
             
             if (_vendingMachine != null && _vendingMachine.IsActive)
             {
-                _vendingMachine.Update(Input, PlayerData);
+                _vendingMachine.Update(gameTime, Input, PlayerData);
             }
             else
             {
@@ -197,9 +214,7 @@ namespace FinalProject
         // be tested until there's a real way to get items (shop/pickups)
         private void LoadStartingInventory()
         {
-            string itemsPath = Path.GetFullPath(
-                Path.Combine(AppContext.BaseDirectory, "..", "..", "..", "Content", "Items", "items.json"));
-            PlayerData.Inventory.AddRange(ItemLoader.LoadAll(itemsPath));
+            PlayerData.Inventory.AddRange(Items);
         }
 #endif
 
@@ -210,7 +225,8 @@ namespace FinalProject
             
             if (_vendingMachine != null && _vendingMachine.IsActive)
             {
-                _spriteBatch.Begin();
+                // PointClamp, or the pixel font gets bilinear-filtered into mush
+                _spriteBatch.Begin(samplerState: SamplerState.PointClamp);
                 _vendingMachine.Draw(_spriteBatch, PlayerData);
                 _spriteBatch.End();
             }

@@ -197,28 +197,71 @@ namespace FinalProject
                 }
             }
             
-            // Press 1, 2 or 3 to test diffrent endings
-            // Press 1 to test Pacifist Ending
-            if (Input.IsKeyPressed(Keys.D1))
+            // --- Ending Debug Keys (1 through 8) ---
+            if (Input.IsKeyPressed(Keys.D1)) // 1. Pacifist
             {
                 Route.Reset();
                 StateManager.Replace(new EndingState(this, StateManager));
             }
-
-            // Press 2 to test Neutral Ending (Simulates 1 kill)
-            if (Input.IsKeyPressed(Keys.D2))
+            
+            if (Input.IsKeyPressed(Keys.D2)) // 2. Genocide
             {
                 Route.Reset();
                 EventBus.Instance.Publish(new TeacherResolvedEvent("yakir", BattleOutcome.Killed));
+                EventBus.Instance.Publish(new TeacherResolvedEvent("dorbendor", BattleOutcome.Killed));
+                EventBus.Instance.Publish(new TeacherResolvedEvent("david", BattleOutcome.Killed));
+                StateManager.Replace(new EndingState(this, StateManager));
+            }
+            
+            if (Input.IsKeyPressed(Keys.D3)) // 3. Only Yakir Killed
+            {
+                Route.Reset();
+                EventBus.Instance.Publish(new TeacherResolvedEvent("yakir", BattleOutcome.Killed));
+                EventBus.Instance.Publish(new TeacherResolvedEvent("dorbendor", BattleOutcome.Spared));
                 EventBus.Instance.Publish(new TeacherResolvedEvent("david", BattleOutcome.Spared));
                 StateManager.Replace(new EndingState(this, StateManager));
             }
-
-            // Press 3 to test Genocide Ending (Simulates all teachers killed)
-            if (Input.IsKeyPressed(Keys.D3))
+            
+            if (Input.IsKeyPressed(Keys.D4)) // 4. Only Dorbendor Killed
+            {
+                Route.Reset();
+                EventBus.Instance.Publish(new TeacherResolvedEvent("yakir", BattleOutcome.Spared));
+                EventBus.Instance.Publish(new TeacherResolvedEvent("dorbendor", BattleOutcome.Killed));
+                EventBus.Instance.Publish(new TeacherResolvedEvent("david", BattleOutcome.Spared));
+                StateManager.Replace(new EndingState(this, StateManager));
+            }
+            
+            if (Input.IsKeyPressed(Keys.D5)) // 5. Only David Killed
+            {
+                Route.Reset();
+                EventBus.Instance.Publish(new TeacherResolvedEvent("yakir", BattleOutcome.Spared));
+                EventBus.Instance.Publish(new TeacherResolvedEvent("dorbendor", BattleOutcome.Spared));
+                EventBus.Instance.Publish(new TeacherResolvedEvent("david", BattleOutcome.Killed));
+                StateManager.Replace(new EndingState(this, StateManager));
+            }
+            
+            if (Input.IsKeyPressed(Keys.D6)) // 6. Yakir + Dorbendor Killed (Only David Spared)
             {
                 Route.Reset();
                 EventBus.Instance.Publish(new TeacherResolvedEvent("yakir", BattleOutcome.Killed));
+                EventBus.Instance.Publish(new TeacherResolvedEvent("dorbendor", BattleOutcome.Killed));
+                EventBus.Instance.Publish(new TeacherResolvedEvent("david", BattleOutcome.Spared));
+                StateManager.Replace(new EndingState(this, StateManager));
+            }
+            
+            if (Input.IsKeyPressed(Keys.D7)) // 7. Yakir + David Killed (Only Dorbendor Spared)
+            {
+                Route.Reset();
+                EventBus.Instance.Publish(new TeacherResolvedEvent("yakir", BattleOutcome.Killed));
+                EventBus.Instance.Publish(new TeacherResolvedEvent("dorbendor", BattleOutcome.Spared));
+                EventBus.Instance.Publish(new TeacherResolvedEvent("david", BattleOutcome.Killed));
+                StateManager.Replace(new EndingState(this, StateManager));
+            }
+            
+            if (Input.IsKeyPressed(Keys.D8)) // 8. Dorbendor + David Killed (Only Yakir Spared)
+            {
+                Route.Reset();
+                EventBus.Instance.Publish(new TeacherResolvedEvent("yakir", BattleOutcome.Spared));
                 EventBus.Instance.Publish(new TeacherResolvedEvent("dorbendor", BattleOutcome.Killed));
                 EventBus.Instance.Publish(new TeacherResolvedEvent("david", BattleOutcome.Killed));
                 StateManager.Replace(new EndingState(this, StateManager));

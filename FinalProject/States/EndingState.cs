@@ -3,6 +3,7 @@ using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
 using FinalProject.Core;
+using FinalProject.Events;
 
 namespace FinalProject.States;
 
@@ -22,42 +23,74 @@ public class EndingState : GameState
 
     public override void OnEnter()
     {
-        Route currentRoute = _game.Route.Current;
-        int killedCount = _game.Route.Killed;
-        int sparedCount = _game.Route.Spared;
+        bool yakirKilled = _game.Route.OutcomeFor("yakir") == BattleOutcome.Killed;
+        bool dorbendorKilled = _game.Route.OutcomeFor("dorbendor") == BattleOutcome.Killed;
+        bool davidKilled = _game.Route.OutcomeFor("david") == BattleOutcome.Killed;
 
-        switch (currentRoute)
+        int totalKills = _game.Route.Killed;
+        
+        // --- 1. All Spared (Pacifist) ---
+        if (totalKills == 0)
         {
-            case Route.Pacifist:
-                _endingTitle = "PACIFIST ENDING";
-                _endingText = "You passed all of your tests successfully.\n\n" +
-                              "No teachers were killed!\n\n" +
-                              "You found massive success in your Game Dev career!\n\n" +
-                              "You eventually founded your own indie studio\n and made your dream game.\n\n" +
-                              "It was critically acclaimed, winning Game of the Year\n" +
-                              "at The Game Awards hosted by Geoff Keighley!";
-                break;
-
-            case Route.Genocide:
-                _endingTitle = "GENOCIDE ENDING";
-                _endingText = "You showed no mercy.\n\n" +
-                              "All teachers were killed and Tiltan was closed down.\n\n" +
-                              "The police came to arrest you.\n\n" +
-                              "Despite putting up your best fight,\n" +
-                              "you were overwhelmed and captured.\n\n" +
-                              "You were charged with mass manslaughter...\n\n" +
-                              "Enjoy rotting in jail, you monster!";
-                break;
-
-            case Route.Neutral:
-            default:
-                _endingTitle = "NEUTRAL ENDING";
-                _endingText = $"You passed the semester, but killed {killedCount} teacher(s).\n\n" +
-                              "You were eventually arrested for manslaughter...\n\n" +
-                              "After serving your sentence,\n" +
-                              "you found a job at a mobile game company\n" +
-                              "that specializes in making the hottest\n slop on the market.";
-                break;
+            _endingTitle = "PACIFIST ENDING";
+            _endingText = "You passed all of your tests successfully.\n" +
+                          "No teachers were killed!\n" +
+                          "You found massive success in your Game Dev career!\n" +
+                          "You eventually founded your own indie studio and made your dream game.\n" +
+                          "It was critically acclaimed, winning Game of the Year\n" +
+                          "at The Game Awards hosted by Geoff Keighley!";
+        }
+        
+        // --- 2. All killed (Genocide) ---
+        else if (yakirKilled && dorbendorKilled && davidKilled)
+        {
+            _endingTitle = "GENOCIDE ENDING";
+            _endingText = "You showed no mercy.\n" +
+                          "All teachers were killed and Tiltan was closed down.\n" +
+                          "The police came to arrest you.\n" +
+                          "Despite putting up your best fight, you were overwhelmed and captured.\n" +
+                          "You were charged with mass manslaughter...\n" +
+                          "Enjoy rotting in jail!";
+        }
+        
+        // --- 3. Only Yakir Killed ---
+        else if (yakirKilled && !dorbendorKilled && !davidKilled)
+        {
+            _endingTitle = "Only Yakir Killed";
+            _endingText = "";
+        }
+        
+        // --- 4. Only Dor Killed ---
+        else if (!yakirKilled && dorbendorKilled && !davidKilled)
+        {
+            _endingTitle = "Only Dor Killed";
+            _endingText = "";
+        }
+        
+        // --- 5. Only David Killed ---
+        else if (!yakirKilled && !dorbendorKilled && davidKilled)
+        {
+            _endingTitle = "Only David Killed";
+            _endingText = "";
+        }
+        
+        // --- 6. Yakir & Dor Killed (Only David Spared) ---
+        else if (yakirKilled && dorbendorKilled && !davidKilled)
+        {
+            _endingTitle = "Only David Spared";
+            _endingText = "";
+        }
+        // --- 7. Yakir & David Killed (Only Dor Spared) ---
+        else if (yakirKilled && !dorbendorKilled && davidKilled)
+        {
+            _endingTitle = "Only Dor Spared";
+            _endingText = "";
+        }
+        // --- 8. Dor & David Killed (Only Yakir Spared) ---
+        else if (!yakirKilled && dorbendorKilled && davidKilled)
+        {
+            _endingTitle = "Only Yakir Spared";
+            _endingText = "";
         }
     }
 

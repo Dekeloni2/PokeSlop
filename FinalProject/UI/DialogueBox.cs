@@ -24,12 +24,33 @@ namespace FinalProject.UI
         private const int   BoxWidth        = 550;
         private const int   BoxHeight       = 118;
 
+        // The face sits in a fixed-width slot on the left. Fixed, because heads
+        // differ a lot in size (david's is 52x64, yakir's 32x42) and the text's
+        // left edge must not jump around as the speaker changes.
+        private const int   PortraitSlot     = 72;
+        private const int   PortraitGap      = 16; // clear space between face and text
+        private const float MaxPortraitScale = 3f;
+
         private static readonly Keys[] AdvanceKeys = { Keys.Z, Keys.Enter, Keys.Space };
 
         private readonly Texture2D  _pixel;
         private readonly SpriteFont _font;
         private readonly Rectangle  _boxRect;
         private readonly int        _maxLinesPerPage;
+
+        private Speaker _speaker;
+
+        // Where the text column starts and how wide it is. Both shift right when
+        // there's a face, and pagination reads them — so wrapping happens against
+        // the narrowed column instead of laying lines under the portrait.
+        private int TextLeft  => _boxRect.X + PaddingX
+                               + (_speaker != null && _speaker.HasFace ? PortraitSlot + PortraitGap : 0);
+        private int TextWidth => _boxRect.Right - PaddingX - TextLeft;
+
+        // Whether Z can fast-forward the typewriter. Anything with a speaker
+        // behind it is scripted dialogue and has to play out at its own pace;
+        // signposts and prompts stay skippable.
+        private bool CanSkipTyping => _speaker == null;
 
         private List<string> _pages = new();
         private int   _pageIndex;
@@ -57,8 +78,14 @@ namespace FinalProject.UI
         }
 
         // Word-wraps and paginates the given text, then opens the box on page 1.
-        public void Open(string text)
+        public void Open(string text) => Open(text, null);
+
+        // Same, but attributed to a speaker: their face on the left and their
+        // own text blip. A null speaker is identical to the plain overload.
+        public void Open(string text, Speaker speaker)
         {
+            // set before paginating — the face is what decides the column width
+            _speaker        = speaker;
             _pages          = Paginate(text ?? string.Empty);
             _pageIndex      = 0;
             _visibleChars   = 0;
@@ -89,10 +116,13 @@ namespace FinalProject.UI
                 _charTimer += (float)gameTime.ElapsedGameTime.TotalSeconds;
                 int revealed = Math.Min((int)(_charTimer * CharsPerSecond), current.Length);
 
-                // blip once per frame for each newly revealed non-space character
+                // blip once per frame for each newly revealed non-space character,
+                // in the speaker's own voice — same key the battle speech bubble
+                // uses, so a teacher sounds identical in and out of a fight
                 if (revealed > _visibleChars)
                 {
-                    SoundManager.PlayTextBeep(current, _visibleChars, revealed);
+                    SoundManager.PlayTextBeep(
+                        _speaker?.Voice ?? SoundManager.TextBeepName, current, _visibleChars, revealed);
                     _visibleChars = revealed;
                 }
 
@@ -104,7 +134,13 @@ namespace FinalProject.UI
 
             if (!_pageFullyShown)
             {
-                // First press on a page instantly reveals the rest of it,
+                // Attributed dialogue can't be rushed — a press while it's still
+                // typing does nothing at all. Same rule as the GAME OVER text:
+                // a line someone is delivering shouldn't be mashable.
+                if (!CanSkipTyping) return;
+
+                // Plain overworld dialogue keeps the quick skip: the first press
+                // on a page instantly reveals the rest of it.
                 _visibleChars   = current.Length;
                 _pageFullyShown = true;
                 return;
@@ -129,9 +165,10 @@ namespace FinalProject.UI
 
             spriteBatch.Draw(_pixel, _boxRect, Color.Black);
             DrawBorder(spriteBatch);
+            DrawPortrait(spriteBatch);
 
             string shown = _pages[_pageIndex].Substring(0, _visibleChars);
-            var textPos  = new Vector2(_boxRect.X + PaddingX, _boxRect.Y + PaddingY);
+            var textPos  = new Vector2(TextLeft, _boxRect.Y + PaddingY);
             spriteBatch.DrawString(_font, shown, textPos, Color.White,
                 0f, Vector2.Zero, TextScale, SpriteEffects.None, 0f);
 
@@ -148,6 +185,34 @@ namespace FinalProject.UI
             }
         }
         
+
+        // Draws the face centred in its slot. The scale is picked so the head can
+        // never spill past the slot into the text column, whatever size the art
+        // is: whole-number steps while there's room to grow (pixel art smears at
+        // fractional scales), and a plain fit-down if a head is ever too big.
+        private void DrawPortrait(SpriteBatch spriteBatch)
+        {
+            if (_speaker == null || !_speaker.HasFace) return;
+
+            Rectangle src = _speaker.FaceSource;
+            if (src.Width <= 0 || src.Height <= 0) return;
+
+            int slotHeight = _boxRect.Height - PaddingY * 2;
+
+            float fit = Math.Min(PortraitSlot / (float)src.Width,
+                                 slotHeight   / (float)src.Height);
+            float scale = fit >= 1f ? MathF.Floor(Math.Min(fit, MaxPortraitScale)) : fit;
+
+            int width  = Math.Max(1, (int)(src.Width  * scale));
+            int height = Math.Max(1, (int)(src.Height * scale));
+
+            var dest = new Rectangle(
+                _boxRect.X + PaddingX + (PortraitSlot - width) / 2,
+                _boxRect.Y + (_boxRect.Height - height) / 2,
+                width, height);
+
+            spriteBatch.Draw(_speaker.FaceTexture, dest, src, Color.White);
+        }
 
         private static bool IsAdvancePressed(InputManager input)
         {
@@ -174,7 +239,7 @@ namespace FinalProject.UI
         // pages advance with Z
         private List<string> Paginate(string text)
         {
-            int maxWidth = _boxRect.Width - PaddingX * 2;
+            int maxWidth = TextWidth;
             var pages = new List<string>();
 
             foreach (string segment in text.Split(PageBreak))

@@ -168,6 +168,14 @@ namespace FinalProject.States
                 _map.ElevatorDoorVisible = !_map.ElevatorDoorVisible;
                 return;
             }
+
+            // debug builds only - press P to step through the teacher portraits
+            // in the dialogue box, to check heads fit and text clears them
+            if (Game.Input.IsKeyPressed(Keys.P))
+            {
+                ShowDebugPortrait();
+                return;
+            }
 #endif
 
             if (_map == null) return;
@@ -311,6 +319,37 @@ namespace FinalProject.States
 
             return false;
         }
+
+#if DEBUG
+        // cycles the teachers whose JSON defines a head part, opening the
+        // dialogue box with that face and a deliberately long line — enough text
+        // to fill every wrapped row, so it's obvious if any of it runs under the
+        // portrait. Remove once the ending script drives this for real.
+        private static readonly string[] DebugPortraitTeachers = { "yakir", "david", "dorbendor" };
+        private int _debugPortraitIndex;
+
+        private void ShowDebugPortrait()
+        {
+            string id = DebugPortraitTeachers[_debugPortraitIndex];
+            _debugPortraitIndex = (_debugPortraitIndex + 1) % DebugPortraitTeachers.Length;
+
+            string path = Path.GetFullPath(Path.Combine(
+                AppContext.BaseDirectory, "..", "..", "..", "Content", "Teachers", id + ".json"));
+
+            if (!File.Exists(path))
+            {
+                LogDebug($"PORTRAIT DEBUG: no teacher file for \"{id}\" at {path}");
+                return;
+            }
+
+            TeacherStats stats = TeacherLoader.Load(path);
+
+            _dialogueBox.Open(
+                $"* {stats.Name} here. Testing whether a long line of dialogue wraps clear "
+                + "of the portrait instead of running underneath it.",
+                Speaker.ForTeacher(stats));
+        }
+#endif
 
         private void StartNpcBattle(NpcSpawn npc)
         {

@@ -8,6 +8,7 @@
   "baseHp": 100,
   "baseAtk": 5,
   "goldReward": 100,
+  "endsGame": true,
   "theme": "dbdTheme",
   "themeVolume": 0.4,
   "sequentialMoves": false,

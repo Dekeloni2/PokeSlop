@@ -130,6 +130,9 @@ namespace FinalProject
             SoundManager.AddSound("snd_vulkinhurt",  "Audio/SFX/snd_vulkinhurt");
             // healing, both from items and the chess board's green pieces
             SoundManager.AddSound("snd_heal_c",      "Audio/SFX/snd_heal_c");
+            // the ending's phone call. AddSound swallows a missing file, so this
+            // stays harmless until snd_phone.wav is dropped into Audio/SFX
+            SoundManager.AddSound(SoundManager.PhoneRing, "Audio/SFX/snd_phone");
             // SoundManager.AddSong("battle", "Audio/battle_theme");
 
 #if DEBUG
@@ -147,7 +150,39 @@ namespace FinalProject
             if (Input.IsKeyPressed(Keys.Escape))
                 Exit();
 
+<<<<<<< Updated upstream
             StateManager.Update(gameTime);
+=======
+#if DEBUG
+            // Press 'V' to open the vending machine anywhere in debug mode
+            if (Input.IsKeyPressed(Keys.V) && _vendingMachine != null)
+            {
+                if (_vendingMachine.IsActive)
+                {
+                    _vendingMachine.Close();
+                }
+                else if (StateManager.CurrentState is OverworldState)
+                {
+                    _vendingMachine.Open(Items);
+                }
+            }
+            
+            // Press 1-8 to jump to an ending. One key per authored script, in
+            // the same order as endings.json — the number keys are how you check
+            // a script without replaying the run that earns it.
+            CheckEndingHotkeys();
+#endif
+            
+            if (_vendingMachine != null && _vendingMachine.IsActive)
+            {
+                _vendingMachine.Update(gameTime, Input, PlayerData);
+            }
+            else
+            {
+                StateManager.Update(gameTime);
+            }
+            
+>>>>>>> Stashed changes
             base.Update(gameTime);
         }
 
@@ -159,6 +194,44 @@ namespace FinalProject
             string itemsPath = Path.GetFullPath(
                 Path.Combine(AppContext.BaseDirectory, "..", "..", "..", "Content", "Items", "items.json"));
             PlayerData.Inventory.AddRange(ItemLoader.LoadAll(itemsPath));
+        }
+
+        // Who dies in each simulated run, matching the "killed" lists in
+        // endings.json. Everyone not named is treated as spared.
+        private static readonly string[][] EndingTestRuns =
+        {
+            new string[0],                                 // 1  pacifist
+            new[] { "yakir" },                             // 2
+            new[] { "david" },                             // 3
+            new[] { "dorbendor" },                         // 4
+            new[] { "yakir", "david" },                    // 5
+            new[] { "yakir", "dorbendor" },                // 6
+            new[] { "david", "dorbendor" },                // 7
+            new[] { "yakir", "david", "dorbendor" }        // 8  genocide
+        };
+
+        private static readonly string[] AllTeachers = { "yakir", "david", "dorbendor" };
+
+        private void CheckEndingHotkeys()
+        {
+            for (int i = 0; i < EndingTestRuns.Length; i++)
+            {
+                if (!Input.IsKeyPressed(Keys.D1 + i)) continue;
+
+                Route.Reset();
+
+                // resolve every teacher, so the run looks finished rather than
+                // half-played — the ending is picked by who was killed
+                foreach (string id in AllTeachers)
+                {
+                    bool killed = Array.IndexOf(EndingTestRuns[i], id) >= 0;
+                    EventBus.Instance.Publish(new TeacherResolvedEvent(
+                        id, killed ? BattleOutcome.Killed : BattleOutcome.Spared));
+                }
+
+                StateManager.Replace(new EndingState(this, StateManager));
+                return;
+            }
         }
 #endif
 

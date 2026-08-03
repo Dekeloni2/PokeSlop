@@ -1,0 +1,119 @@
+{
+  "//": "Which ending plays is decided by 'killed' — the exact set of teachers killed that run. Order and casing don't matter, but each combination must appear exactly once. 'lines' is the phone call (speaker = a teacher id, omit it for narration); 'pages' is the closing narration shown under the title afterwards.",
+
+  "endings": [
+    {
+      "id": "pacifist",
+      "killed": [],
+      "title": "PACIFIST ENDING",
+      "titleColor": [255, 214, 90],
+      "music": null,
+      "lines": [
+        { "text": "* Ring, Ring...." },
+        { "speaker": "yakir", "text": "Hello? Clover? Are you there?" },
+        { "speaker": "david", "text": "TODO: David agrees, in his own way." },
+        { "speaker": "dorbendor", "text": "TODO: Dor Ben Dor has the last word on the student's kindness." },
+        { "speaker": "yakir", "text": "TODO: they land on the student's own studio and their dream game." }
+      ],
+      "pages": []
+    },
+
+    {
+      "id": "killed_yakir",
+      "killed": ["yakir"],
+      "title": "NEUTRAL ENDING",
+      "titleColor": [200, 200, 200],
+      "music": null,
+      "lines": [
+        { "text": "* Ring, Ring...." },
+        { "speaker": "david", "text": "TODO: David calls. Yakir isn't on this call and both of them know why." },
+        { "speaker": "dorbendor", "text": "TODO: Dor Ben Dor picks his words carefully." }
+      ],
+      "pages": []
+    },
+
+    {
+      "id": "killed_david",
+      "killed": ["david"],
+      "title": "NEUTRAL ENDING",
+      "titleColor": [200, 200, 200],
+      "music": null,
+      "lines": [
+        { "text": "* Ring, Ring...." },
+        { "speaker": "yakir", "text": "TODO: Yakir calls. David is missing from it." },
+        { "speaker": "dorbendor", "text": "TODO: Dor Ben Dor responds." }
+      ],
+      "pages": []
+    },
+
+    {
+      "id": "killed_dorbendor",
+      "killed": ["dorbendor"],
+      "title": "NEUTRAL ENDING",
+      "titleColor": [200, 200, 200],
+      "music": null,
+      "lines": [
+        { "text": "* Ring, Ring...." },
+        { "speaker": "yakir", "text": "TODO: Yakir calls. Dor Ben Dor is gone." },
+        { "speaker": "david", "text": "TODO: David responds." }
+      ],
+      "pages": []
+    },
+
+    {
+      "id": "killed_yakir_david",
+      "killed": ["yakir", "david"],
+      "title": "NEUTRAL ENDING",
+      "titleColor": [200, 200, 200],
+      "music": null,
+      "lines": [
+        { "text": "* Ring, Ring...." },
+        { "speaker": "dorbendor", "text": "TODO: Dor Ben Dor calls alone. He is the only one left to call." }
+      ],
+      "pages": []
+    },
+
+    {
+      "id": "killed_yakir_dorbendor",
+      "killed": ["yakir", "dorbendor"],
+      "title": "NEUTRAL ENDING",
+      "titleColor": [200, 200, 200],
+      "music": null,
+      "lines": [
+        { "text": "* Ring, Ring...." },
+        { "speaker": "david", "text": "TODO: David calls alone." }
+      ],
+      "pages": []
+    },
+
+    {
+      "id": "killed_david_dorbendor",
+      "killed": ["david", "dorbendor"],
+      "title": "NEUTRAL ENDING",
+      "titleColor": [200, 200, 200],
+      "music": null,
+      "lines": [
+        { "text": "* Ring, Ring...." },
+        { "speaker": "yakir", "text": "TODO: Yakir calls alone." }
+      ],
+      "pages": []
+    },
+
+    {
+      "id": "genocide",
+      "killed": ["yakir", "david", "dorbendor"],
+      "title": "GENOCIDE ENDING",
+      "titleColor": [190, 40, 40],
+      "music": null,
+      "lines": [
+        { "text": "* Ring, Ring...." },
+        { "text": "* Ring, Ring...." },
+        { "text": "* ..." },
+        { "text": "* There is no one left to answer." }
+      ],
+      "pages": [
+        "TODO: the closing narration for a run with nothing left behind it."
+      ]
+    }
+  ]
+}

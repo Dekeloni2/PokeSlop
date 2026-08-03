@@ -279,7 +279,7 @@ namespace FinalProject.States
                     break;
 
                 case BattlePhase.BattleOver:
-                    StateManager.Pop();
+                    FinishBattle(gameTime);
                     break;
             }
         }
@@ -930,6 +930,30 @@ namespace FinalProject.States
         }
 
         // ── Helpers ──────────────────────────────────────────────────────────
+
+        // A beat of held black between the battle's fade-out and the ending, so
+        // the phone doesn't start ringing on the same frame the fade landed.
+        private const float EndingHoldSeconds = 1.2f;
+        private float _endingHold;
+
+        // Every fight but the last one just drops back to the overworld. The
+        // final teacher (endsGame in his JSON) rolls straight into the ending —
+        // the screen is already fully black here, so the hold reads as a pause
+        // rather than a freeze. Losing never reaches this phase; a death goes to
+        // GameOverState from PlayerDying instead.
+        private void FinishBattle(GameTime gameTime)
+        {
+            if (!_teacher.Stats.EndsGame)
+            {
+                StateManager.Pop();
+                return;
+            }
+
+            _endingHold += (float)gameTime.ElapsedGameTime.TotalSeconds;
+            if (_endingHold < EndingHoldSeconds) return;
+
+            StateManager.Replace(new EndingState(Game, StateManager));
+        }
 
         private bool IsBattleOver()
             => !Game.PlayerData.IsAlive || !_teacher.IsAlive || _teacher.IsSpared;

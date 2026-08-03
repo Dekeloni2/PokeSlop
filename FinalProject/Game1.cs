@@ -135,6 +135,9 @@ namespace FinalProject
             SoundManager.AddSong("dbdTheme",   "Audio/Music/dbd_theme");
             SoundManager.AddSong("davidTheme", "Audio/Music/david_theme");
             SoundManager.AddSong("game_over",  "Audio/Music/game_over");
+            // the ending theme. keyed by its filename, which is what endings.json
+            // names in its music cues
+            SoundManager.AddSong("tiltantale_ending", "Audio/Music/tiltantale_ending");
             // menus, shared by anything that has a cursor
             SoundManager.AddSound(SoundManager.MenuMove,   "Audio/SFX/snd_squeak");
             SoundManager.AddSound(SoundManager.MenuSelect, "Audio/SFX/snd_select");
@@ -158,6 +161,9 @@ namespace FinalProject
             SoundManager.AddSound("snd_vulkinhurt",  "Audio/SFX/snd_vulkinhurt");
             // healing, both from items and the chess board's green pieces
             SoundManager.AddSound("snd_heal_c",      "Audio/SFX/snd_heal_c");
+            // the ending's phone call. AddSound swallows a missing file, so this
+            // stays harmless until snd_phone.wav is dropped into Audio/SFX
+            SoundManager.AddSound(SoundManager.PhoneRing, "Audio/SFX/snd_phone");
             // SoundManager.AddSong("battle", "Audio/battle_theme");
 
             // every item in the game, loaded once. the shop sells from it and

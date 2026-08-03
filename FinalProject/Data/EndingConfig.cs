@@ -15,6 +15,7 @@ namespace FinalProject.Data
     //
     //   { "music": "tiltantale_ending" }   start the track here
     //   { "musicStop": true }              fade it out here
+    //   { "musicCut": true }               stop it dead here, no fade
     //
     // An entry with no Text isn't spoken at all — it fires its cue and the
     // script moves straight on. Put Music on a line that does have text and the
@@ -26,7 +27,13 @@ namespace FinalProject.Data
 
         // SoundManager song key
         public string Music     { get; set; }
-        public bool   MusicStop { get; set; }
+
+        // fades the track out over MusicFadeSeconds
+        public bool MusicStop { get; set; }
+
+        // kills it on the spot, no fade — for a line that should land in sudden
+        // silence rather than have the music ebb away under it
+        public bool MusicCut { get; set; }
 
         public float MusicVolume      { get; set; } = 0.6f;
         public float MusicFadeSeconds { get; set; } = 2f;

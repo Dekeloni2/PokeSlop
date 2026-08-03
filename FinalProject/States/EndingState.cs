@@ -98,7 +98,15 @@ public class EndingState : GameState
 
     private void ApplyCues(EndingLine line)
     {
-        if (line.MusicStop && _musicPlaying)
+        // a cut wins over a fade if a line somehow asks for both
+        if (line.MusicCut && _musicPlaying)
+        {
+            SoundManager.StopMusic();
+            _musicPlaying = false;
+            _musicFading  = false;
+            _musicFadeT   = 0f;
+        }
+        else if (line.MusicStop && _musicPlaying)
         {
             _musicFading      = true;
             _musicFadeT       = 0f;

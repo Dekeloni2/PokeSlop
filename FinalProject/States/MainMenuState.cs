@@ -8,8 +8,6 @@ using FinalProject.Core.StateMachine;
 namespace FinalProject.States
 {
     // First screen the player sees.
-    // Press Enter to move into the overworld.
-    // Placeholder visuals until we add sprites and fonts.
     public class MainMenuState : GameState
     {
         private static readonly Color BackgroundColor = Color.Black;
@@ -17,8 +15,6 @@ namespace FinalProject.States
         private static readonly Color TextColor       = Color.White;
         private static readonly Color SelectedColor   = Color.Yellow;
         
-        // real scales, already including the x2 the old helper hid. measuring and
-        // drawing have to agree or centring silently goes wrong
         private const float BodyScale   = 2.4f;
         private const float OptionScale = 2.6f;
         private const float HintScale   = 1.8f;
@@ -115,7 +111,7 @@ namespace FinalProject.States
                 }
                 else if (_currentScreen == ScreenState.Settings)
                 {
-                    if (_selectedIndex == 1) // <--- THIS WAS MISSING
+                    if (_selectedIndex == 1)
                     {
                         AdjustSetting(1);
                     }
@@ -222,8 +218,6 @@ namespace FinalProject.States
             spriteBatch.End();
         }
         
-        // draws at exactly the scale it's given — no hidden multiplier, so
-        // MeasureString at the same scale gives the size that actually lands
         private void DrawText(SpriteBatch spriteBatch, string text, Vector2 position, Color color, float scale)
         {
             spriteBatch.DrawString(
@@ -238,10 +232,7 @@ namespace FinalProject.States
                 0f
             );
         }
-
-        // horizontally centred on the window. only correct because DrawText no
-        // longer scales behind our back — that mismatch is what the old "- 150"
-        // was quietly compensating for
+        
         private void DrawCentered(SpriteBatch spriteBatch, string text, float y, Color color, float scale)
         {
             float width = Game.DialogueFont.MeasureString(text).X * scale;

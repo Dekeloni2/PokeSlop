@@ -8,6 +8,7 @@ using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
 using FinalProject.Battle;
 using FinalProject.Core;
+using FinalProject.Core.Audio;
 using FinalProject.Core.Graphics;
 using FinalProject.Core.StateMachine;
 using FinalProject.Data;
@@ -35,6 +36,8 @@ namespace FinalProject.States
 
         // Undertale-style textbox — owns input while open (see Update below).
         private DialogueBox _dialogueBox;
+        // player menu
+        private OverworldMenu _menu;
         // Cache of already-loaded maps so backtracking doesn't re-parse JSON from disk
         private readonly Dictionary<string, TileMap> _mapCache = new();
 
@@ -45,10 +48,14 @@ namespace FinalProject.States
             _player      = new Player(Game, 6, 14);
             _camera      = new Camera();
             _dialogueBox = new DialogueBox(Game.PixelTexture, Game.DialogueFont);
+            _menu        = new OverworldMenu(Game.PixelTexture, Game.DialogueFont);
             _elevator    = new ElevatorSequence(Game.PixelTexture, Game.DialogueFont);
             // TODO: swap back to the real starting map once the tileset rework
             // lands — pointed at "entrance" for now to test the Interactables layer.
             LoadMap("entrance", 6, 14);
+            
+            _dialogueBox = new DialogueBox(Game.PixelTexture, Game.DialogueFont);
+            _menu        = new OverworldMenu(Game.PixelTexture, Game.DialogueFont);
         }
 
         // comes back up from black when a battle pops off the stack, picking up
@@ -137,6 +144,25 @@ namespace FinalProject.States
                 _dialogueBox.Update(gameTime, Game.Input);
                 return;
             }
+            
+            // Menu owns input when active ─
+            if (_menu.IsActive)
+            {
+                _menu.Update(Game.Input, Game.PlayerData, (message) =>
+                {
+                    _menu.Close();
+                    _dialogueBox.Open(message);
+                });
+                return;
+            }
+
+            // Open Menu when C is pressed ─
+            if (Game.Input.IsKeyPressed(Keys.C))
+            {
+                SoundManager.Play(SoundManager.MenuSelect);
+                _menu.Open();
+                return;
+            }
 
             // the "select a location" prompt just closed, bring up the floors
             if (_awaitingFloorMenu)
@@ -149,6 +175,28 @@ namespace FinalProject.States
             if (Game.Input.IsKeyPressed(Keys.Z) || Game.Input.IsKeyPressed(Keys.Enter))
             {
                 TryInteract();
+                return;
+            }
+            
+            if (_dialogueBox.IsActive)
+            {
+                _dialogueBox.Update(gameTime, Game.Input);
+                return;
+            }
+
+            if (_menu.IsActive)
+            {
+                _menu.Update(Game.Input, Game.PlayerData, (message) =>
+                {
+                    _menu.Close();
+                    _dialogueBox.Open(message);
+                });
+                return;
+            }
+
+            if (Game.Input.IsKeyPressed(Keys.C) || Game.Input.IsKeyPressed(Keys.LeftControl))
+            {
+                _menu.Open();
                 return;
             }
 
@@ -215,6 +263,7 @@ namespace FinalProject.States
             spriteBatch.Begin(samplerState: SamplerState.PointClamp);
             _dialogueBox.Draw(spriteBatch);
             _elevator.Draw(spriteBatch);
+            _menu.Draw(spriteBatch, Game.PlayerData);
 
             // black going up for a map change, or lifting off after one (and
             // after a battle). whichever is stronger wins
@@ -380,7 +429,7 @@ namespace FinalProject.States
             string teachersDir = Path.GetFullPath(
                 Path.Combine(AppContext.BaseDirectory, "..", "..", "..", "Content", "Teachers"));
             // swap this filename to whoever you're testing (dorbendor.json, yakir.json, david.json, substitute.json)
-            TeacherStats stats = TeacherLoader.Load(Path.Combine(teachersDir, "david.json"));
+            TeacherStats stats = TeacherLoader.Load(Path.Combine(teachersDir, "dorbendor.json"));
             var teacher = new Teacher(stats);
 
             // the Undertale-style intro plays first, then hands off to the battle.

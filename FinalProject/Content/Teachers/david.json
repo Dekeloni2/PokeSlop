@@ -5,6 +5,7 @@
   "baseHp": 48,
   "baseAtk": 4,
   "goldReward": 35,
+  "itemReward": "Lab Coat",
   "speakingVoice": "snd_txtdavid",
   "theme": "davidTheme",
   "themeVolume": 0.4,
@@ -46,25 +47,14 @@
   },
   "moves": [
     {
-      "name": "Haymaker",
+      "name": "All Star",
       "power": 1,
       "accuracy": 100,
-      "description": "David winds up and drives a fist across the arena.",
-      "pattern": "Punch"
-    },
-    {
-      "name": "Haymaker",
-      "power": 1,
-      "accuracy": 100,
-      "description": "David winds up and drives a fist across the arena.",
-      "pattern": "Hexagon"
-    },
-    {
-      "name": "Onion",
-      "power": 1,
-      "accuracy": 100,
-      "description": "Onions have many layers.",
-      "pattern": "Onion"
+      "description": "David puts the song on and teaches the whole lesson at once.",
+      "pattern": "AllStar",
+      "isUltimate": true,
+      "intro": "You've been patient with me. I'll return the favour.|Everything I've taught you was one idea at a time.|Shapes. Layers. Curves.|That was the courtesy.|Now let's see you hold all of it at once.",
+      "introLeap": true
     }
   ],
   "actOptions": [

@@ -9,7 +9,7 @@ using Microsoft.Xna.Framework.Graphics;
 // the whole sheet) can ignore Transform/SourceRect and override Draw
 // entirely — see Animation for a subclass that plays the sheet as one
 // linear, looping animation instead.
-public class Sprite : IGameDrawable
+public class Sprite
 {
     public Transform     Transform    { get; } = new Transform();
     public Spritesheet   Spritesheet  { get; }

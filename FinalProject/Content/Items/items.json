@@ -1,4 +1,6 @@
 [
-  { "name": "Cheese Toast", "description": "A warm slice of cheese toast.", "healAmount": 20 },
-  { "name": "Juice Box", "description": "A small box of apple juice.", "healAmount": 10 }
+  { "name": "Cheese Toast", "description": "A warm slice of cheese toast.", "healAmount": 20, "price": 15 },
+  { "name": "Juice Box", "description": "A small box of apple juice.", "healAmount": 10, "price": 15 },
+  { "name": "Faded Hoodie", "kind": "armor", "defense": 2, "description": "Worn soft. Takes the edge off.", "price": 40 },
+  { "name": "Lab Coat", "kind": "armor", "defense": 4, "description": "Stained, but sturdy.", "price": 90 }
 ]

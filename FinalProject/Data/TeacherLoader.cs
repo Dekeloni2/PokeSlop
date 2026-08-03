@@ -14,7 +14,21 @@ namespace FinalProject.Data
         public static TeacherStats Load(string jsonPath)
         {
             string json = File.ReadAllText(jsonPath);
-            var options = new JsonSerializerOptions { PropertyNameCaseInsensitive = true };
+            // comments aren't legal JSON, but these files are authored by hand
+            // and get edited constantly — being able to // out a move to test
+            // one attack in isolation, or leave a note next to a number, is
+            // worth more here than staying strict.
+            //
+            // AllowTrailingCommas goes with it: commenting out the LAST entry
+            // in a list always leaves the comma on the one before it, and
+            // hunting that down every time is exactly the friction this is
+            // meant to remove
+            var options = new JsonSerializerOptions
+            {
+                PropertyNameCaseInsensitive = true,
+                ReadCommentHandling         = JsonCommentHandling.Skip,
+                AllowTrailingCommas         = true,
+            };
 
             TeacherJson data = JsonSerializer.Deserialize<TeacherJson>(json, options)
                 ?? throw new Exception($"Empty or invalid teacher JSON: {jsonPath}");
@@ -24,7 +38,8 @@ namespace FinalProject.Data
                 moves.Add(new MoveData(m.Name, m.Power, m.Accuracy, m.Description,
                     PatternRegistry.Resolve(m.Pattern), m.IsUltimate, ToSpeech(m.Speech))
                 {
-                    Intro = m.Intro,
+                    Intro     = m.Intro,
+                    IntroLeap = m.IntroLeap,
                 });
 
             List<ActOption> actOptions = ToActOptions(data.ActOptions);
@@ -49,11 +64,12 @@ namespace FinalProject.Data
             // older teacher files keep working untouched
             stats.Id         = string.IsNullOrWhiteSpace(data.Id) ? data.Name : data.Id;
             stats.GatedMoves   = data.GatedMoves;
-<<<<<<< Updated upstream
-=======
             stats.ItemReward   = data.ItemReward;
             stats.EndsGame     = data.EndsGame;
->>>>>>> Stashed changes
+
+=======
+            stats.ItemReward   = data.ItemReward;
+>>>>>>> Yonatan
             stats.Requires     = data.Requires ?? new List<string>();
             stats.LockedText   = data.LockedText;
             stats.UltimateAtHp = data.UltimateAtHp;
@@ -157,11 +173,12 @@ namespace FinalProject.Data
             public SpriteJson Sprite { get; set; }
             public DialogueJson BattleDialogue { get; set; }
             public int GoldReward { get; set; }
-<<<<<<< Updated upstream
-=======
             public string ItemReward { get; set; }
             public bool EndsGame { get; set; }
->>>>>>> Stashed changes
+
+=======
+            public string ItemReward { get; set; }
+>>>>>>> Yonatan
             public string Theme { get; set; }
             public float ThemeVolume { get; set; } = 1f;
             public bool SequentialMoves { get; set; }
@@ -210,6 +227,10 @@ namespace FinalProject.Data
 
             // optional. a cutscene before the attack, see MoveData.Intro
             public string Intro { get; set; }
+
+            // optional. he leaps off screen once the intro is read, see
+            // MoveData.IntroLeap
+            public bool IntroLeap { get; set; }
 
             // optional. beat name -> lines, see MoveData.Line
             public Dictionary<string, List<string>> Speech { get; set; }

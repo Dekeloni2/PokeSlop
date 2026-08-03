@@ -162,9 +162,19 @@ namespace FinalProject.Battle
             return 1f - m / 1073741824f;
         }
 
-        public void Draw(SpriteBatch spriteBatch, Vector2 anchor)
+        // scale squashes/stretches the whole assembled character as one group,
+        // around a pivot planted at his feet — so a squash sinks him into the
+        // floor rather than shrinking him toward his middle. null means 1:1,
+        // which is every caller that isn't animating a leap
+        public void Draw(SpriteBatch spriteBatch, Vector2 anchor, Vector2? scale = null)
         {
             if (!IsReady) return;
+
+            Vector2 groupScale = scale ?? Vector2.One;
+
+            // bottom-centre of the assembled character. Anchor is the art's own
+            // nudge off the passed-in position, so it belongs in here too
+            Vector2 pivot = anchor + _data.Anchor + new Vector2(Size.X / 2f, Size.Y);
 
             // the whole character jitters while hurt, dies down as it wears off
             // sideways only, and it's an oscillation rather than random jitter so
@@ -203,9 +213,16 @@ namespace FinalProject.Battle
                     continue;
                 }
 
+                // the part keeps its place in the group: its corner moves with
+                // the scale and its extent grows by the same factor, so the
+                // whole body deforms together instead of parts drifting apart
+                Vector2 drawPos = pivot + (pos - pivot) * groupScale;
+
                 spriteBatch.Draw(
                     _sheet.Texture,
-                    new Rectangle((int)pos.X, (int)pos.Y, (int)(src.Width * s), (int)(src.Height * s)),
+                    new Rectangle((int)drawPos.X, (int)drawPos.Y,
+                        (int)(src.Width  * s * groupScale.X),
+                        (int)(src.Height * s * groupScale.Y)),
                     src,
                     Color.White * alpha);
             }

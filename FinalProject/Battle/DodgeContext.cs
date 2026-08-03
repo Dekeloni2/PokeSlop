@@ -46,18 +46,30 @@ namespace FinalProject.Battle
 
         public void SpawnProjectile(Vector2 position, Vector2 velocity, ProjectileType type = ProjectileType.Normal)
             => _phase.SpawnProjectile(position, velocity,  type);
+        
+        // words
+        public void SpawnProjectile(Vector2 position, Vector2 velocity, string text, SpriteFont font = null, float scale = 0.85f)
+            => _phase.SpawnProjectile(position, velocity, text, font, scale);
 
         // a persistent damaging beam. Returns a handle so the pattern can move
         // or remove it; DodgePhase draws it and applies its continuous damage.
         public Beam AddBeam(Rectangle bounds, Texture2D texture = null) => _phase.AddBeam(bounds, texture);
         public void RemoveBeam(Beam beam)     => _phase.RemoveBeam(beam);
 
+        // live bullets, for patterns that cap what's on screen at once instead
+        // of trusting a fixed spawn rate to stay readable — how long a bullet
+        // survives depends on the box size and its speed, so the same interval
+        // means very different clutter in different arenas
+        public int ProjectileCount => _phase.ProjectileCount;
+
         // hexagon hazards — DodgePhase owns them, grows/draws them and applies
         // their continuous edge damage; the pattern just spawns and counts them
         public int  HexCount => _phase.HexCount;
+        // rule is the undertale blue/orange gate — White is a plain hex that
+        // always hurts, see HazardRule
         public void SpawnHex(Vector2 center, float startRadius, float maxRadius,
-            float rotation, float growSeconds, float explodeSpeed)
-            => _phase.SpawnHex(center, startRadius, maxRadius, rotation, growSeconds, explodeSpeed);
+            float rotation, float growSeconds, float explodeSpeed, HazardRule rule = HazardRule.White)
+            => _phase.SpawnHex(center, startRadius, maxRadius, rotation, growSeconds, explodeSpeed, rule);
 
         // for attacks that hurt the player through something other than a
         // hazard, like getting a quiz answer wrong. goes through the same

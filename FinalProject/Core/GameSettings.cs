@@ -1,3 +1,7 @@
+using System;
+using Microsoft.Xna.Framework;
+using FinalProject.Core.Audio;
+
 namespace FinalProject.Core;
 
 public static class GameSettings
@@ -16,8 +20,32 @@ public static class GameSettings
     // undertale moves 2px per frame at 30fps, so 60px/sec. ours is time based
     // rather than per frame, so it stays the same at any framerate
     public const float PlayerSpeed = 100f;
+    
+    // ── Settings Data & Controls ───────────────────────────────────────
+    public static int MasterVolume { get; private set; } = 80; // 0 to 100
+    public static int TargetFps { get; private set; } = 60;    // 30 or 60
 
+    public static void SetVolume(int volume)
+    {
+        MasterVolume = MathHelper.Clamp(volume, 0, 100);
+        float targetVolume = MasterVolume / 100f;
 
+        // Tell SoundManager the new volumes!
+        SoundManager.SfxVolume   = targetVolume;
+        SoundManager.MusicVolume = targetVolume;
+
+        // Immediately apply to the live song player
+        SoundManager.SetMusicVolume(1f);
+        
+    }
+
+    public static void SetTargetFps(Game game, int fps)
+    {
+        TargetFps = fps;
+        game.IsFixedTimeStep = true;
+        game.TargetElapsedTime = TimeSpan.FromSeconds(1.0 / TargetFps);
+    }
+    
     // ── Battle: attack minigame ─────────────────────────────────────────
     public const float AttackBarSpeed      = 480f; // px/sec sweep across the target zone
     public const float AttackFlashSeconds  = 0.7f; // how long the bar flashes after a hit

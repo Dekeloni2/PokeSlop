@@ -55,16 +55,39 @@ public class PunchPattern : IBulletPattern
     // then reappear above frame and fall back down — the mirror of how
     // Cloverbyte's logo arrives, run backwards for the takeoff and forwards
     // again for the landing
-    private const float LeapChargeSeconds = 0.16f;
-    private const float LaunchSeconds     = 0.30f;
+    // the leap itself is shared with the ultimate's intro, see TeacherLeap
+    private const float LeapChargeSeconds = TeacherLeap.ChargeSeconds;
+    private const float LaunchSeconds     = TeacherLeap.LaunchSeconds;
     private const float FallSeconds       = 0.50f;
     private const float LandSquashSeconds = 0.30f;
 
     private const float DurationSlack   = 0.3f;
 
     // how many times he throws the punch before he's done — each one ends
-    // with the same leap, so this is also how many times he swaps sides
-    private const int PunchCount = 3;
+    // with the same leap, so this is also how many times he swaps sides.
+    // David's ultimate borrows this pattern for a single hit, so the count is
+    // a constructor argument with the standalone attack's value as the default
+    private const int DefaultPunchCount = 3;
+
+    private readonly int _punchCount;
+
+    // standalone he walks on and stands there a beat before the first hop. as a
+    // beat of the ultimate there's no room for an entrance that reads as
+    // waiting, so he drops in from above frame instead — the same Fall the
+    // attack already uses to swap sides, just moved to the front
+    private readonly bool _entersFromSky;
+
+    public PunchPattern(int punchCount = DefaultPunchCount, bool entersFromSky = false)
+    {
+        _punchCount    = punchCount;
+        _entersFromSky = entersFromSky;
+    }
+
+    // for a host pattern sequencing this as one beat — Duration is its own
+    // estimate of the run, this is the animation actually having finished.
+    // deliberately not IBulletPattern.IsComplete: standalone, the turn should
+    // still run out the clock it budgeted rather than cutting off at Done
+    public bool Finished => _phase == Phase.Done;
 
     // ── layout ───────────────────────────────────────────────────────────────
     private const float GapIdle       = 46f; // clear of the box while he's just standing there
@@ -91,10 +114,10 @@ public class PunchPattern : IBulletPattern
 
     // the leap — deep crouch, then a launch/fall stretch in the direction of
     // travel, then a hard landing squash that settles back to normal
-    private const float LeapChargeScaleX = 1.35f;
-    private const float LeapChargeScaleY = 0.55f;
-    private const float LaunchStretchX   = 0.80f;
-    private const float LaunchStretchY   = 1.35f;
+    private const float LeapChargeScaleX = TeacherLeap.ChargeScaleX;
+    private const float LeapChargeScaleY = TeacherLeap.ChargeScaleY;
+    private const float LaunchStretchX   = TeacherLeap.StretchX;
+    private const float LaunchStretchY   = TeacherLeap.StretchY;
     private const float FallStretchX     = 0.88f;
     private const float FallStretchY     = 1.20f;
     private const float LandSquashX      = 1.30f;
@@ -109,18 +132,14 @@ public class PunchPattern : IBulletPattern
     private const string LandSound      = "thud";
     private const string ShakeSound     = "snd_screenshake"; // rides along with every shake, see Shake()
 
-    // charge glow and the two undertale-style fist rules — same colours
-    // Cloverbyte uses, so the player doesn't have to relearn what they mean
+    // the red glow while he charges. the fist's own colour is the shared
+    // blue/orange rule instead, see HazardRule
     private static readonly Color ChargeColor = new Color(255, 60, 60);
-    private static readonly Color BlueColor   = new Color(60, 130, 255);
-    private static readonly Color OrangeColor = new Color(255, 150, 40);
 
-    // blue only hurts while you're moving, orange only while you're standing
-    // still — same rule as Dor's cloverbyte lash, decided fresh each punch so
-    // repeating the move doesn't repeat the same answer
-    private enum FistColor { Blue, Orange }
-    private FistColor _fistColor;
-    private Color FistBaseColor => _fistColor == FistColor.Blue ? BlueColor : OrangeColor;
+    // decided fresh each punch, so repeating the move doesn't repeat the answer.
+    // never White here — the fist always plays by one of the two
+    private HazardRule _fistColor;
+    private Color FistBaseColor => _fistColor.Tint();
 
     private enum Side  { Left, Right }
     private enum Phase
@@ -185,6 +204,18 @@ public class PunchPattern : IBulletPattern
         _scaleX = 1f; _scaleY = 1f; _rotation = 0f;
         _visible = true;
 
+        // drop in instead of standing there. Fall already lerps from OffscreenY
+        // down to his feet and hands off to LandSquash, which hands off to Hop —
+        // so starting parked at the top of that is the whole entrance, no new
+        // phase needed. it also means the landing shake and smoke come for free
+        if (_entersFromSky)
+        {
+            _phase     = Phase.Fall;
+            _bodyPos.Y = OffscreenY;
+            _scaleX    = FallStretchX;
+            _scaleY    = FallStretchY;
+        }
+
         // every punch through the leap's charge and launch; only the ones
         // that land also pay for the fall and the squash — the last leap
         // exits mid air instead, see Phase.Launch
@@ -192,7 +223,12 @@ public class PunchPattern : IBulletPattern
                              + RetractSeconds + UnsquishSeconds + RestSeconds
                              + LeapChargeSeconds + LaunchSeconds;
         float landing = FallSeconds + LandSquashSeconds;
-        _duration = EnterSeconds + punchToLaunch * PunchCount + landing * (PunchCount - 1) + DurationSlack;
+
+        // arriving from the sky costs a fall and a landing instead of the
+        // stand-and-wait, so the budget has to swap those too or the turn ends
+        // while he's still mid animation
+        float entry = _entersFromSky ? landing : EnterSeconds;
+        _duration = entry + punchToLaunch * _punchCount + landing * (_punchCount - 1) + DurationSlack;
     }
 
     public void Update(GameTime gameTime, DodgeContext context)
@@ -237,7 +273,7 @@ public class PunchPattern : IBulletPattern
                     // decided here so the whole telegraph shows the real
                     // colour — springing a fresh one at the strike would give
                     // no time to read it
-                    _fistColor = Random.Shared.Next(2) == 0 ? FistColor.Blue : FistColor.Orange;
+                    _fistColor = Random.Shared.Next(2) == 0 ? HazardRule.Blue : HazardRule.Orange;
                     SoundManager.Play(TelegraphSound);
                     Advance(Phase.Telegraph);
                 }
@@ -383,7 +419,7 @@ public class PunchPattern : IBulletPattern
                     // exit is the leap itself, not a leap that happens to be
                     // followed by nothing. no landing, no extra punch that
                     // was never coming
-                    if (_punchesDone >= PunchCount)
+                    if (_punchesDone >= _punchCount)
                     {
                         _visible = false;
                         Advance(Phase.Done);
@@ -470,18 +506,9 @@ public class PunchPattern : IBulletPattern
     {
         if (!_ready || !IsDamagingPhase) return;
         if (!TouchesPlayer(context)) return;
-        if (!Connects(_fistColor, context.IsPlayerMoving)) return;
+        if (!_fistColor.Connects(context.IsPlayerMoving)) return;
         context.DamagePlayer(PunchDamage);
     }
-
-    // same undertale rule Cloverbyte's lash teaches: blue only catches you
-    // moving, orange only catches you standing still
-    private static bool Connects(FistColor color, bool moving) => color switch
-    {
-        FistColor.Blue   => moving,
-        FistColor.Orange => !moving,
-        _                => true,
-    };
 
     private bool TouchesPlayer(DodgeContext context)
     {

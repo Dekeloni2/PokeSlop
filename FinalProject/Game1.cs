@@ -1,5 +1,6 @@
-// Game1.cs
+    // Game1.cs
 using System;
+using System.Collections.Generic;
 using System.IO;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
@@ -10,7 +11,9 @@ using FinalProject.Core.Graphics;
 using FinalProject.Core.Input;
 using FinalProject.Core.StateMachine;
 using FinalProject.Data;
+using FinalProject.Events;
 using FinalProject.States;
+using FinalProject.UI;
 
 namespace FinalProject
 {
@@ -34,6 +37,23 @@ namespace FinalProject
         // whole run. subscribes on construction, so build it before any battle
         public RouteTracker Route { get; private set; } = new();
 
+        // the item catalog, straight from items.json
+        public List<ItemData> Items { get; private set; } = new();
+
+        // by name, as teacher JSON refers to them. null if nothing matches
+        public ItemData FindItem(string name)
+        {
+            if (string.IsNullOrWhiteSpace(name)) return null;
+
+            foreach (ItemData item in Items)
+                if (string.Equals(item.Name, name, StringComparison.OrdinalIgnoreCase))
+                    return item;
+
+            return null;
+        }
+
+        private VendingMachineMenu _vendingMachine;
+        
         public Game1()
         {
             _graphics = new GraphicsDeviceManager(this)
@@ -64,6 +84,13 @@ namespace FinalProject
             PixelTexture.SetData(new[] { Color.White });
 
             DialogueFont = Content.Load<SpriteFont>("Fonts/DialogueFont");
+
+            // Pixel Operator 8 builds with LineSpacing 9, and its descenders (g,
+            // p, y) reach a full 8px below the origin — 1px of leading, so two
+            // wrapped lines read as one smeared block. every text widget derives
+            // its spacing from the font, so fixing it here fixes the speech
+            // bubble, the dialogue box, the choice box and the action menu at once
+            DialogueFont.LineSpacing = 11;
             
             new SpriteManager(Content);
             SpriteManager.AddSprite("student_world", "Sprites/Player/student_world", 4, 3);
@@ -73,6 +100,7 @@ namespace FinalProject
             SpriteManager.AddSprite("attackZone", "Sprites/Battle/attack_minigame");
             SpriteManager.AddSprite("attackBar", "Sprites/Battle/attack_target", 2, 1, 6);
             SpriteManager.AddSprite("boat", "Sprites/AttackPatterns/boat");
+            SpriteManager.AddSprite("bomb", "Sprites/AttackPatterns/bomb");
             SpriteManager.AddSprite("garlicGun", "Sprites/AttackPatterns/GarlicGun");
             SpriteManager.AddSprite("vegeta", "Sprites/AttackPatterns/Vegeta",5 , 1);
             SpriteManager.AddSprite("cloverbyte", "Sprites/AttackPatterns/cloverbyte");
@@ -135,8 +163,16 @@ namespace FinalProject
             SoundManager.AddSound(SoundManager.PhoneRing, "Audio/SFX/snd_phone");
             // SoundManager.AddSong("battle", "Audio/battle_theme");
 
+            // every item in the game, loaded once. the shop sells from it and
+            // teacher drops resolve their reward name against it, so it can't
+            // be debug-only the way the vending machine is
+            string itemsPath = Path.GetFullPath(
+                Path.Combine(AppContext.BaseDirectory, "..", "..", "..", "Content", "Items", "items.json"));
+            Items = ItemLoader.LoadAll(itemsPath);
+
 #if DEBUG
             LoadStartingInventory();
+            _vendingMachine = new VendingMachineMenu(PixelTexture, DialogueFont);
 #endif
 
             StateManager.Replace(new MainMenuState(this, StateManager));
@@ -150,9 +186,8 @@ namespace FinalProject
             if (Input.IsKeyPressed(Keys.Escape))
                 Exit();
 
-<<<<<<< Updated upstream
             StateManager.Update(gameTime);
-=======
+
 #if DEBUG
             // Press 'V' to open the vending machine anywhere in debug mode
             if (Input.IsKeyPressed(Keys.V) && _vendingMachine != null)
@@ -167,10 +202,76 @@ namespace FinalProject
                 }
             }
             
-            // Press 1-8 to jump to an ending. One key per authored script, in
-            // the same order as endings.json — the number keys are how you check
-            // a script without replaying the run that earns it.
-            CheckEndingHotkeys();
+            // --- Ending Debug Keys (1 through 8) ---
+            if (Input.IsKeyPressed(Keys.D1)) // 1. Pacifist
+            {
+                Route.Reset();
+                StateManager.Replace(new EndingState(this, StateManager));
+            }
+            
+            if (Input.IsKeyPressed(Keys.D2)) // 2. Genocide
+            {
+                Route.Reset();
+                EventBus.Instance.Publish(new TeacherResolvedEvent("yakir", BattleOutcome.Killed));
+                EventBus.Instance.Publish(new TeacherResolvedEvent("dorbendor", BattleOutcome.Killed));
+                EventBus.Instance.Publish(new TeacherResolvedEvent("david", BattleOutcome.Killed));
+                StateManager.Replace(new EndingState(this, StateManager));
+            }
+            
+            if (Input.IsKeyPressed(Keys.D3)) // 3. Only Yakir Killed
+            {
+                Route.Reset();
+                EventBus.Instance.Publish(new TeacherResolvedEvent("yakir", BattleOutcome.Killed));
+                EventBus.Instance.Publish(new TeacherResolvedEvent("dorbendor", BattleOutcome.Spared));
+                EventBus.Instance.Publish(new TeacherResolvedEvent("david", BattleOutcome.Spared));
+                StateManager.Replace(new EndingState(this, StateManager));
+            }
+            
+            if (Input.IsKeyPressed(Keys.D4)) // 4. Only Dorbendor Killed
+            {
+                Route.Reset();
+                EventBus.Instance.Publish(new TeacherResolvedEvent("yakir", BattleOutcome.Spared));
+                EventBus.Instance.Publish(new TeacherResolvedEvent("dorbendor", BattleOutcome.Killed));
+                EventBus.Instance.Publish(new TeacherResolvedEvent("david", BattleOutcome.Spared));
+                StateManager.Replace(new EndingState(this, StateManager));
+            }
+            
+            if (Input.IsKeyPressed(Keys.D5)) // 5. Only David Killed
+            {
+                Route.Reset();
+                EventBus.Instance.Publish(new TeacherResolvedEvent("yakir", BattleOutcome.Spared));
+                EventBus.Instance.Publish(new TeacherResolvedEvent("dorbendor", BattleOutcome.Spared));
+                EventBus.Instance.Publish(new TeacherResolvedEvent("david", BattleOutcome.Killed));
+                StateManager.Replace(new EndingState(this, StateManager));
+            }
+            
+            if (Input.IsKeyPressed(Keys.D6)) // 6. Yakir + Dorbendor Killed (Only David Spared)
+            {
+                Route.Reset();
+                EventBus.Instance.Publish(new TeacherResolvedEvent("yakir", BattleOutcome.Killed));
+                EventBus.Instance.Publish(new TeacherResolvedEvent("dorbendor", BattleOutcome.Killed));
+                EventBus.Instance.Publish(new TeacherResolvedEvent("david", BattleOutcome.Spared));
+                StateManager.Replace(new EndingState(this, StateManager));
+            }
+            
+            if (Input.IsKeyPressed(Keys.D7)) // 7. Yakir + David Killed (Only Dorbendor Spared)
+            {
+                Route.Reset();
+                EventBus.Instance.Publish(new TeacherResolvedEvent("yakir", BattleOutcome.Killed));
+                EventBus.Instance.Publish(new TeacherResolvedEvent("dorbendor", BattleOutcome.Spared));
+                EventBus.Instance.Publish(new TeacherResolvedEvent("david", BattleOutcome.Killed));
+                StateManager.Replace(new EndingState(this, StateManager));
+            }
+            
+            if (Input.IsKeyPressed(Keys.D8)) // 8. Dorbendor + David Killed (Only Yakir Spared)
+            {
+                Route.Reset();
+                EventBus.Instance.Publish(new TeacherResolvedEvent("yakir", BattleOutcome.Spared));
+                EventBus.Instance.Publish(new TeacherResolvedEvent("dorbendor", BattleOutcome.Killed));
+                EventBus.Instance.Publish(new TeacherResolvedEvent("david", BattleOutcome.Killed));
+                StateManager.Replace(new EndingState(this, StateManager));
+            }
+
 #endif
             
             if (_vendingMachine != null && _vendingMachine.IsActive)
@@ -182,7 +283,10 @@ namespace FinalProject
                 StateManager.Update(gameTime);
             }
             
+<<<<<<< HEAD
 >>>>>>> Stashed changes
+=======
+>>>>>>> Yonatan
             base.Update(gameTime);
         }
 
@@ -191,9 +295,7 @@ namespace FinalProject
         // be tested until there's a real way to get items (shop/pickups)
         private void LoadStartingInventory()
         {
-            string itemsPath = Path.GetFullPath(
-                Path.Combine(AppContext.BaseDirectory, "..", "..", "..", "Content", "Items", "items.json"));
-            PlayerData.Inventory.AddRange(ItemLoader.LoadAll(itemsPath));
+            PlayerData.Inventory.AddRange(Items);
         }
 
         // Who dies in each simulated run, matching the "killed" lists in
@@ -239,6 +341,15 @@ namespace FinalProject
         {
             GraphicsDevice.Clear(Color.Black);
             StateManager.Draw(_spriteBatch);
+            
+            if (_vendingMachine != null && _vendingMachine.IsActive)
+            {
+                // PointClamp, or the pixel font gets bilinear-filtered into mush
+                _spriteBatch.Begin(samplerState: SamplerState.PointClamp);
+                _vendingMachine.Draw(_spriteBatch, PlayerData);
+                _spriteBatch.End();
+            }
+            
             base.Draw(gameTime);
         }
     }

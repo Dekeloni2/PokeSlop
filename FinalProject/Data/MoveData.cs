@@ -33,6 +33,11 @@ namespace FinalProject.Data
         // the moves he just throws without ceremony
         public string Intro { get; set; }
 
+        // after the intro finishes, he crouches and launches off the top of the
+        // screen before the attack starts — for ultimates whose pattern begins
+        // with him already gone. does nothing without an Intro to follow
+        public bool IntroLeap { get; set; }
+
         public MoveData(string name, int power, int accuracy, string description,
             Func<IBulletPattern> createPattern, bool isUltimate = false,
             IReadOnlyDictionary<string, IReadOnlyList<string>> speech = null)

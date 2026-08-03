@@ -10,7 +10,7 @@ namespace FinalProject.Battle
     // TESTING: yakir's lesson arc, the one he only throws if you provoke him,
     // and the two the substitute is being used to test. the rest are still in
     // Battle/Patterns, add their lines back when you need them:
-    //   Rain, ExpandingBox, Boat
+    //   Rain, ExpandingBox
     public static class PatternRegistry
     {
         private static readonly Dictionary<string, Func<IBulletPattern>> Patterns = new()
@@ -24,6 +24,7 @@ namespace FinalProject.Battle
             ["Napoleon"]     = () => new NapoleonPattern(),
             ["Hexagon"]      = () => new HexagonPattern(),
             ["Onion"] = () => new OnionPattern(),
+            ["AllStar"] = () => new AllStarPattern(), // david's ultimate
             ["Punch"]        = () => new PunchPattern(),
             ["Boat"]         = () => new BoatPattern(),
             ["Cloverbyte"]   = () => new CloverbytePattern(),
@@ -31,9 +32,9 @@ namespace FinalProject.Battle
 
             // the training dummy's three lessons — one class, one entry per
             // rule it teaches. see TrainingLinePattern
-            ["TrainingWhite"]  = () => new TrainingLinePattern(TrainingLinePattern.Kind.White),
-            ["TrainingBlue"]   = () => new TrainingLinePattern(TrainingLinePattern.Kind.Blue),
-            ["TrainingOrange"] = () => new TrainingLinePattern(TrainingLinePattern.Kind.Orange),
+            ["TrainingWhite"]  = () => new TrainingLinePattern(HazardRule.White),
+            ["TrainingBlue"]   = () => new TrainingLinePattern(HazardRule.Blue),
+            ["TrainingOrange"] = () => new TrainingLinePattern(HazardRule.Orange),
         };
 
         public static Func<IBulletPattern> Resolve(string name)

@@ -46,7 +46,8 @@ namespace FinalProject.Battle
         private readonly float   _startRadius;
         private readonly float   _maxRadius;
         private readonly float   _growSeconds;
-        private readonly float   _explodeSpeed;
+        private readonly float      _explodeSpeed;
+        private readonly HazardRule _rule;
 
         private Phase   _phase = Phase.FadeIn;
         private float   _timer;
@@ -58,7 +59,7 @@ namespace FinalProject.Battle
         public bool IsFinished => _phase == Phase.Done;
 
         public HexHazard(Vector2 center, float startRadius, float maxRadius,
-            float rotation, float growSeconds, float explodeSpeed)
+            float rotation, float growSeconds, float explodeSpeed, HazardRule rule = HazardRule.White)
         {
             _center       = center;
             _startRadius  = startRadius;
@@ -66,6 +67,7 @@ namespace FinalProject.Battle
             _rotation     = rotation;
             _growSeconds  = growSeconds;
             _explodeSpeed = explodeSpeed;
+            _rule         = rule;
             _radius       = startRadius;
 
             // FadeIn starts the instant this exists, so the spawn cue plays
@@ -124,9 +126,15 @@ namespace FinalProject.Battle
         // returns true on the frames the player should take a damage tick. only
         // the fade in is harmless, grow/charge/explode all hurt. the edges are
         // solid the whole time, the charge is just a visual warning
-        public bool TickDamage(Rectangle hitbox)
+        public bool TickDamage(Rectangle hitbox, bool playerMoving)
         {
             if (_phase == Phase.FadeIn || _phase == Phase.Done) return false;
+
+            // checked before the cooldown on purpose: a rule the player is
+            // currently answering correctly shouldn't burn the cooldown, or
+            // standing still in a blue edge would eat a tick the moment they
+            // moved again rather than starting a fresh interval
+            if (!_rule.Connects(playerMoving)) return false;
             if (_damageCooldown > 0f) return false;
 
             Vector2 p = hitbox.Center.ToVector2();
@@ -144,24 +152,35 @@ namespace FinalProject.Battle
             return false;
         }
 
+        // what the hex is drawn in when it isn't doing anything special. a ruled
+        // hex is its rule colour from the very first frame of the fade in, so
+        // there's never a moment where it's on screen without saying which one
+        // it is
+        private Color BaseColor => _rule.Tint();
+
         public void Draw(SpriteBatch sb, Texture2D pixel)
         {
             Color color;
             if (_phase == Phase.FadeIn)
             {
                 // harmless telegraph fading in
-                color = Color.White * MathHelper.Clamp(_timer / FadeSeconds, 0f, 1f);
+                color = BaseColor * MathHelper.Clamp(_timer / FadeSeconds, 0f, 1f);
             }
             else if (_phase == Phase.Charge)
             {
-                // pulse red, deeper as the charge builds. goes with the shake
+                // pulse, deeper as the charge builds. goes with the shake.
+                // a plain hex goes red, the codebase's "about to go off" colour —
+                // but a ruled one pulses to white instead, because red over blue
+                // or orange muddies the one thing the player has to read. the
+                // flash still reads as a warning, the hue survives it
                 float charge = MathHelper.Clamp(_timer / ChargeSeconds, 0f, 1f);
                 float pulse  = (MathF.Sin(_timer * PulseHz * MathHelper.TwoPi) + 1f) * 0.5f;
-                color = Color.Lerp(Color.White, Color.Red, pulse * charge);
+                Color peak   = _rule == HazardRule.White ? Color.Red : Color.White;
+                color = Color.Lerp(BaseColor, peak, pulse * charge);
             }
             else
             {
-                color = Color.White;
+                color = BaseColor;
             }
 
             for (int i = 0; i < 6; i++)

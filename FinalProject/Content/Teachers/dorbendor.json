@@ -129,6 +129,13 @@
       }
     },
     {
+      "name": "Boat",
+      "power": 1,
+      "accuracy": 100,
+      "description": "Dor Ben Dor revs the engine and starts shelling the arena.",
+      "pattern": "Boat"
+    },
+    {
       "name": "Napoleon",
       "power": 1,
       "accuracy": 100,

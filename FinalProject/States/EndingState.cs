@@ -1,6 +1,8 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using FinalProject.Core.StateMachine;
+
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
@@ -75,6 +77,7 @@ public class EndingState : GameState
         float wrapWidth = GameSettings.WindowWidth - WrapMargin * 2;
         foreach (string page in _ending.Pages)
             _pages.Add(TextWrap.ToLines(Game.DialogueFont, Substitute(page), wrapWidth, TextScale));
+
     }
 
     public override void OnEnter()
@@ -305,3 +308,4 @@ public class EndingState : GameState
         spriteBatch.DrawString(font, text, pos, color, 0f, Vector2.Zero, scale, SpriteEffects.None, 0f);
     }
 }
+

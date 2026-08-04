@@ -38,6 +38,12 @@ namespace FinalProject.Data
         // with him already gone. does nothing without an Intro to follow
         public bool IntroLeap { get; set; }
 
+        // the mirror of Intro: what he says once the attack is over, before the
+        // turn hands back. on an ultimate that lands between the attack and his
+        // last stand, so he gets a beat before the yield speech. null for the
+        // moves that end without comment
+        public string Outro { get; set; }
+
         public MoveData(string name, int power, int accuracy, string description,
             Func<IBulletPattern> createPattern, bool isUltimate = false,
             IReadOnlyDictionary<string, IReadOnlyList<string>> speech = null)

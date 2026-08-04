@@ -135,7 +135,8 @@
       "description": "The room falls away and something enormous rises.",
       "pattern": "Napoleon",
       "isUltimate": true,
-      "intro": "Hmph.|You truly are a remarkable student.|But lets see you face against my ultimate attack."
+      "intro": "Hmph.|You truly are a remarkable student.|But lets see you face against my ultimate attack.",
+      "outro": "parti"
     }
   ],
   "actOptions": [

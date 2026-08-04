@@ -31,6 +31,7 @@ namespace FinalProject.Data
                 {
                     Intro     = m.Intro,
                     IntroLeap = m.IntroLeap,
+                    Outro     = m.Outro,
                 });
 
             List<ActOption> actOptions = ToActOptions(data.ActOptions);
@@ -213,6 +214,9 @@ namespace FinalProject.Data
 
             // David only. He leaps into the sky.
             public bool IntroLeap { get; set; }
+
+            // optional. a cutscene after the attack, see MoveData.Outro
+            public string Outro { get; set; }
 
             // optional. beat name -> lines, see MoveData.Line
             public Dictionary<string, List<string>> Speech { get; set; }

@@ -114,6 +114,12 @@ namespace FinalProject.States
         // an attack waiting behind its intro cutscene, started once he's done
         private IBulletPattern _pendingPattern;
         private MoveData       _pendingMove;
+
+        // the move currently being dodged, kept so its Outro can be found once
+        // the attack finishes. null on the provoked path, which has no move
+        private MoveData    _dodgingMove;
+        private string      _pendingOutro;    // queued line, nulled once the bubble has it
+        private BattlePhase _phaseAfterOutro; // where the turn was headed before the outro
         private const int YieldedHitDamage = 9999;
 
         // whether anything has got through all fight. drives the extra line in
@@ -189,6 +195,8 @@ namespace FinalProject.States
             _tookDamage      = false;
             _pendingPattern  = null;
             _pendingMove     = null;
+            _dodgingMove     = null;
+            _pendingOutro    = null;
             _provokedPattern = null;
             _actSpeech       = null;
             // patterns that escalate the more they're thrown count their own
@@ -264,6 +272,10 @@ namespace FinalProject.States
 
                 case BattlePhase.MoveIntro:
                     UpdateMoveIntro(gameTime);
+                    break;
+
+                case BattlePhase.MoveOutro:
+                    UpdateMoveOutro(gameTime);
                     break;
 
                 case BattlePhase.Yielding:
@@ -370,7 +382,8 @@ namespace FinalProject.States
                 // while dodging), the soul only sits on them while choosing.
                 // his last stand takes them away too — nothing to press until
                 // he's finished talking
-                if (_phase != BattlePhase.Yielding && _phase != BattlePhase.MoveIntro)
+                if (_phase != BattlePhase.Yielding && _phase != BattlePhase.MoveIntro
+                                                   && _phase != BattlePhase.MoveOutro)
                     _menu.Draw(spriteBatch, showSoul: _phase == BattlePhase.SelectingMove);
             }
 
@@ -767,6 +780,7 @@ namespace FinalProject.States
             // a provoked pattern has no move behind it, so it isn't part of the
             // lesson plan and can't count as clearing one
             _dodgingLesson = move != null;
+            _dodgingMove   = move;
             _dodgePhase = new DodgePhase(pattern, _teacher, Game.PlayerData, DodgeBoxRect, move, WideBoxRect);
 
             _box.ResizeTo(DodgeBoxRect, ShrinkSeconds);
@@ -865,9 +879,46 @@ namespace FinalProject.States
                 // submenu, which keeps the guard and shows the text instantly.
                 _lastNarrationText = null;
                 RefreshNarration();
-                _phaseAfterTransition = yielding ? BattlePhase.Yielding : BattlePhase.SelectingMove;
+
+                BattlePhase next = yielding ? BattlePhase.Yielding : BattlePhase.SelectingMove;
+
+                // a move can sign off the way it announced itself. the line lands
+                // between the attack ending and whatever comes next — on the
+                // ultimate that puts it just before his last stand
+                if (!string.IsNullOrWhiteSpace(_dodgingMove?.Outro))
+                {
+                    _pendingOutro    = _dodgingMove.Outro;
+                    _phaseAfterOutro = next;
+                    next             = BattlePhase.MoveOutro;
+                }
+
+                _dodgingMove = null;
+                _phaseAfterTransition = next;
                 _phase = BattlePhase.BoxTransition;
             }
+        }
+
+        // ── Phase: MoveOutro ─────────────────────────────────────────────────
+
+        // the mirror of MoveIntro — he gets the last word once the attack is
+        // over. buttons stay off screen while he talks, and the turn only hands
+        // back (or his last stand only begins) once the player has read it
+        private void UpdateMoveOutro(GameTime gameTime)
+        {
+            // queued here rather than at the hand-off so the line starts typing
+            // with the box already back at full width
+            if (_pendingOutro != null)
+            {
+                _bubble.Prepare(_pendingOutro, Game.DialogueFont);
+                _bubble.Begin();
+                _pendingOutro = null;
+            }
+
+            _bubble.Update(gameTime, Game.Input);
+            if (_bubble.IsActive) return; // let him finish
+
+            _bubble.Clear();
+            _phase = _phaseAfterOutro;
         }
 
         // ── Phase: Yielding ──────────────────────────────────────────────────
@@ -1244,5 +1295,5 @@ namespace FinalProject.States
 
     public enum PlayerMoveList { Attack, Act, Item, Spare }
 
-    public enum BattlePhase { SelectingMove, ActionMenu, AttackMinigame, ExecutingTurn, TurnFeedback, BoxTransition, MoveIntro, Dodging, Yielding, Ending, PlayerDying, BattleOver }
+    public enum BattlePhase { SelectingMove, ActionMenu, AttackMinigame, ExecutingTurn, TurnFeedback, BoxTransition, MoveIntro, Dodging, MoveOutro, Yielding, Ending, PlayerDying, BattleOver }
 }

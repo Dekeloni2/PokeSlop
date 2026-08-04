@@ -14,7 +14,8 @@ namespace FinalProject.Battle
         Laser, // garlic gun
         Pixel, // yakir's single pixel
         Code,   // yakir's lessons, letters and numbers instead of bullets
-        Word 
+        Word, // for david's shrek allstar
+        FrenchFlag // for dor's napoleon attack
     }
     
     public class Projectile
@@ -35,12 +36,16 @@ namespace FinalProject.Battle
         private const float PixelHaloAlpha = 0.28f;
         private const float PixelPulseHz   = 2.2f;
 
+        // french flag is created in draw as a rectangle split into 3 colors
+        private const int FlagWidth  = 30;
+        private const int FlagHeight = 20;
+        
         // words arrive as a continuous stream rather than as the occasional
         // bullet, so one landing is worth much less than a normal hit — at a
         // teacher's full attack the lyrics on their own would end the fight
         // well before the attack they're the backdrop for finished
         public const int WordDamage = 2;
-
+        
         // what this bullet costs on contact. everything that isn't a word deals
         // the teacher's own attack, the way every pattern's bullets always have
         public int DamageAgainst(int teacherAttack)
@@ -54,6 +59,7 @@ namespace FinalProject.Battle
             ProjectileType.Smoke => 25,
             ProjectileType.Laser => 40,
             ProjectileType.Pixel => PixelSize,
+            ProjectileType.FrenchFlag => FlagWidth,
             ProjectileType.Word  => _wordWidth,
             _ => GameSettings.DodgeProjectileSize // default size
         };
@@ -62,6 +68,7 @@ namespace FinalProject.Battle
             ProjectileType.Smoke => 25,
             ProjectileType.Laser => 50,
             ProjectileType.Pixel => PixelSize,
+            ProjectileType.FrenchFlag => FlagHeight,
             ProjectileType.Word  => _wordHeight,
             _ => GameSettings.DodgeProjectileSize // default size
         };
@@ -196,6 +203,33 @@ namespace FinalProject.Battle
                 {
                     spriteBatch.Draw(pixel, Bounds, Color.Yellow);
                 }
+                return;
+            }
+            
+            if (Type == ProjectileType.FrenchFlag)
+            {
+                // Define the official colors lmao
+                Color frenchBlue  = new Color(0, 85, 164);
+                Color frenchWhite = Color.White;
+                Color frenchRed   = new Color(239, 65, 53);
+
+                // sizes
+                int totalWidth = FlagWidth; 
+                int totalHeight = FlagHeight;
+                int stripeWidth = totalWidth / 3; // 5 pixels per stripe
+
+                int x = (int)Position.X - totalWidth / 2;
+                int y = (int)Position.Y - totalHeight / 2;
+
+                // Draw Blue (Left)
+                spriteBatch.Draw(pixel, new Rectangle(x, y, stripeWidth, totalHeight), frenchBlue);
+    
+                // Draw White (Middle)
+                spriteBatch.Draw(pixel, new Rectangle(x + stripeWidth, y, stripeWidth, totalHeight), frenchWhite);
+    
+                // Draw Red (Right)
+                spriteBatch.Draw(pixel, new Rectangle(x + stripeWidth * 2, y, stripeWidth, totalHeight), frenchRed);
+                
                 return;
             }
 

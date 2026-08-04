@@ -1,9 +1,11 @@
 using System;
+using System.Collections.Generic;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using FinalProject.Core;
 using FinalProject.Core.Audio;
 using FinalProject.Core.Graphics;
+using FinalProject.Data;
 
 namespace FinalProject.Battle.Patterns;
 
@@ -55,6 +57,10 @@ public class NapoleonPattern : IBulletPattern
     private const string RumbleSound = "rumble"; // loops while rising
     private const string ThudSound   = "thud";   // one shot when he lands
 
+    // flags fields
+    private const float FlagSpawnInterval = 0.3f; // time between spawn of flag projectiles
+    private const float FlagSpeedY        = -100f; // moves upward 
+
     private enum Phase { Expand, Hold, Pan, Rise, Quake, Sweep, Done }
     private Phase _phase = Phase.Expand;
     private float _phaseTimer;
@@ -62,6 +68,8 @@ public class NapoleonPattern : IBulletPattern
 
     private Beam _beam;
     private int  _restX, _restY, _startY;
+    
+    private float _flagSpawnTimer;
 
     public void Start(DodgeContext context)
     {
@@ -90,8 +98,7 @@ public class NapoleonPattern : IBulletPattern
             case Phase.Expand:
                 if (_phaseTimer >= ExpandSeconds)
                 {
-                    // done growing, hide the outline (its edges are off screen
-                    // by now anyway)
+                    // done growing, hide the outline (its edges are offscreen by now anyway)
                     context.SetBoxBorderHidden(true);
                     Advance(Phase.Hold);
                 }
@@ -161,6 +168,27 @@ public class NapoleonPattern : IBulletPattern
         _beam = context.AddBeam(new Rectangle(_restX, _startY, width, height), sheet.Texture);
     }
 
+    // spwans flag obstacles at various points during the attack
+    private void UpdateFlagProjectiles(DodgeContext context, float dt)
+    {
+        if (_beam == null) return;
+
+        _flagSpawnTimer += dt;
+        if (_flagSpawnTimer >= FlagSpawnInterval)
+        {
+            _flagSpawnTimer = 0f;
+
+            Rectangle b = _beam.Bounds;
+            float spawnX = b.Left + (float)Random.Shared.NextDouble() * b.Width;
+            float spawnY = GameSettings.WindowHeight + 10; // Start below the screen
+
+            var position = new Vector2(spawnX, spawnY);
+            var velocity = new Vector2(0f, FlagSpeedY); // Negative Y moves it upward
+            
+            context.SpawnProjectile(position, velocity, ProjectileType.FrenchFlag);
+        }
+    }
+
     // comes up into place, jittering, with smoke
     private void UpdateRise(DodgeContext context, float dt)
     {
@@ -176,6 +204,8 @@ public class NapoleonPattern : IBulletPattern
         _beam.Bounds = new Rectangle(_restX + jx, y + jy, b.Width, b.Height);
 
         EmitSmoke(context, dt);
+        
+        UpdateFlagProjectiles(context, dt); // start shooting flags
     }
 
     private void SettleAtRest()
@@ -185,7 +215,7 @@ public class NapoleonPattern : IBulletPattern
         Rectangle b = _beam.Bounds;
         _beam.Bounds = new Rectangle(_restX, _restY, b.Width, b.Height);
     }
-
+    
     private void UpdateSweep(DodgeContext context, float dt)
     {
         if (_beam == null) { Advance(Phase.Done); return; }
@@ -193,6 +223,8 @@ public class NapoleonPattern : IBulletPattern
         Rectangle b = _beam.Bounds;
         _beam.Bounds = new Rectangle(b.X - (int)(SweepSpeed * dt), b.Y, b.Width, b.Height);
 
+        UpdateFlagProjectiles(context, dt); // keep firing flags
+        
         // done once he's past the left edge of the screen. the box goes further
         // left than that so don't wait for it
         if (_beam.Bounds.Right < CameraPanX)

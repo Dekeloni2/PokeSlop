@@ -44,6 +44,7 @@ namespace FinalProject.Battle
         // ignore movement input for a moment, without moving the soul
         public void HoldSoul(float seconds) => _phase.HoldSoul(seconds);
 
+        // projectiles
         public void SpawnProjectile(Vector2 position, Vector2 velocity, ProjectileType type = ProjectileType.Normal)
             => _phase.SpawnProjectile(position, velocity,  type);
         

@@ -135,6 +135,8 @@ namespace FinalProject
             SoundManager.AddSound("doorShut", "Audio/SFX/snd_elecdoor_shut");
             SoundManager.AddSound("bell",     "Audio/SFX/snd_bell");
             SoundManager.AddSong("elevator",  "Audio/Music/mus_elevator");
+            // walking-around music. OverworldState.AreaMusic says which maps get it
+            SoundManager.AddSong("overworld", "Audio/Music/OverworldMusic");
             // battle themes, teachers name theirs in their JSON
             SoundManager.AddSong("yakirTheme", "Audio/Music/yakir_theme");
             SoundManager.AddSong("dbdTheme",   "Audio/Music/dbd_theme");
@@ -290,15 +292,13 @@ namespace FinalProject
             
             base.Update(gameTime);
         }
-
-#if DEBUG
+        
         // debug builds only - gives the player one of every item so ITEM can
         // be tested until there's a real way to get items (shop/pickups)
         private void LoadStartingInventory()
         {
             PlayerData.Inventory.AddRange(Items);
         }
-#endif
 
         protected override void Draw(GameTime gameTime)
         {

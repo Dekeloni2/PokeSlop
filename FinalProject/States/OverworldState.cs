@@ -105,6 +105,36 @@ namespace FinalProject.States
         {
             _fadeInLeft = FadeInSeconds;
             RefreshNpcs(); // an NPC's fight may have just been resolved
+
+            // a battle stops the music on its way out, so the area's own track
+            // has to be started again from scratch rather than left alone
+            UpdateAreaMusic(force: true);
+        }
+
+        // ── Music ────────────────────────────────────────────────────────────
+
+        // background track per map, keyed by the name LoadMap was given. maps
+        // that aren't listed play nothing — the lift is meant to be quiet, and
+        // it runs its own track while it's moving
+        private static readonly Dictionary<string, string> AreaMusic = new()
+        {
+            ["tiltan_hall"] = "overworld",
+        };
+
+        // whatever this area asked for last, so walking between two maps that
+        // share a track doesn't restart it from the top
+        private string _areaSong;
+
+        private void UpdateAreaMusic(bool force = false)
+        {
+            AreaMusic.TryGetValue(_currentAreaName ?? "", out string song);
+
+            if (!force && song == _areaSong) return;
+
+            _areaSong = song;
+
+            if (song == null) SoundManager.StopMusic();
+            else              SoundManager.PlayMusic(song);
         }
 
         public override void Update(GameTime gameTime)
@@ -500,6 +530,7 @@ namespace FinalProject.States
             RefreshNpcs();
 
             EventBus.Instance.Publish(new AreaChangedEvent(_currentAreaName));
+            UpdateAreaMusic();
         }
 
         private static List<MapTransition> LoadTransitions(string mapsDir, string mapName)

@@ -362,6 +362,12 @@
 /processorParam:Quality=Best
 /build:Audio/Music/tiltantale_ending.ogg
 
+#begin Audio/Music/OverworldMusic.ogg
+/importer:OggImporter
+/processor:SongProcessor
+/processorParam:Quality=Best
+/build:Audio/Music/OverworldMusic.ogg
+
 #begin Audio/SFX/snd_elecdoor_shut.wav
 /importer:WavImporter
 /processor:SoundEffectProcessor

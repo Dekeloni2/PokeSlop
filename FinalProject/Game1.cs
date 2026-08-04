@@ -189,6 +189,8 @@ namespace FinalProject
             if (Input.IsKeyPressed(Keys.Escape))
                 Exit();
 
+            StateManager.Update(gameTime);
+
 #if DEBUG
             // Press 'V' to open the vending machine anywhere in debug mode
             if (Input.IsKeyPressed(Keys.V) && _vendingMachine != null)
@@ -272,6 +274,7 @@ namespace FinalProject
                 EventBus.Instance.Publish(new TeacherResolvedEvent("david", BattleOutcome.Killed));
                 StateManager.Replace(new EndingState(this, StateManager));
             }
+
 #endif
             
             if (_vendingMachine != null && _vendingMachine.IsActive)
@@ -283,6 +286,10 @@ namespace FinalProject
                 StateManager.Update(gameTime);
             }
             
+<<<<<<< HEAD
+>>>>>>> Stashed changes
+=======
+>>>>>>> Yonatan
             base.Update(gameTime);
         }
 
@@ -292,6 +299,44 @@ namespace FinalProject
         private void LoadStartingInventory()
         {
             PlayerData.Inventory.AddRange(Items);
+        }
+
+        // Who dies in each simulated run, matching the "killed" lists in
+        // endings.json. Everyone not named is treated as spared.
+        private static readonly string[][] EndingTestRuns =
+        {
+            new string[0],                                 // 1  pacifist
+            new[] { "yakir" },                             // 2
+            new[] { "david" },                             // 3
+            new[] { "dorbendor" },                         // 4
+            new[] { "yakir", "david" },                    // 5
+            new[] { "yakir", "dorbendor" },                // 6
+            new[] { "david", "dorbendor" },                // 7
+            new[] { "yakir", "david", "dorbendor" }        // 8  genocide
+        };
+
+        private static readonly string[] AllTeachers = { "yakir", "david", "dorbendor" };
+
+        private void CheckEndingHotkeys()
+        {
+            for (int i = 0; i < EndingTestRuns.Length; i++)
+            {
+                if (!Input.IsKeyPressed(Keys.D1 + i)) continue;
+
+                Route.Reset();
+
+                // resolve every teacher, so the run looks finished rather than
+                // half-played — the ending is picked by who was killed
+                foreach (string id in AllTeachers)
+                {
+                    bool killed = Array.IndexOf(EndingTestRuns[i], id) >= 0;
+                    EventBus.Instance.Publish(new TeacherResolvedEvent(
+                        id, killed ? BattleOutcome.Killed : BattleOutcome.Spared));
+                }
+
+                StateManager.Replace(new EndingState(this, StateManager));
+                return;
+            }
         }
 #endif
 

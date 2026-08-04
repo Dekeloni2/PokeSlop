@@ -60,10 +60,14 @@ namespace FinalProject.Data
         // teachers who hand over a piece of equipment. null means gold only
         public string ItemReward { get; set; }
 
+<<<<<<< HEAD
         // the final fight. winning it rolls into the ending instead of dropping
         // back to the overworld, so which fight is last stays a JSON decision
         public bool EndsGame { get; set; }
 
+>>>>>>> Stashed changes
+=======
+>>>>>>> Yonatan
         // SoundManager key for his battle music, null means the fight is silent.
         // ThemeVolume is 0..1 for balancing it against everything else
         public string Theme { get; }

@@ -7,37 +7,13 @@ using Microsoft.Xna.Framework;
 
 namespace FinalProject.Data
 {
-    // One entry in an ending's script. Speaker is a teacher id, as named by his
-    // JSON file — that's where the face and the voice come from. Leave Speaker
-    // out for narration: no portrait, default blip.
-    //
-    // An entry can also cue music, placed wherever it belongs in the script:
-    //
-    //   { "music": "tiltantale_ending" }   start the track here
-    //   { "musicStop": true }              fade it out here
-    //
-    // An entry with no Text isn't spoken at all — it fires its cue and the
-    // script moves straight on. Put Music on a line that does have text and the
-    // track starts as that line comes up.
+    // One spoken line of an ending's phone call. Speaker is a teacher id, as
+    // named by his JSON file — that's where the face and the voice come from.
+    // Leave Speaker out for narration: no portrait, default blip.
     public class EndingLine
     {
         public string Speaker { get; set; }
         public string Text    { get; set; } = "";
-
-        // SoundManager song key
-        public string Music     { get; set; }
-        public bool   MusicStop { get; set; }
-
-        public float MusicVolume      { get; set; } = 0.6f;
-        public float MusicFadeSeconds { get; set; } = 2f;
-
-        // Seconds to hold before the next dialogue box opens. Only meaningful on
-        // a cue-only entry — a spoken line brings its own box up immediately.
-        // Leave it out and a music cue gets a default beat so the track has room
-        // to breathe before anyone talks over it; set 0 to cut straight in.
-        public float? Delay { get; set; }
-
-        public bool IsCueOnly => string.IsNullOrEmpty(Text);
     }
 
     // One ending. Which one plays is decided by Killed: the exact set of
@@ -58,6 +34,9 @@ namespace FinalProject.Data
         // [r, g, b], 0-255. Missing or short means plain white.
         public List<int> TitleColor { get; set; }
 
+        // SoundManager song key, or null for silence
+        public string Music { get; set; }
+
         public List<EndingLine> Lines { get; set; } = new();
         public List<string>     Pages { get; set; } = new();
 
@@ -74,46 +53,15 @@ namespace FinalProject.Data
 
         public static EndingConfig Load(string path)
         {
-            if (!File.Exists(path))
-            {
-                LogDebug($"endings.json not found at {path}");
-                return new EndingConfig();
-            }
+            if (!File.Exists(path)) return new EndingConfig();
 
             try
             {
                 string json = File.ReadAllText(path);
-                var options = new JsonSerializerOptions
-                {
-                    PropertyNameCaseInsensitive = true,
-                    // this file is written by hand and runs long, so forgive the
-                    // two things that trip authors up most
-                    AllowTrailingCommas = true,
-                    ReadCommentHandling = JsonCommentHandling.Skip
-                };
+                var options = new JsonSerializerOptions { PropertyNameCaseInsensitive = true };
                 return JsonSerializer.Deserialize<EndingConfig>(json, options) ?? new EndingConfig();
             }
-            catch (Exception e)
-            {
-                // A malformed file used to fail silently: every ending quietly
-                // became the fallback, which reads as "the wrong ending played"
-                // rather than "the JSON is broken". Say so instead.
-                LogDebug($"ENDINGS PARSE ERROR ({path}): {e.Message}");
-                return new EndingConfig();
-            }
-        }
-
-        // next to the executable, same place MapLoader logs — there's no console
-        // attached to look at
-        private static void LogDebug(string message)
-        {
-            try
-            {
-                File.AppendAllText(
-                    Path.GetFullPath(Path.Combine(AppContext.BaseDirectory, "map_debug.txt")),
-                    message + "\n");
-            }
-            catch { }
+            catch { return new EndingConfig(); }
         }
 
         // The ending whose Killed list matches exactly who died this run —

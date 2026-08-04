@@ -66,6 +66,10 @@ namespace FinalProject.Data
             stats.GatedMoves   = data.GatedMoves;
             stats.ItemReward   = data.ItemReward;
             stats.EndsGame     = data.EndsGame;
+
+=======
+            stats.ItemReward   = data.ItemReward;
+>>>>>>> Yonatan
             stats.Requires     = data.Requires ?? new List<string>();
             stats.LockedText   = data.LockedText;
             stats.UltimateAtHp = data.UltimateAtHp;
@@ -171,6 +175,10 @@ namespace FinalProject.Data
             public int GoldReward { get; set; }
             public string ItemReward { get; set; }
             public bool EndsGame { get; set; }
+
+=======
+            public string ItemReward { get; set; }
+>>>>>>> Yonatan
             public string Theme { get; set; }
             public float ThemeVolume { get; set; } = 1f;
             public bool SequentialMoves { get; set; }

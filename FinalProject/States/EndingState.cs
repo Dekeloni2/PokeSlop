@@ -1,6 +1,8 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using FinalProject.Core.StateMachine;
+
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
@@ -30,11 +32,6 @@ public class EndingState : GameState
     // beat of silence after the fade before the phone starts ringing
     private const float RingDelaySeconds = 0.6f;
 
-    // How long a music cue holds the script before the next box opens, when the
-    // cue doesn't set its own "delay". Gives the track a moment on its own
-    // instead of a dialogue box landing on the downbeat.
-    private const float MusicCueDelaySeconds = 1.5f;
-
     // slower than regular dialogue — an ending should be read, not skimmed
     private const float TextCharsPerSecond = 26f;
 
@@ -62,7 +59,6 @@ public class EndingState : GameState
     private float _ringDelay;
 
     private int   _line;
-    private float _linePause; // counts down before the next box opens
     private int   _page;
     private bool  _typing;
     private float _blink;
@@ -84,48 +80,10 @@ public class EndingState : GameState
 
     }
 
-    // ── Music ────────────────────────────────────────────────────────────────
-    // Music is cued from inside the script, so a track starts and stops exactly
-    // where it's written in the line list rather than at a fixed phase. Once
-    // started it keeps playing through the title card unless a musicStop cue
-    // says otherwise — and either way the final fade takes it down.
-
-    private bool  _musicPlaying;
-    private bool  _musicFading;
-    private float _musicFadeT;
-    private float _musicFadeSeconds = 2f;
-    private float _musicVolume      = 0.6f;
-
-    private void ApplyCues(EndingLine line)
+    public override void OnEnter()
     {
-        if (line.MusicStop && _musicPlaying)
-        {
-            _musicFading      = true;
-            _musicFadeT       = 0f;
-            _musicFadeSeconds = line.MusicFadeSeconds;
-        }
-
-        if (string.IsNullOrWhiteSpace(line.Music)) return;
-
-        SoundManager.PlayMusic(line.Music, true, line.MusicVolume);
-        _musicVolume  = line.MusicVolume;
-        _musicPlaying = true;
-        _musicFading  = false;
-        _musicFadeT   = 0f;
-    }
-
-    private void UpdateMusicFade(float dt)
-    {
-        if (!_musicFading || !_musicPlaying) return;
-
-        _musicFadeT += dt / Math.Max(0.01f, _musicFadeSeconds);
-        SoundManager.SetMusicVolume(_musicVolume * (1f - MathHelper.Clamp(_musicFadeT, 0f, 1f)));
-
-        if (_musicFadeT < 1f) return;
-
-        SoundManager.StopMusic();
-        _musicPlaying = false;
-        _musicFading  = false;
+        if (!string.IsNullOrWhiteSpace(_ending.Music))
+            SoundManager.PlayMusic(_ending.Music, true, MusicVolume);
     }
 
     // ── Speakers ─────────────────────────────────────────────────────────────
@@ -158,8 +116,6 @@ public class EndingState : GameState
         float dt = (float)gameTime.ElapsedGameTime.TotalSeconds;
         _blink += dt;
 
-        UpdateMusicFade(dt);
-
         switch (_phase)
         {
             case Phase.FadeIn:  UpdateFadeIn(dt);  break;
@@ -188,16 +144,7 @@ public class EndingState : GameState
             if (_ringDelay < RingDelaySeconds) return;
 
             SoundManager.Play(SoundManager.PhoneRing);
-            AdvanceToSpokenLine();
-            return;
-        }
-
-        // A cue asked for a beat before the next box — hold here on whatever is
-        // already on screen, then bring the line up.
-        if (_linePause > 0f)
-        {
-            _linePause -= dt;
-            if (_linePause <= 0f) OpenCurrentLine();
+            OpenLine();
             return;
         }
 
@@ -207,46 +154,11 @@ public class EndingState : GameState
         if (_dialogue.IsActive) return;
 
         _line++;
-        AdvanceToSpokenLine();
+        if (_line < _ending.Lines.Count) OpenLine();
+        else                             _phase = Phase.Cards;
     }
 
-    // Fires each entry's cues in script order, running straight through the
-    // ones that have no text — those are pure cues and shouldn't cost a
-    // keypress — until it reaches a line to actually say, or the script ends.
-    // Any hold those cues asked for is collected on the way and applied before
-    // the next box opens.
-    private void AdvanceToSpokenLine()
-    {
-        float pause = 0f;
-
-        while (_line < _ending.Lines.Count)
-        {
-            EndingLine line = _ending.Lines[_line];
-            ApplyCues(line);
-
-            if (!line.IsCueOnly)
-            {
-                if (pause > 0f) _linePause = pause; // opens when the hold expires
-                else            OpenCurrentLine();
-                return;
-            }
-
-            pause += PauseFor(line);
-            _line++;
-        }
-
-        _phase = Phase.Cards;
-    }
-
-    // A cue with no "delay" of its own still gets a beat if it started music.
-    private static float PauseFor(EndingLine line)
-    {
-        if (line.Delay.HasValue) return Math.Max(0f, line.Delay.Value);
-
-        return string.IsNullOrWhiteSpace(line.Music) ? 0f : MusicCueDelaySeconds;
-    }
-
-    private void OpenCurrentLine()
+    private void OpenLine()
     {
         EndingLine line = _ending.Lines[_line];
         _dialogue.Open(Substitute(line.Text), SpeakerFor(line.Speaker));
@@ -257,7 +169,7 @@ public class EndingState : GameState
         // an ending with no closing narration goes straight out
         if (_pages.Count == 0)
         {
-            BeginFadeOut();
+            _phase = Phase.FadeOut;
             return;
         }
 
@@ -282,24 +194,21 @@ public class EndingState : GameState
         }
         else
         {
-            BeginFadeOut();
+            _phase = Phase.FadeOut;
         }
     }
-
-    private void BeginFadeOut() => _phase = Phase.FadeOut;
 
     private void UpdateFadeOut(float dt)
     {
         _fadeOutT = MathHelper.Clamp(_fadeOutT + dt / FadeOutSeconds, 0f, 1f);
 
-        // anything still playing rides the screen down, so picture and sound
-        // land together. a track already fading from a cue is left alone.
-        if (_musicPlaying && !_musicFading)
-            SoundManager.SetMusicVolume(_musicVolume * (1f - _fadeOutT));
+        if (!string.IsNullOrWhiteSpace(_ending.Music))
+            SoundManager.SetMusicVolume(MusicVolume * (1f - _fadeOutT));
 
         if (_fadeOutT < 1f) return;
 
-        if (_musicPlaying) SoundManager.StopMusic();
+        if (!string.IsNullOrWhiteSpace(_ending.Music))
+            SoundManager.StopMusic();
 
         // a fresh run starts clean
         Game.Route.Reset();

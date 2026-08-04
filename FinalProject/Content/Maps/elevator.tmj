@@ -64,6 +64,12 @@
                  "id":1,
                  "name":"",
                  "opacity":1,
+                 "properties":[
+                        {
+                         "name":"Action",
+                         "type":"string",
+                         "value":"elevator"
+                        }],
                  "rotation":0,
                  "type":"",
                  "visible":true,

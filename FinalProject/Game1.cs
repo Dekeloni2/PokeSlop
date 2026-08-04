@@ -53,7 +53,12 @@ namespace FinalProject
         }
 
         private VendingMachineMenu _vendingMachine;
-        
+
+        // The shop lives here rather than on OverworldState because Update gates
+        // the whole state machine on it — that's what freezes the world while
+        // you're buying. Interactables with Action="shop" come in through here.
+        public void OpenVendingMachine() => _vendingMachine?.Open(Items);
+
         public Game1()
         {
             _graphics = new GraphicsDeviceManager(this)

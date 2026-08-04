@@ -95,8 +95,11 @@ namespace FinalProject.World
 
         // Reads every object in an "Interactables" object layer into a list of
         // Interactable instances. Each object's pixel rect is converted to the
-        // tile range it covers, and its "Text" custom property (set in Tiled's
-        // Properties panel) becomes the dialogue shown on interact.
+        // tile range it covers, and its custom properties (set in Tiled's
+        // Properties panel) say what it does: "Text" is the dialogue shown on
+        // interact, and "Action" overrides that with a behaviour — "shop",
+        // "elevator", or "warp", the last reading "TargetMap"/"SpawnX"/"SpawnY"
+        // for where it leads. See OverworldState.TryInteract.
         private static List<Interactable> ParseInteractables(JsonElement layerEl, int tileWidth, int tileHeight)
         {
             var results = new List<Interactable>();
@@ -116,20 +119,32 @@ namespace FinalProject.World
                 int maxTileX = Math.Max(minTileX, (int)Math.Ceiling((x + width)  / tileWidth)  - 1);
                 int maxTileY = Math.Max(minTileY, (int)Math.Ceiling((y + height) / tileHeight) - 1);
 
-                string text = "";
+                string text      = "";
+                string action    = "";
+                string targetMap = null;
+                int    spawnX    = 0;
+                int    spawnY    = 0;
+
                 if (objEl.TryGetProperty("properties", out JsonElement propsEl))
                 {
                     foreach (JsonElement propEl in propsEl.EnumerateArray())
                     {
-                        if (propEl.GetProperty("name").GetString() == "Text")
+                        string      propName = propEl.GetProperty("name").GetString();
+                        JsonElement valueEl  = propEl.GetProperty("value");
+
+                        switch (propName)
                         {
-                            text = propEl.GetProperty("value").GetString();
-                            break;
+                            case "Text":      text      = valueEl.GetString(); break;
+                            case "Action":    action    = valueEl.GetString(); break;
+                            case "TargetMap": targetMap = valueEl.GetString(); break;
+                            case "SpawnX":    spawnX    = valueEl.GetInt32();  break;
+                            case "SpawnY":    spawnY    = valueEl.GetInt32();  break;
                         }
                     }
                 }
 
-                results.Add(new Interactable(minTileX, minTileY, maxTileX, maxTileY, text));
+                results.Add(new Interactable(minTileX, minTileY, maxTileX, maxTileY,
+                                             text, action, targetMap, spawnX, spawnY));
             }
 
             return results;

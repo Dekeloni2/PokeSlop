@@ -86,7 +86,7 @@
                         {
                          "name":"Text",
                          "type":"string",
-                         "value":"* A bed of green clovers.|* You feel a little calmer looking at them.|* ... was that a whisper?"
+                         "value":"* A bed of green clovers.|* You feel a little calmer looking at them."
                         }],
                  "rotation":0,
                  "type":"",

@@ -271,8 +271,10 @@ namespace FinalProject.States
             spriteBatch.End();
         }
 
-        // opens the dialogue box if the tile the player is facing has an
-        // interactable on it. Teacher encounters will probably hook in here too
+        // acts on whatever the player is facing. What happens comes from the
+        // object's "Action" property in Tiled, so two interactables on the same
+        // map can behave differently — a sign talks, the lift panel opens the
+        // floor list, a door changes map.
         private void TryInteract()
         {
             if (_map == null) return;
@@ -282,17 +284,32 @@ namespace FinalProject.States
 
             if (interactable == null) return;
 
-            // the panel in the lift opens the floor list instead of talking.
-            // keyed off the map for now, a per object property would scale better
-            if (_currentAreaName == "elevator")
+            switch (interactable.Action)
             {
-                // prompt first, the floor grid comes up once it's dismissed
-                _dialogueBox.Open("* Please select a location.");
-                _awaitingFloorMenu = true;
-                return;
-            }
+                // the panel in the lift. prompt first, the floor grid comes up
+                // once it's dismissed
+                case "elevator":
+                    _dialogueBox.Open("* Please select a location.");
+                    _awaitingFloorMenu = true;
+                    return;
 
-            _dialogueBox.Open(interactable.Text);
+                case "shop":
+                    Game.OpenVendingMachine();
+                    return;
+
+                case "warp":
+                    if (interactable.TargetMap != null)
+                        BeginMapChange(interactable.TargetMap, interactable.SpawnX, interactable.SpawnY);
+                    return;
+
+                // no Action, or one that isn't handled — it's a sign. Staying
+                // quiet beats an empty box for an object that hasn't been given
+                // its text yet
+                default:
+                    if (interactable.Text.Length > 0)
+                        _dialogueBox.Open(interactable.Text);
+                    return;
+            }
         }
 
         // ── NPCs ─────────────────────────────────────────────────────────────

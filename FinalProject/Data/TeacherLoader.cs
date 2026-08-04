@@ -14,15 +14,6 @@ namespace FinalProject.Data
         public static TeacherStats Load(string jsonPath)
         {
             string json = File.ReadAllText(jsonPath);
-            // comments aren't legal JSON, but these files are authored by hand
-            // and get edited constantly — being able to // out a move to test
-            // one attack in isolation, or leave a note next to a number, is
-            // worth more here than staying strict.
-            //
-            // AllowTrailingCommas goes with it: commenting out the LAST entry
-            // in a list always leaves the comma on the one before it, and
-            // hunting that down every time is exactly the friction this is
-            // meant to remove
             var options = new JsonSerializerOptions
             {
                 PropertyNameCaseInsensitive = true,
@@ -220,8 +211,7 @@ namespace FinalProject.Data
             // optional. a cutscene before the attack, see MoveData.Intro
             public string Intro { get; set; }
 
-            // optional. he leaps off screen once the intro is read, see
-            // MoveData.IntroLeap
+            // David only. He leaps into the sky.
             public bool IntroLeap { get; set; }
 
             // optional. beat name -> lines, see MoveData.Line

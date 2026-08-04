@@ -54,6 +54,9 @@ namespace FinalProject.Data
     // Lines are the phone call, shown in the dialogue box with portraits.
     // Pages are the closing narration afterwards, centred under the title.
     // Either may be empty — genocide is mostly narration, pacifist mostly call.
+    //
+    // Each entry in Pages is one page, and '|' inside an entry breaks it into
+    // more — so the page break works the same here as it does in a line's Text.
     public class EndingText
     {
         public string Id { get; set; } = "";

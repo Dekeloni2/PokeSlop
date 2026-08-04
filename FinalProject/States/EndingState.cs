@@ -38,6 +38,9 @@ public class EndingState : GameState
     // slower than regular dialogue — an ending should be read, not skimmed
     private const float TextCharsPerSecond = 26f;
 
+    // forces a new narration page, same as in the dialogue box
+    private const char PageBreak = '|';
+
     private const float TitleScale = 3f;
     private const float TextScale  = 2f;
 
@@ -78,9 +81,19 @@ public class EndingState : GameState
         _dialogue = new DialogueBox(Game.PixelTexture, Game.DialogueFont);
         _typer    = new Typewriter(null, TextCharsPerSecond);
 
+        // Each entry in "pages" is a page, and '|' inside one breaks it into
+        // more — the same character the dialogue box uses, so a writer doesn't
+        // have to remember which of the two text systems they're in.
         float wrapWidth = GameSettings.WindowWidth - WrapMargin * 2;
         foreach (string page in _ending.Pages)
-            _pages.Add(TextWrap.ToLines(Game.DialogueFont, Substitute(page), wrapWidth, TextScale));
+            foreach (string segment in page.Split(PageBreak))
+            {
+                string trimmed = segment.Trim();
+                if (trimmed.Length == 0) continue; // ignore stray/empty breaks
+
+                _pages.Add(TextWrap.ToLines(
+                    Game.DialogueFont, Substitute(trimmed), wrapWidth, TextScale));
+            }
 
     }
 

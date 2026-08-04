@@ -47,6 +47,33 @@
   },
   "moves": [
     {
+      "name": "Onion",
+      "power": 1,
+      "accuracy": 100,
+      "description": "David explains about unit circle.",
+      "pattern": "Onion",
+      "isUltimate": false,
+      "intro": "Math is like onions, it has layers"
+    },
+    {
+      "name": "Punch",
+      "power": 1,
+      "accuracy": 100,
+      "description": "David punches us",
+      "pattern": "Punch",
+      "isUltimate": false,
+      "intro": ""
+    },
+    {
+      "name": "Hexagon",
+      "power": 1,
+      "accuracy": 100,
+      "description": "David shows u why hexagons are the bestagons.",
+      "pattern": "Hexagon",
+      "isUltimate": false,
+      "intro": "Hexagons are the bestagons"
+    },
+    {
       "name": "All Star",
       "power": 1,
       "accuracy": 100,

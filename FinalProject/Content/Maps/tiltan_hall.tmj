@@ -271,6 +271,39 @@
                  "width":40,
                  "x":880,
                  "y":20
+                },
+                {
+                 "height":40,
+                 "id":35,
+                 "name":"elevator_door",
+                 "opacity":1,
+                 "properties":[
+                        {
+                         "name":"Action",
+                         "type":"string",
+                         "value":"warp"
+                        },
+                        {
+                         "name":"TargetMap",
+                         "type":"string",
+                         "value":"elevator"
+                        },
+                        {
+                         "name":"SpawnX",
+                         "type":"int",
+                         "value":4
+                        },
+                        {
+                         "name":"SpawnY",
+                         "type":"int",
+                         "value":10
+                        }],
+                 "rotation":0,
+                 "type":"",
+                 "visible":true,
+                 "width":40,
+                 "x":1040,
+                 "y":100
                 }],
          "opacity":1,
          "type":"objectgroup",
@@ -279,7 +312,7 @@
          "y":0
         }],
  "nextlayerid":7,
- "nextobjectid":35,
+ "nextobjectid":36,
  "orientation":"orthogonal",
  "renderorder":"right-down",
  "tiledversion":"1.12.2",

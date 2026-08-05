@@ -4,28 +4,44 @@ using Microsoft.Xna.Framework.Graphics;
 
 namespace FinalProject.Battle
 {
-    // A persistent hazard (Vegeta's galick gun). Unlike a Projectile it doesn't
-    // move or expire on contact — it stays put for its lifetime and deals a flat
-    // 1 damage on a fixed cadence while the soul is inside it. DodgePhase owns
-    // the list of active beams; patterns add/remove them via DodgeContext.
+    // A persistent hazard (Vegeta's galick gun, Napoleon's beam). Unlike a
+    // Projectile it doesn't move or expire on contact — it stays put for its
+    // lifetime and deals a flat amount of damage on a fixed cadence while the
+    // soul is inside it. DodgePhase owns the list of active beams; patterns
+    // add/remove them via DodgeContext.
     public class Beam
     {
+<<<<<<< Updated upstream
         public const int   Damage         = 3;
+=======
+        // per-instance rather than shared, so one pattern's beam (garlic
+        // gun's) can hit softer than another's (Napoleon's) without either
+        // affecting the other. Defaults to the old flat value so anything
+        // that doesn't pass one keeps behaving exactly as before.
+        public const int DefaultDamage = 5;
+        public int Damage { get; }
+
+>>>>>>> Stashed changes
         private const float DamageInterval = 0.25f; // seconds between damage ticks
 
         public Rectangle Bounds { get; set; }
 
         public Texture2D CustomTexture { get; private set; }
         public Color[]   ColorData     { get; private set; }
-        
+
         private float _damageCooldown; // <= 0 means "ready to hurt again"
 
-        public Beam(Rectangle bounds) => Bounds = bounds;
-        
-        public Beam(Rectangle bounds, Texture2D customTexture)
+        public Beam(Rectangle bounds, int damage = DefaultDamage)
+        {
+            Bounds = bounds;
+            Damage = damage;
+        }
+
+        public Beam(Rectangle bounds, Texture2D customTexture, int damage = DefaultDamage)
         {
             Bounds = bounds;
             CustomTexture = customTexture;
+            Damage = damage;
 
             if (customTexture != null)
             {

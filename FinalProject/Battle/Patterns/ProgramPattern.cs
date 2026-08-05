@@ -17,9 +17,12 @@ public class ProgramPattern : IBulletPattern
     private const float EndPause = 1.2f;
 
     // ── timing ───────────────────────────────────────────────────────────────
-    private const float IntroSeconds = 3.0f;
-    private const float OutroSeconds = 2.8f;   // he takes a bow after it compiles
-    private const float ShowSeconds  = 1.7f;   // reading each line before it runs
+    // trimmed down from 3.0/2.8/1.7 — with 13 steps each getting their own
+    // Show pause, the full lesson ran close to 48 seconds. Same steps, same
+    // order, just paced tighter.
+    private const float IntroSeconds = 2.4f;
+    private const float OutroSeconds = 2.2f;   // he takes a bow after it compiles
+    private const float ShowSeconds  = 1.1f;   // reading each line before it runs
     private const float BaseRainInterval  = 0.24f; // gentle, the box is the attack
     private const float HeavyRainInterval = 0.09f; // after spawner.interval /= 3
     private const float RainSpeedScale = 1.3f;
@@ -52,7 +55,7 @@ public class ProgramPattern : IBulletPattern
     {
         new Step { Code = "var box = GetBattleBox();",                                Fx = Fx.Grab,       Seconds = 0.8f },
         new Step { Code = "box.width = 300;",                                         Fx = Fx.SetWidth,   Seconds = 0.8f },
-        new Step { Code = "for (int i = 0; i < 4; i++) box.width -= 20;",             Fx = Fx.LoopWidth,  Seconds = 2.4f },
+        new Step { Code = "for (int i = 0; i < 4; i++) box.width -= 20;",             Fx = Fx.LoopWidth,  Seconds = 1.8f },
         new Step { Code = "if (soul.x < middle) box.left += 50; else box.right -= 50;", Fx = Fx.PushX,    Seconds = 1.0f },
         new Step { Code = "box.x += 60;",                                             Fx = Fx.Slide,      Seconds = 1.2f, Arg =  60 },
         new Step { Code = "box.x -= 120;",                                            Fx = Fx.Slide,      Seconds = 1.2f, Arg = -120 },
@@ -60,8 +63,8 @@ public class ProgramPattern : IBulletPattern
         new Step { Code = "for (int i = 0; i < 3; i++) box.height -= 25;",            Fx = Fx.LoopHeight, Seconds = 1.8f },
         new Step { Code = "if (soul.y < middle) box.top += 35; else box.bottom -= 35;", Fx = Fx.PushY,    Seconds = 1.0f },
         new Step { Code = "spawner.interval /= 3;",                                   Fx = Fx.RainUp,     Seconds = 0.8f },
-        new Step { Code = "while (box.width > 130) box.width -= 5;",                  Fx = Fx.Grind,      Seconds = 3.0f },
-        new Step { Code = "Thread.Sleep(4000);",                                      Fx = Fx.Sleep,      Seconds = 4.0f },
+        new Step { Code = "while (box.width > 130) box.width -= 5;",                  Fx = Fx.Grind,      Seconds = 2.0f },
+        new Step { Code = "Thread.Sleep(4000);",                                      Fx = Fx.Sleep,      Seconds = 2.5f },
         new Step { Code = "box.Reset();",                                             Fx = Fx.Reset,      Seconds = 1.0f },
     };
 

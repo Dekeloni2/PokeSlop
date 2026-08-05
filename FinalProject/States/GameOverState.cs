@@ -43,9 +43,7 @@ namespace FinalProject.States
 
         public GameOverState(Game1 game, GameStateManager sm) : base(game, sm)
         {
-            string dir = Path.GetFullPath(
-                Path.Combine(AppContext.BaseDirectory, "..", "..", "..", "Content"));
-            GameOverConfig cfg = GameOverConfig.Load(Path.Combine(dir, "gameover.json"));
+            GameOverConfig cfg = GameOverConfig.Load(ContentPaths.Under("gameover.json"));
 
             _title   = cfg.Title;
             string scenario = cfg.Scenarios[Random.Shared.Next(cfg.Scenarios.Count)];

@@ -295,9 +295,9 @@ namespace FinalProject.Battle
             _projectiles.Add(new Projectile(position, velocity, text, font ?? _font, scale));
         }
 
-        internal Beam AddBeam(Rectangle bounds, Texture2D texture = null)
+        internal Beam AddBeam(Rectangle bounds, Texture2D texture = null, int damage = Beam.DefaultDamage)
         {
-            var beam = new Beam(bounds, texture);
+            var beam = new Beam(bounds, texture, damage);
             _beams.Add(beam);
             return beam;
         }
@@ -424,14 +424,14 @@ namespace FinalProject.Battle
                         // Precise check: Is the player touching a solid pixel?
                         if (IntersectsPixel(beam.Bounds, beam.ColorData, _hitbox.Bounds))                        {
                             if (beam.Tick(dt, _hitbox.Bounds))
-                                HitPlayer(Beam.Damage);
+                                HitPlayer(beam.Damage);
                         }
                     }
                     else
                     {
                         // Standard fast behavior for any other normal straight beams (like Garlic Gun)
                         if (beam.Tick(dt, _hitbox.Bounds))
-                            HitPlayer(Beam.Damage);
+                            HitPlayer(beam.Damage);
                     }
                 }
             }

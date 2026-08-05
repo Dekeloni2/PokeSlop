@@ -11,8 +11,8 @@ using FinalProject.Data;
 namespace FinalProject.UI
 {
     // The overworld pause menu (C). Laid out to match Undertale's: a name/stat
-    // box and an ITEM/STAT/CELL box stacked down the left, and a tall panel on
-    // the right that only appears once you're inside a submenu.
+    // box and an ITEM/STAT/CELL/SETTINGS box stacked down the left, and a tall
+    // panel on the right that only appears once you're inside a submenu.
     public class OverworldMenu
     {
         private enum MenuState
@@ -20,7 +20,8 @@ namespace FinalProject.UI
             Main,
             Item,
             Stat,
-            Cell
+            Cell,
+            Settings
         }
 
         // ── Layout ───────────────────────────────────────────────────────────
@@ -33,7 +34,7 @@ namespace FinalProject.UI
         private const int RightWidth  = 380;
         private const int RightHeight = 330;
         private const int NameHeight  = 108;
-        private const int MenuHeight  = 150;
+        private const int MenuHeight  = 180; // tall enough for a 4th row (SETTINGS)
         private const int RowGap      = 22; // between the two left boxes
 
         private const int BlockWidth = LeftWidth + ColumnGap + RightWidth;
@@ -90,13 +91,18 @@ namespace FinalProject.UI
         private int _itemIndex   = 0;
         private int _actionIndex = 0; // 0 USE, 1 INFO, 2 DROP
 
-        private readonly string[] _mainOptions   = { "ITEM", "STAT", "CELL" };
+        private readonly string[] _mainOptions   = { "ITEM", "STAT", "CELL", "SETTINGS" };
         private readonly string[] _actionOptions = { "USE", "INFO", "DROP" };
 
-        public OverworldMenu(Texture2D pixel, SpriteFont font)
+        // shared with MainMenuState's settings screen, so the same knobs
+        // behave identically whether opened before or during a run
+        private readonly SettingsMenu _settings;
+
+        public OverworldMenu(Game1 game, Texture2D pixel, SpriteFont font)
         {
-            _pixel = pixel;
-            _font  = font;
+            _pixel    = pixel;
+            _font     = font;
+            _settings = new SettingsMenu(game);
         }
 
         public void Open()
@@ -140,6 +146,10 @@ namespace FinalProject.UI
                         _state = MenuState.Main;
                     }
                     break;
+
+                case MenuState.Settings:
+                    UpdateSettings(input);
+                    break;
             }
         }
 
@@ -181,6 +191,35 @@ namespace FinalProject.UI
                 {
                     _state = MenuState.Cell;
                 }
+                else if (_mainIndex == 3) // SETTINGS
+                {
+                    _state = MenuState.Settings;
+                    _settings.ResetSelection();
+                }
+            }
+        }
+
+        private void UpdateSettings(InputManager input)
+        {
+            if (input.IsKeyPressed(Keys.X) || input.IsKeyPressed(Keys.C) || input.IsKeyPressed(Keys.Escape))
+            {
+                SoundManager.Play(SoundManager.MenuSelect);
+                _state = MenuState.Main;
+                return;
+            }
+
+            if (input.IsKeyPressed(Keys.Up))    _settings.MoveUp();
+            if (input.IsKeyPressed(Keys.Down))  _settings.MoveDown();
+            if (input.IsKeyPressed(Keys.Left))  _settings.Adjust(-1);
+            if (input.IsKeyPressed(Keys.Right)) _settings.Adjust(1);
+
+            if (input.IsKeyPressed(Keys.Z) || input.IsKeyPressed(Keys.Enter))
+            {
+                SoundManager.Play(SoundManager.MenuSelect);
+                if (_settings.SelectedIndex == SettingsMenu.BackIndex)
+                    _state = MenuState.Main;
+                else
+                    _settings.Adjust(1);
             }
         }
 
@@ -287,6 +326,10 @@ namespace FinalProject.UI
 
                 case MenuState.Cell:
                     DrawCellSubmenu(spriteBatch);
+                    break;
+
+                case MenuState.Settings:
+                    DrawSettingsSubmenu(spriteBatch);
                     break;
             }
         }
@@ -416,6 +459,20 @@ namespace FinalProject.UI
             DrawText(spriteBatch, "CELL", new Vector2(x, y), Color.White, HeadingScale);
             DrawText(spriteBatch, "* No response...",
                 new Vector2(x, y + ItemGap * 2), Color.Gray, HeadingScale);
+        }
+
+        private void DrawSettingsSubmenu(SpriteBatch spriteBatch)
+        {
+            for (int i = 0; i < SettingsMenu.Labels.Length; i++)
+            {
+                float y = RightBox.Y + ItemFirstY + i * ItemGap;
+
+                if (i == _settings.SelectedIndex)
+                    DrawHeart(spriteBatch, RightBox.X + ItemHeartX, y, HeadingScale);
+
+                DrawText(spriteBatch, _settings.DisplayFor(i),
+                    new Vector2(RightBox.X + ItemTextX, y), Color.White, HeadingScale);
+            }
         }
 
         // The red soul, vertically centred against a text row starting at rowY.

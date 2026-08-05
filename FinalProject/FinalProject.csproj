@@ -35,8 +35,36 @@
         <Content Include="Content\Maps\*.json">
             <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
         </Content>
+        <!-- External tileset files a .tmj can reference by "source" (Tiled's
+             .tsx XML format, or .tsj if a tileset is ever exported as JSON
+             instead) — MapLoader.LoadExternalTileset reads these straight
+             off disk too, same as the .tmj itself. tiltan_hall.tmj needs
+             vending_machine.tsx and cheese.tsx specifically; missing this
+             rule was why Floor 3 (tiltan_hall) alone failed to load once
+             the game was run from outside the dev tree — entrance.tmj and
+             elevator.tmj don't reference any external tileset, so they
+             never surfaced the gap. -->
+        <Content Include="Content\Maps\*.tsx">
+            <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+        </Content>
+        <Content Include="Content\Maps\*.tsj">
+            <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+        </Content>
         <!-- Data files are loaded at runtime via File.ReadAllText, not the content pipeline -->
         <Content Include="Content\Data\*.json">
+            <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+        </Content>
+        <!-- Same story: teachers, items, endings.json and gameover.json are
+             all read directly via File.ReadAllText (see Core/ContentPaths),
+             not through the content pipeline, so they need their own copy
+             rule to end up next to the exe. -->
+        <Content Include="Content\Teachers\*.json">
+            <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+        </Content>
+        <Content Include="Content\Items\*.json">
+            <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+        </Content>
+        <Content Include="Content\*.json">
             <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
         </Content>
     </ItemGroup>

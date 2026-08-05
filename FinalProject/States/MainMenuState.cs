@@ -4,6 +4,7 @@ using Microsoft.Xna.Framework.Input;
 using FinalProject.Core;
 using FinalProject.Core.Audio;
 using FinalProject.Core.StateMachine;
+using FinalProject.UI;
 
 namespace FinalProject.States
 {
@@ -14,7 +15,7 @@ namespace FinalProject.States
         private static readonly Color HeaderColor     = Color.Gray;
         private static readonly Color TextColor       = Color.White;
         private static readonly Color SelectedColor   = Color.Yellow;
-        
+
         private const float BodyScale   = 2.4f;
         private const float OptionScale = 2.6f;
         private const float HintScale   = 1.8f;
@@ -24,24 +25,25 @@ namespace FinalProject.States
 
         private enum ScreenState { Main, Settings }
         private ScreenState _currentScreen = ScreenState.Main;
-        
+
         private readonly string[] _menuOptions = { "Begin Game", "Settings" };
-        private readonly string[] _settingsOptions = { "Sound Volume", "FPS Target", "Back" };
         private int _selectedIndex = 0;
-        
-        private int _volume = 80;     // 0% to 100%
-        private int[] _fpsOptions = { 30, 60 };
-        private int _fpsIndex = 1;    // Defaults to 60 FPS
+
+        // shared with OverworldMenu's in-game C-menu settings, so the same
+        // knobs behave identically whether opened before or during a run
+        private readonly SettingsMenu _settings;
 
         public MainMenuState(Game1 game, GameStateManager stateManager)
-            : base(game, stateManager) { }
+            : base(game, stateManager)
+        {
+            _settings = new SettingsMenu(game);
+        }
 
         public override void OnEnter()
         {
             _selectedIndex = 0;
-            _volume = GameSettings.MasterVolume;
-            _fpsIndex = (GameSettings.TargetFps == 30) ? 0 : 1;
-            
+            _currentScreen = ScreenState.Main;
+
             //StateManager.Replace(new OverworldState(Game, StateManager)); //---------------------------------remove comment to skip the menu--------------------------
         }
 
@@ -57,95 +59,73 @@ namespace FinalProject.States
                     return;
                 }
             }
-            
-            int optionCount = (_currentScreen == ScreenState.Main) ? _menuOptions.Length : _settingsOptions.Length;
-            
-            // Cycle Up
+
+            if (_currentScreen == ScreenState.Settings)
+            {
+                UpdateSettings();
+                return;
+            }
+
+            UpdateMain();
+        }
+
+        private void UpdateMain()
+        {
             if (Game.Input.IsKeyPressed(Keys.Up))
             {
                 _selectedIndex--;
                 if (_selectedIndex < 0)
-                    _selectedIndex = optionCount - 1;
-                
+                    _selectedIndex = _menuOptions.Length - 1;
+
                 SoundManager.Play(SoundManager.MenuMove);
             }
 
-            // Cycle Down
             if (Game.Input.IsKeyPressed(Keys.Down))
             {
                 _selectedIndex++;
-                if (_selectedIndex >= optionCount)
+                if (_selectedIndex >= _menuOptions.Length)
                     _selectedIndex = 0;
-                
+
                 SoundManager.Play(SoundManager.MenuMove);
             }
 
-            if (_currentScreen == ScreenState.Settings)
-            {
-                if (Game.Input.IsKeyPressed(Keys.Left))
-                {
-                    AdjustSetting(-1);
-                    SoundManager.Play(SoundManager.MenuMove);
-                }
-                if (Game.Input.IsKeyPressed(Keys.Right))
-                {
-                    AdjustSetting(1);
-                    SoundManager.Play(SoundManager.MenuMove);
-                }
-            }
-            
-            // Confirm Selection
             if (Game.Input.IsKeyPressed(Keys.Z) || Game.Input.IsKeyPressed(Keys.Enter))
             {
                 SoundManager.Play(SoundManager.MenuSelect);
-                
-                if (_currentScreen == ScreenState.Main)
+
+                if (_selectedIndex == 0)
+                    StateManager.Replace(new OverworldState(Game, StateManager));
+                else if (_selectedIndex == 1)
                 {
-                    if (_selectedIndex == 0)
-                        StateManager.Replace(new OverworldState(Game, StateManager));
-                    else if (_selectedIndex == 1)
-                    {
-                        _currentScreen = ScreenState.Settings;
-                        _selectedIndex = 0;
-                    }
-                }
-                else if (_currentScreen == ScreenState.Settings)
-                {
-                    if (_selectedIndex == 1)
-                    {
-                        AdjustSetting(1);
-                    }
-                    else if (_selectedIndex == 2) // Back option
-                    {
-                        _currentScreen = ScreenState.Main;
-                        _selectedIndex = 1;
-                    }
+                    _currentScreen = ScreenState.Settings;
+                    _settings.ResetSelection();
                 }
             }
         }
 
-        private void AdjustSetting(int direction)
+        private void UpdateSettings()
         {
-            if (_selectedIndex == 0) // Sound Volume
-            {
-                _volume = MathHelper.Clamp(_volume + (direction * 10), 0, 100);
-                
-                GameSettings.SetVolume(_volume);
-            }
-            else if (_selectedIndex == 1) // Target FPS
-            {
-                _fpsIndex += direction;
+            if (Game.Input.IsKeyPressed(Keys.Up))    _settings.MoveUp();
+            if (Game.Input.IsKeyPressed(Keys.Down))  _settings.MoveDown();
+            if (Game.Input.IsKeyPressed(Keys.Left))  _settings.Adjust(-1);
+            if (Game.Input.IsKeyPressed(Keys.Right)) _settings.Adjust(1);
 
-                if (_fpsIndex < 0)
-                    _fpsIndex = _fpsOptions.Length - 1;
-                else if (_fpsIndex >= _fpsOptions.Length)
-                    _fpsIndex = 0;
+            if (Game.Input.IsKeyPressed(Keys.Z) || Game.Input.IsKeyPressed(Keys.Enter))
+            {
+                SoundManager.Play(SoundManager.MenuSelect);
 
-                int targetFps = _fpsOptions[_fpsIndex];
-                GameSettings.SetTargetFps(Game, targetFps);
+                if (_settings.SelectedIndex == SettingsMenu.BackIndex)
+                {
+                    _currentScreen = ScreenState.Main;
+                    _selectedIndex = 1;
+                }
+                else
+                {
+                    _settings.Adjust(1);
+                }
             }
         }
-        
+
         public override void Draw(SpriteBatch spriteBatch)
         {
             Game.GraphicsDevice.Clear(BackgroundColor);
@@ -166,6 +146,7 @@ namespace FinalProject.States
                     "[Z or ENTER] - Confirm",
                     "[X] - Cancel",
                     "[C] - Menu (In-game)",
+                    "[F11] - Toggle Fullscreen",
                     "[Hold ESC] - Quit",
                     "When HP is 0, you lose."
                 };
@@ -186,27 +167,17 @@ namespace FinalProject.States
                     lineY += 36;
                 }
             }
-            
+
             else if (_currentScreen == ScreenState.Settings)
             {
                 int lineHeight = 40;
 
-                for (int i = 0; i < _settingsOptions.Length; i++)
+                for (int i = 0; i < SettingsMenu.Labels.Length; i++)
                 {
-                    bool isSelected = (i == _selectedIndex);
+                    bool isSelected = (i == _settings.SelectedIndex);
                     Color color = isSelected ? SelectedColor : TextColor;
-                    string optionText = _settingsOptions[i];
-                    
-                    if (i == 0) // Sound Volume
-                    {
-                        optionText = $"Sound Volume : < {_volume}% >";
-                    }
-                    else if (i == 1) // Target FPS
-                    {
-                        optionText = $"FPS Target   : < {_fpsOptions[_fpsIndex]} FPS >";
-                    }
 
-                    DrawText(spriteBatch, optionText, new Vector2(LeftMargin, lineY), color, OptionScale);
+                    DrawText(spriteBatch, _settings.DisplayFor(i), new Vector2(LeftMargin, lineY), color, OptionScale);
                     lineY += lineHeight;
                 }
 
@@ -217,7 +188,7 @@ namespace FinalProject.States
 
             spriteBatch.End();
         }
-        
+
         private void DrawText(SpriteBatch spriteBatch, string text, Vector2 position, Color color, float scale)
         {
             spriteBatch.DrawString(
@@ -232,7 +203,7 @@ namespace FinalProject.States
                 0f
             );
         }
-        
+
         private void DrawCentered(SpriteBatch spriteBatch, string text, float y, Color color, float scale)
         {
             float width = Game.DialogueFont.MeasureString(text).X * scale;

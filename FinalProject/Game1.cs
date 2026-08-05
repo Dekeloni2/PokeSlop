@@ -22,6 +22,18 @@ namespace FinalProject
         private GraphicsDeviceManager _graphics;
         private SpriteBatch _spriteBatch;
 
+        // the whole game draws into this at its fixed native resolution,
+        // then Draw scales that as one texture to fit the real back buffer
+        // (see GameSettings.FitToScreen) — that's what lets fullscreen fill
+        // the display without stretching or distorting anything
+        private RenderTarget2D _sceneTarget;
+        private bool _isFullscreen;
+
+        // how long Escape has to be held down before it actually quits, and
+        // how long it's been held so far this press (0 the instant it's let go)
+        private const float EscapeHoldToQuitSeconds = 1.2f;
+        private float _escapeHoldSeconds;
+
         // shared systems, public so states can reach them through Game.X
         public GameStateManager StateManager { get; private set; }
         public InputManager     Input        { get; private set; }
@@ -84,6 +96,7 @@ namespace FinalProject
         protected override void LoadContent()
         {
             _spriteBatch = new SpriteBatch(GraphicsDevice);
+            _sceneTarget = new RenderTarget2D(GraphicsDevice, GameSettings.WindowWidth, GameSettings.WindowHeight);
 
             PixelTexture = new Texture2D(GraphicsDevice, 1, 1);
             PixelTexture.SetData(new[] { Color.White });
@@ -180,9 +193,7 @@ namespace FinalProject
             // every item in the game, loaded once. the shop sells from it and
             // teacher drops resolve their reward name against it, so it can't
             // be debug-only
-            string itemsPath = Path.GetFullPath(
-                Path.Combine(AppContext.BaseDirectory, "..", "..", "..", "Content", "Items", "items.json"));
-            Items = ItemLoader.LoadAll(itemsPath);
+            Items = ItemLoader.LoadAll(ContentPaths.Under("Items", "items.json"));
 
             // the shop itself is a real, player-facing feature (the
             // vending_machine Interactable on tiltan_hall opens it via
@@ -204,8 +215,24 @@ namespace FinalProject
             // input first so every state sees the same snapshot this frame
             Input.Update();
 
-            if (Input.IsKeyPressed(Keys.Escape))
-                Exit();
+            // held, not tapped — a stray Escape (backing out of a menu,
+            // fat-fingering it mid-fight) shouldn't close the game outright.
+            // The instructions screen already says "[Hold ESC] - Quit"; this
+            // is what actually makes that true rather than exiting on the
+            // first press like it used to.
+            if (Input.IsKeyDown(Keys.Escape))
+            {
+                _escapeHoldSeconds += (float)gameTime.ElapsedGameTime.TotalSeconds;
+                if (_escapeHoldSeconds >= EscapeHoldToQuitSeconds)
+                    Exit();
+            }
+            else
+            {
+                _escapeHoldSeconds = 0f;
+            }
+
+            if (Input.IsKeyPressed(Keys.F11))
+                ToggleFullscreen();
 
 #if DEBUG
             // Press 'V' to open the vending machine anywhere in debug mode
@@ -311,11 +338,64 @@ namespace FinalProject
             PlayerData.Inventory.AddRange(Items);
         }
 
+        // fullscreen fills the whole display's native resolution rather than
+        // some fixed size, so it has to read that resolution fresh each time
+        // rather than reusing whatever the window happened to be. Coming
+        // back out returns to the game's normal fixed window size. Either
+        // way the actual scaling-to-fit happens in Draw, this just decides
+        // what the back buffer's real pixel size is.
+        private void ToggleFullscreen()
+        {
+            _isFullscreen = !_isFullscreen;
+
+            if (_isFullscreen)
+            {
+                DisplayMode display = GraphicsDevice.Adapter.CurrentDisplayMode;
+                _graphics.PreferredBackBufferWidth  = display.Width;
+                _graphics.PreferredBackBufferHeight = display.Height;
+            }
+            else
+            {
+                _graphics.PreferredBackBufferWidth  = GameSettings.WindowWidth;
+                _graphics.PreferredBackBufferHeight = GameSettings.WindowHeight;
+            }
+
+            _graphics.IsFullScreen = _isFullscreen;
+            _graphics.ApplyChanges();
+        }
+
+        // a small fill bar over whatever's on screen while Escape is held,
+        // so "hold to quit" actually reads as counting down towards
+        // something rather than just... not responding for a second
+        private const int EscapeBarWidth  = 160;
+        private const int EscapeBarHeight = 10;
+
+        private void DrawEscapeHoldBar()
+        {
+            if (_escapeHoldSeconds <= 0f) return;
+
+            float t = MathHelper.Clamp(_escapeHoldSeconds / EscapeHoldToQuitSeconds, 0f, 1f);
+
+            var back = new Rectangle(
+                (GameSettings.WindowWidth - EscapeBarWidth) / 2,
+                GameSettings.WindowHeight - EscapeBarHeight - 12,
+                EscapeBarWidth, EscapeBarHeight);
+            var fill = new Rectangle(back.X, back.Y, (int)(EscapeBarWidth * t), EscapeBarHeight);
+
+            _spriteBatch.Begin(samplerState: SamplerState.PointClamp);
+            _spriteBatch.Draw(PixelTexture, back, new Color(40, 40, 40));
+            _spriteBatch.Draw(PixelTexture, fill, Color.Red);
+            _spriteBatch.End();
+        }
+
         protected override void Draw(GameTime gameTime)
         {
+            // everything draws at the fixed native resolution, into its own
+            // target rather than straight to the back buffer
+            GraphicsDevice.SetRenderTarget(_sceneTarget);
             GraphicsDevice.Clear(Color.Black);
             StateManager.Draw(_spriteBatch);
-            
+
             if (_vendingMachine != null && _vendingMachine.IsActive)
             {
                 // PointClamp, or the pixel font gets bilinear-filtered into mush
@@ -323,7 +403,24 @@ namespace FinalProject
                 _vendingMachine.Draw(_spriteBatch, PlayerData);
                 _spriteBatch.End();
             }
-            
+
+            DrawEscapeHoldBar();
+
+            // then that target gets presented as one scaled sprite, fit to
+            // whatever the real back buffer size is (720x480 windowed needs
+            // no scaling; fullscreen fills the display without distorting
+            // the 3:2 ratio, letterboxed instead of stretched or cropped)
+            GraphicsDevice.SetRenderTarget(null);
+            GraphicsDevice.Clear(Color.Black);
+
+            Rectangle dest = GameSettings.FitToScreen(
+                GraphicsDevice.PresentationParameters.BackBufferWidth,
+                GraphicsDevice.PresentationParameters.BackBufferHeight);
+
+            _spriteBatch.Begin(samplerState: SamplerState.PointClamp);
+            _spriteBatch.Draw(_sceneTarget, dest, Color.White);
+            _spriteBatch.End();
+
             base.Draw(gameTime);
         }
     }

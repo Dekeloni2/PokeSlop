@@ -74,10 +74,7 @@ public class EndingState : GameState
 
     public EndingState(Game1 game, GameStateManager stateManager) : base(game, stateManager)
     {
-        string path = Path.GetFullPath(
-            Path.Combine(AppContext.BaseDirectory, "..", "..", "..", "Content", "endings.json"));
-
-        _ending   = EndingConfig.Load(path).For(Game.Route.KilledIds);
+        _ending   = EndingConfig.Load(ContentPaths.Under("endings.json")).For(Game.Route.KilledIds);
         _dialogue = new DialogueBox(Game.PixelTexture, Game.DialogueFont);
         _typer    = new Typewriter(null, TextCharsPerSecond);
 
@@ -158,8 +155,7 @@ public class EndingState : GameState
         if (string.IsNullOrWhiteSpace(id)) return null;
         if (_speakers.TryGetValue(id, out Speaker cached)) return cached;
 
-        string path = Path.GetFullPath(Path.Combine(
-            AppContext.BaseDirectory, "..", "..", "..", "Content", "Teachers", id + ".json"));
+        string path = ContentPaths.Under("Teachers", id + ".json");
 
         Speaker speaker = null;
         if (File.Exists(path))

@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
@@ -12,16 +13,19 @@ namespace FinalProject.UI
     // the white bubble the teacher talks through. black text, and the tail is on
     // the left so it sits to the right of whoever is talking.
     // a '|' in the line splits it into separate bubbles, same as the overworld
-    // dialogue box. the line is prepared at the start of the turn but only
-    // Begin()s when it should show, then it holds the turn until the player has
-    // pressed Z through every page
+    // dialogue box. text also paginates on its own once it runs past the
+    // bubble's height, same idea — a wrapped line that would spill past the
+    // bottom edge starts a fresh page instead. the line is prepared at the
+    // start of the turn but only Begin()s when it should show, then it holds
+    // the turn until the player has pressed Z through every page
     public class SpeechBubble
     {
         // insets for the text, the left one clears the tail and the rounded corner
-        private const int PadLeft  = 42;
-        private const int PadTop   = 20;
-        private const int PadRight = 18;
-        private const float TextScale = 1f;
+        private const int PadLeft   = 42;
+        private const int PadTop    = 20;
+        private const int PadRight  = 18;
+        private const int PadBottom = 16;
+        private const float TextScale = 1.5f;
         private const char PageBreak  = '|';
 
         private readonly Typewriter _typer = new();
@@ -48,14 +52,29 @@ namespace FinalProject.UI
             if (string.IsNullOrWhiteSpace(text)) return;
 
             Spritesheet sheet = SpriteManager.GetSprite("textBubble");
-            int maxWidth = (sheet?.Texture.Width ?? 233) - PadLeft - PadRight;
+            int bubbleWidth  = sheet?.Texture.Width  ?? 233;
+            int bubbleHeight = sheet?.Texture.Height ?? 100;
+
+            int maxWidth = bubbleWidth - PadLeft - PadRight;
+
+            // how many wrapped lines actually fit inside the bubble at this
+            // scale — more than that and it runs past the bottom edge, so a
+            // segment that wraps to more lines than this gets split across
+            // extra pages instead of being crammed into one
+            int lineHeight = (int)(font.LineSpacing * TextScale);
+            int maxLines   = Math.Max(1, (bubbleHeight - PadTop - PadBottom) / lineHeight);
 
             foreach (string segment in text.Split(PageBreak))
             {
                 string trimmed = segment.Trim();
                 if (trimmed.Length == 0) continue; // ignore stray breaks
 
-                _pages.Add(string.Join("\n", TextWrap.ToLines(font, trimmed, maxWidth, TextScale)));
+                List<string> lines = TextWrap.ToLines(font, trimmed, maxWidth, TextScale);
+                for (int i = 0; i < lines.Count; i += maxLines)
+                {
+                    int count = Math.Min(maxLines, lines.Count - i);
+                    _pages.Add(string.Join("\n", lines.GetRange(i, count)));
+                }
             }
         }
 

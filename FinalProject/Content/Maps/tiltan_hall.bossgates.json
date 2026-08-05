@@ -14,7 +14,7 @@
     "killedText": "* A room with a white board with hexagons drawn on it.| No point in going back in."
   },
   {
-    "tiles": [ { "x": 21, "y": 17 }, { "x": 21, "y": 18 }, { "x": 21, "y": 19 }, { "x": 21, "y": 20 } ],
+    "tiles": [ { "x": 17, "y": 22 }, { "x": 18, "y": 22 }, { "x": 19, "y": 22 }, { "x": 20, "y": 22 } ],
     "teacherId": "dorbendor",
     "promptText": "In this class, resides Dor Ben Dor, who teaches Game Design 101. Would you like to enter his class?",
     "genocidePromptText": "............|Finally you arrived at the studio....|Are you planning on trying to eliminate me too?|Fine. Come and test your might against me."

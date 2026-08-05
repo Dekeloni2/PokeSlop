@@ -21,7 +21,7 @@ namespace FinalProject.UI
         private const int PadLeft  = 42;
         private const int PadTop   = 20;
         private const int PadRight = 18;
-        private const float TextScale = 1.5f;
+        private const float TextScale = 1f;
         private const char PageBreak  = '|';
 
         private readonly Typewriter _typer = new();

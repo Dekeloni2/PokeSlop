@@ -2,7 +2,7 @@
   "name": "Dor Ben Dor",
   "id": "dorbendor",
   "requires": [ "yakir", "david" ],
-  "lockedText": "* The door doesn't budge.|* You haven't finished with the others yet.",
+  "lockedText": "You may not enter the Studio until you took classes from both Yakir and David.",
   "spriteName": "dorbendor",
   "speakingVoice": "snd_txtasg",
   "baseHp": 100,

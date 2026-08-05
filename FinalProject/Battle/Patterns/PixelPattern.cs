@@ -22,10 +22,12 @@ public class PixelPattern : IBulletPattern
     private const float PixelSpeed     = 22f;  // px/sec, deliberately slow
 
     // the arena tightens for the finale, and it happens on the announcement so
-    // the shrink is something you watch rather than something already done
+    // the shrink is something you watch rather than something already done.
+    // BoxTop is raised enough that the bottom edge (BoxTop + BoxHeight)
+    // clears the HP bar's row (y=390) with some margin, same box size
     private const int BoxWidth  = 280;
     private const int BoxHeight = 130;
-    private const int BoxTop    = 286;
+    private const int BoxTop    = 250;
     private const float ShrinkSeconds = 0.7f;
 
     private enum Phase { Intro, Attack, Landed, Outro, Done }

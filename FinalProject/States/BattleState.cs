@@ -332,8 +332,9 @@ namespace FinalProject.States
 
             spriteBatch.Begin(samplerState: SamplerState.PointClamp, transformMatrix: view);
 
-            // attacks can hide the HP bar completely (napoleon does)
-            if (!dodging || !_dodgePhase.HudHidden)
+            // outside a dodge nothing else draws over this spot, so the usual
+            // draw-early order is fine
+            if (!dodging)
                 _hud.Draw(spriteBatch, Game.DialogueFont, Game.PixelTexture);
 
             if (_phase == BattlePhase.Dodging)
@@ -349,6 +350,15 @@ namespace FinalProject.States
                 }
 
                 _dodgePhase.Draw(spriteBatch, Game.PixelTexture, Game.DialogueFont);
+
+                // drawn last during a dodge, after the box and everything in
+                // it — some attacks (Yakir's lessons) size their box low
+                // enough to reach the bar's row, and this way the box goes
+                // under the bar instead of its border/bullets/buttons
+                // clipping through it. attacks can still hide it completely
+                // outright (napoleon does)
+                if (!_dodgePhase.HudHidden)
+                    _hud.Draw(spriteBatch, Game.DialogueFont, Game.PixelTexture);
             }
             else
             {

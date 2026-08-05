@@ -179,14 +179,21 @@ namespace FinalProject
 
             // every item in the game, loaded once. the shop sells from it and
             // teacher drops resolve their reward name against it, so it can't
-            // be debug-only the way the vending machine is
+            // be debug-only
             string itemsPath = Path.GetFullPath(
                 Path.Combine(AppContext.BaseDirectory, "..", "..", "..", "Content", "Items", "items.json"));
             Items = ItemLoader.LoadAll(itemsPath);
 
+            // the shop itself is a real, player-facing feature (the
+            // vending_machine Interactable on tiltan_hall opens it via
+            // Action:"shop") — it used to be constructed inside the #if DEBUG
+            // block below and was dead in Release, silently doing nothing
+            // when interacted with. Only the free starting inventory is
+            // actually debug-only.
+            _vendingMachine = new VendingMachineMenu(PixelTexture, DialogueFont);
+
 #if DEBUG
             LoadStartingInventory();
-            _vendingMachine = new VendingMachineMenu(PixelTexture, DialogueFont);
 #endif
 
             StateManager.Replace(new MainMenuState(this, StateManager));

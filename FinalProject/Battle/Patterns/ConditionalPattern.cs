@@ -38,9 +38,11 @@ public class ConditionalPattern : IBulletPattern
     // same staging as the data types lesson, low box with him standing over it.
     // tighter than the quiz box on purpose, a half of a 400px arena is more
     // open floor than a dodge needs
+    // BoxTop is raised enough that the bottom edge (BoxTop + BoxHeight)
+    // clears the HP bar's row (y=390) with some margin, same box size
     private const int BoxWidth  = 320;
     private const int BoxHeight = 170;
-    private const int BoxTop    = 252;
+    private const int BoxTop    = 210;
     private const float ResizeSeconds = 0.6f;
 
     private enum Zone { Left, Right, Top, Bottom }

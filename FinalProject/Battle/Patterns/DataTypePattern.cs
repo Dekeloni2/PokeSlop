@@ -22,10 +22,12 @@ public class DataTypePattern : IBulletPattern
     private const float AnswerCooldown = 0.5f; // stops one touch answering twice
     private const int   WrongDamage   = 3;
 
-    // sits low on the screen on purpose, Yakir stands above it
+    // sits low on the screen on purpose, Yakir stands above it — but not so
+    // low that its bottom edge (BoxTop + BoxHeight) reaches the HP bar's
+    // row (y=390), so BoxTop is raised enough to clear it with some margin
     private const int BoxWidth  = 400;
     private const int BoxHeight = 200;
-    private const int BoxTop    = 252;
+    private const int BoxTop    = 180;
     private const float ResizeSeconds = 0.6f;
 
     private const int ButtonWidth  = 104;

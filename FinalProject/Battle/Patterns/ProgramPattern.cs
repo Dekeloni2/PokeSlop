@@ -25,10 +25,14 @@ public class ProgramPattern : IBulletPattern
     private const float RainSpeedScale = 1.3f;
     private const float LoopStepSeconds = 0.5f; // gap between for-loop chunks
 
-    // same staging as the rest of the course
+    // same staging as the rest of the course. BoxTop is raised enough that
+    // the bottom edge (BoxTop + BoxHeight) clears the HP bar's row (y=390)
+    // with some margin — the height/width shifts through Steps below only
+    // ever shrink the box or slide it sideways, never push the bottom edge
+    // back down past its starting point, so this holds for the whole attack
     private const int BoxWidth  = 400;
     private const int BoxHeight = 200;
-    private const int BoxTop    = 252;
+    private const int BoxTop    = 180;
     private const float ResizeSeconds = 0.6f;
 
     private enum Fx { Grab, SetWidth, LoopWidth, PushX, Slide, LoopHeight, PushY, RainUp, Grind, Sleep, Reset }

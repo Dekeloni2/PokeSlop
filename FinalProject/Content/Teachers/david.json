@@ -9,7 +9,7 @@
   "speakingVoice": "snd_txtdavid",
   "theme": "davidTheme",
   "themeVolume": 0.4,
-  "sequentialMoves": true,
+  "sequentialMoves": false,
   "sprite": {
     "sheet": "david",
     "anchor": [ 0, 0 ],

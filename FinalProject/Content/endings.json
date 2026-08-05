@@ -8,14 +8,24 @@
       "title": "PACIFIST ENDING",
       "titleColor": [255, 214, 90],
       "lines": [
-        { "text": "* Ring, Ring...." },
-        { "music": "tiltantale_ending" },
-        { "speaker": "yakir", "text": "Hello? Clover? Are you there?" },
-        { "speaker": "david", "text": "TODO: David agrees, in his own way." },
-        { "speaker": "dorbendor", "text": "TODO: Dor Ben Dor has the last word on the student's kindness." },
-        { "speaker": "yakir", "text": "TODO: they land on the student's own studio and their dream game." }
+        { "delay": 0.5 },
+        { "speaker": "yakir", "text": "Still hard to believe it has been so long since Clover graduated." },
+        { "speaker": "david", "text": "I knew they could do it.|Did you hear about what they did recently?" },
+        { "speaker": "yakir", "text": "No I haven't, actually." },
+        { "speaker": "david", "text": "I read on the news that with all the knowledge Clover gained here,|They opened their own succesful indie studio." }
+        { "speaker": "yakir", "text": "That's amazing! I always knew they had a lot of potential." },
+        { "speaker": "david", "text": "Yeah, they really proved themselves. I'm proud of them." },
+        { "speaker": "yakir", "text": "I hope they come back to visit us sometime. It would be great to see them again." },
+        { "speaker": "david", "text": "Definitely. We should reach out and invite them for a reunion.|What do you think do?" },
+        { "speaker": "dorbendor", "text": "I think its pointless. Why should I care for what a student is doing?|Especially now that they finished their studies. They have nothing to do with us." },
+        { "speaker": "yakir", "text": "You really think Clover isn't thinking about us? About our classes?|Surely, everything they learned was implemented into their work."},
+        { "speaker": "david", "text": "I am sure all that we taught them was implemented into their games.|One way or another."},
+        { "speaker": "dorbendor", "text": "I don't know. I just don't care about them anymore." },
+        { "speaker": "yakir", "text": "Well, I do. I hope they are doing well and that they are happy." },
+        { "speaker": "david", "text": "Me too. I hope they are living their best life." },
+        {}
       ],
-      "pages": []
+      "pages": ["After the events of that day, Clover graduated from Tiltan College and went on to have a successful career in the gaming industry.|They opened their own indie studio and created games that were loved by many.|The teachers at Tiltan College continued to teach and inspire new generations of students, always remembering the impact that Clover had on their lives.|Tiltan would never forget the legacy of Clover and the lessons they learned at Tiltan College."]
     },
 
     {

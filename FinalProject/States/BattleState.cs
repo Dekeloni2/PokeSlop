@@ -111,6 +111,15 @@ namespace FinalProject.States
         private bool _yielded;
         private bool _yieldStarted; // the speech has been queued into the bubble
 
+        // a sequential teacher with no Yield block (Yakir) doesn't get a last
+        // stand — he's just out of lesson plan. Rather than fall through to
+        // his hardest normal move and frustrate a player who's already
+        // survived the ultimate, any attack that lands from here finishes
+        // him too, same as a true yield. Unlike a true yield he isn't done
+        // fighting: ACT/ITEM (or a miss) just gets the ultimate thrown at
+        // him again next turn instead of moving on. See UpdateDodging.
+        private bool _finishingBlowReady;
+
         // an attack waiting behind its intro cutscene, started once he's done
         private IBulletPattern _pendingPattern;
         private MoveData       _pendingMove;
@@ -192,6 +201,7 @@ namespace FinalProject.States
             _moveIndex       = 0;
             _yielded         = false;
             _yieldStarted    = false;
+            _finishingBlowReady = false;
             _tookDamage      = false;
             _pendingPattern  = null;
             _pendingMove     = null;
@@ -499,10 +509,15 @@ namespace FinalProject.States
         }
 
         // opening ITEM with no items doesn't waste the turn, it just backs
-        // out (same as pressing X). Only actually using an item costs a turn
+        // out (same as pressing X). Only actually using an item costs a turn.
+        // Armor doesn't belong on this list at all — it's equipped from the
+        // overworld menu (see OverworldMenu.EquipArmorFromInventory), not
+        // eaten mid fight for 0 HP
         private List<MenuOption> BuildItemRootPage()
         {
-            if (Game.PlayerData.Inventory.Count == 0)
+            List<ItemData> consumables = Game.PlayerData.Inventory.FindAll(item => !item.IsEquipment);
+
+            if (consumables.Count == 0)
             {
                 return new List<MenuOption>
                 {
@@ -511,7 +526,7 @@ namespace FinalProject.States
             }
 
             var page = new List<MenuOption>();
-            foreach (ItemData item in Game.PlayerData.Inventory)
+            foreach (ItemData item in consumables)
                 page.Add(new MenuOption(item.Name, () => UseItem(item)));
             return page;
         }
@@ -614,7 +629,7 @@ namespace FinalProject.States
             // connects finishes it, however badly it was timed. a clean miss
             // still misses
             _pendingAttackDamage = _attackMinigame.Missed ? 0
-                : _yielded ? YieldedHitDamage
+                : _yielded || _finishingBlowReady ? YieldedHitDamage
                 : Math.Max(1, (int)MathF.Round(Game.PlayerData.Attack * _attackMinigame.DamageMultiplier));
 
             _attackMinigame = null;
@@ -863,8 +878,21 @@ namespace FinalProject.States
 
                     // a teacher with a last stand hands mercy over at the end of
                     // it instead, so the buttons stay gone until he's finished
-                    if (_teacher.Stats.Yield != null) yielding = true;
-                    else                              _teacher.IncreaseSparePercent(100);
+                    if (_teacher.Stats.Yield != null)
+                    {
+                        yielding = true;
+                    }
+                    else
+                    {
+                        _teacher.IncreaseSparePercent(100);
+
+                        // no last stand to hand mercy over here, so he keeps
+                        // fighting — but with nothing left to teach, it's the
+                        // ultimate again (not whatever came next in the lesson
+                        // plan) until the player finishes it one way or another
+                        _finishingBlowReady = true;
+                        _ultimateUsed       = false;
+                    }
                 }
 
                 // a talking attack leaves its line up, drop it or it hangs

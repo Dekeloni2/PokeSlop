@@ -32,12 +32,24 @@ namespace FinalProject.States
         private string  _currentAreaName;
         private List<MapTransition> _transitions  = new();
         private List<MapWarp>       _warps        = new();
+        private List<BossGate>      _bossGates    = new();
         private bool _transitioning = false; // prevents repeated trigger on failed load
 
         // Undertale-style textbox — owns input while open (see Update below).
         private DialogueBox _dialogueBox;
         // player menu
         private OverworldMenu _menu;
+
+        // ── Boss gates ───────────────────────────────────────────────────────
+        // walking into a BossGate's tiles asks "enter his class?" with the
+        // soul-cursor ChoiceBox, plays the teacher's own greeting on Yes, then
+        // hands off to the battle transition. See CheckBossGates/OpenBossGate.
+        private ChoiceBox     _bossChoiceBox;
+        private BossGate      _pendingGate;         // the gate currently being resolved
+        private TeacherStats  _pendingGateTeacher;   // its teacher, loaded once and carried through the steps
+        private bool          _awaitingBossChoice;   // the prompt just closed, bring up Yes/No
+        private bool          _awaitingBossBattle;    // the teacher's greeting just closed, start the fight
+        private BossGate      _bossGateCooldown;     // last gate walked into — held until the player steps off so a "No" (or standing still) doesn't re-ask every frame
         // Cache of already-loaded maps so backtracking doesn't re-parse JSON from disk
         private readonly Dictionary<string, TileMap> _mapCache = new();
 
@@ -47,13 +59,14 @@ namespace FinalProject.States
         {
             _player      = new Player(Game, 6, 14);
             _camera      = new Camera();
-            _dialogueBox = new DialogueBox(Game.PixelTexture, Game.DialogueFont);
-            _menu        = new OverworldMenu(Game.PixelTexture, Game.DialogueFont);
-            _elevator    = new ElevatorSequence(Game.PixelTexture, Game.DialogueFont);
+            _dialogueBox   = new DialogueBox(Game.PixelTexture, Game.DialogueFont);
+            _menu          = new OverworldMenu(Game.PixelTexture, Game.DialogueFont);
+            _elevator      = new ElevatorSequence(Game.PixelTexture, Game.DialogueFont);
+            _bossChoiceBox = new ChoiceBox(Game.PixelTexture, Game.DialogueFont);
             // TODO: swap back to the real starting map once the tileset rework
             // lands — pointed at "entrance" for now to test the Interactables layer.
             LoadMap("entrance", 6, 14);
-            
+
             _dialogueBox = new DialogueBox(Game.PixelTexture, Game.DialogueFont);
             _menu        = new OverworldMenu(Game.PixelTexture, Game.DialogueFont);
         }
@@ -121,6 +134,23 @@ namespace FinalProject.States
             ["tiltan_hall"] = "overworld",
         };
 
+        // Undertale's genocide route drops the music's pitch once it's past
+        // the point of no return. This is a much narrower version of that —
+        // just the hallway's own track — and the checkpoint is killing both
+        // of these (Dorbendor's gate can't even be reached before then, per
+        // his Requires). RouteTracker already knows how each fight ended, so
+        // this just asks it. Battle themes aren't touched, only "overworld".
+        private static readonly string[] GenocideCheckpoint = { "david", "yakir" };
+        private const string GenocideOverworldTrack = "overworld_genocide";
+
+        private bool GenocideCheckpointCleared()
+        {
+            foreach (string teacherId in GenocideCheckpoint)
+                if (Game.Route.OutcomeFor(teacherId) != BattleOutcome.Killed)
+                    return false;
+            return true;
+        }
+
         // whatever this area asked for last, so walking between two maps that
         // share a track doesn't restart it from the top
         private string _areaSong;
@@ -128,6 +158,12 @@ namespace FinalProject.States
         private void UpdateAreaMusic(bool force = false)
         {
             AreaMusic.TryGetValue(_currentAreaName ?? "", out string song);
+
+            // same map, swapped for its pitched-down twin once the checkpoint
+            // clears — everything else about "which track plays here" is
+            // still just what AreaMusic says
+            if (song == "overworld" && GenocideCheckpointCleared())
+                song = GenocideOverworldTrack;
 
             if (!force && song == _areaSong) return;
 
@@ -174,7 +210,15 @@ namespace FinalProject.States
                 _dialogueBox.Update(gameTime, Game.Input);
                 return;
             }
-            
+
+            // Boss gate's Yes/No prompt owns input while it's up
+            if (_bossChoiceBox.IsActive)
+            {
+                if (_bossChoiceBox.Update(Game.Input))
+                    OnBossChoiceMade(_bossChoiceBox.SelectedIndex);
+                return;
+            }
+
             // Menu owns input when active ─
             if (_menu.IsActive)
             {
@@ -199,6 +243,22 @@ namespace FinalProject.States
             {
                 _awaitingFloorMenu = false;
                 _elevator.OpenFloorMenu();
+                return;
+            }
+
+            // the "enter his class?" prompt just closed, bring up the Yes/No choice
+            if (_awaitingBossChoice)
+            {
+                _awaitingBossChoice = false;
+                _bossChoiceBox.Open(new List<string> { "Yes", "No" });
+                return;
+            }
+
+            // the teacher's own greeting just closed, off to the fight
+            if (_awaitingBossBattle)
+            {
+                _awaitingBossBattle = false;
+                StartBossBattle();
                 return;
             }
 
@@ -257,6 +317,7 @@ namespace FinalProject.States
 
             CheckTransitions();
             CheckWarps();
+            CheckBossGates();
             _elevator.CheckExit(this);
         }
 
@@ -284,6 +345,7 @@ namespace FinalProject.States
             // UI layer — screen space, unaffected by the world camera's zoom/scroll.
             spriteBatch.Begin(samplerState: SamplerState.PointClamp);
             _dialogueBox.Draw(spriteBatch);
+            _bossChoiceBox.Draw(spriteBatch);
             _elevator.Draw(spriteBatch);
             _menu.Draw(spriteBatch, Game.PlayerData);
 
@@ -410,23 +472,155 @@ namespace FinalProject.States
 
         private void StartNpcBattle(NpcSpawn npc)
         {
+            TeacherStats stats = LoadTeacherStatsById(npc.Id, "NPC BATTLE ERROR");
+            if (stats == null) return;
+
+            PushBattle(new Teacher(stats));
+        }
+
+        // Content/Teachers/{id}.json -> loaded stats, or null (logged to
+        // map_debug.txt) if the file doesn't exist. Shared by every way a
+        // fight can start — NPC bump, debug battle, and boss gates.
+        private static TeacherStats LoadTeacherStatsById(string id, string errorTag = "TEACHER LOAD ERROR")
+        {
             string teachersDir = Path.GetFullPath(
                 Path.Combine(AppContext.BaseDirectory, "..", "..", "..", "Content", "Teachers"));
-            string path = Path.Combine(teachersDir, npc.Id + ".json");
+            string path = Path.Combine(teachersDir, id + ".json");
             if (!File.Exists(path))
             {
-                LogDebug($"NPC BATTLE ERROR: no teacher file for \"{npc.Id}\" at {path}");
-                return;
+                LogDebug($"{errorTag}: no teacher file for \"{id}\" at {path}");
+                return null;
             }
 
-            TeacherStats stats  = TeacherLoader.Load(path);
-            var          teacher = new Teacher(stats);
+            return TeacherLoader.Load(path);
+        }
 
-            float tileSize = _map.TileWidth;
+        // The Undertale-style intro, soul starting where the player stands on
+        // screen (world → screen), same for every kind of encounter.
+        private void PushBattle(Teacher teacher)
+        {
+            float tileSize = _map != null ? _map.TileWidth : GameSettings.TileSize;
             Vector2 soulStart = Vector2.Transform(
                 _player.WorldPosition + new Vector2(tileSize / 2f, tileSize / 2f),
                 _camera.GetTransform());
             StateManager.Push(new BattleTransition(Game, StateManager, teacher, _player, soulStart, GameSettings.Zoom));
+        }
+
+        // ── Boss gates ───────────────────────────────────────────────────────
+
+        // A gate's tiles sit on the Objects layer and block movement like a
+        // wall, so this fires the same way CheckNpcBump does — face it and
+        // walk into it — rather than by standing on an open tile like
+        // CheckWarps. It asks first instead of acting immediately though, so
+        // it needs its own cooldown: without one, holding a direction into
+        // the door would reopen the prompt every single frame.
+        private void CheckBossGates()
+        {
+            if (_map == null || _transitioning || _pendingGate != null) return;
+
+            Point facingTile = _player.Facing.GetNeighbour(_player.TilePosition);
+
+            BossGate facedGate = null;
+            foreach (BossGate gate in _bossGates)
+            {
+                if (gate.ContainsTile(facingTile.X, facingTile.Y))
+                {
+                    facedGate = gate;
+                    break;
+                }
+            }
+
+            // turned away (or stepped back) from whatever was last asked
+            // about — arm it again so walking back into it re-asks
+            if (facedGate != _bossGateCooldown)
+                _bossGateCooldown = null;
+
+            if (!_player.IsMoving || facedGate == null || facedGate == _bossGateCooldown) return;
+
+            OpenBossGate(facedGate);
+        }
+
+        // Walked into a gate's tiles for the first time this approach. Four
+        // outcomes: the teacher's already been resolved (RouteTracker says
+        // how — SparedText or KilledText, whichever fits), their Requires
+        // aren't all settled yet (show LockedText), or the door's open and
+        // it's time to ask.
+        private void OpenBossGate(BossGate gate)
+        {
+            _bossGateCooldown = gate;
+
+            BattleOutcome? outcome = Game.Route.OutcomeFor(gate.TeacherId);
+            if (outcome != null)
+            {
+                string text = outcome == BattleOutcome.Spared ? gate.SparedText : gate.KilledText;
+                if (!string.IsNullOrWhiteSpace(text))
+                    _dialogueBox.Open(text);
+                return;
+            }
+
+            TeacherStats stats = LoadTeacherStatsById(gate.TeacherId, "BOSS GATE ERROR");
+            if (stats == null) return;
+
+            if (!Game.Route.HasResolvedAll(stats.Requires))
+            {
+                _dialogueBox.Open(stats.LockedText ?? "This class isn't open yet.");
+                return;
+            }
+
+            _pendingGate        = gate;
+            _pendingGateTeacher = stats;
+
+            // he can tell what route the player is on before the fight even
+            // starts — Pacifist and Neutral read the same (PromptText), a
+            // narrator-style line same as every other gate's prompt. The
+            // Genocide line is different in kind, not just content: it's him
+            // actually talking, so unlike the plain prompt it gets his face
+            // and voice, same as his OnEncounter greeting would
+            bool genocidePrompt = GenocideCheckpointCleared() && !string.IsNullOrWhiteSpace(gate.GenocidePromptText);
+
+            if (genocidePrompt)
+                _dialogueBox.Open(gate.GenocidePromptText, Speaker.ForTeacher(stats));
+            else
+                _dialogueBox.Open(gate.PromptText);
+
+            _awaitingBossChoice = true;
+        }
+
+        // Yes/No answered. Yes moves on to the teacher's own greeting (or
+        // straight to the fight if he has none to give); anything else drops
+        // the gate — _bossGateCooldown is already set, so it won't re-ask
+        // until the player steps off the tiles and back on.
+        private void OnBossChoiceMade(int selectedIndex)
+        {
+            const int YesIndex = 0;
+
+            if (selectedIndex != YesIndex || _pendingGateTeacher == null)
+            {
+                _pendingGate        = null;
+                _pendingGateTeacher = null;
+                return;
+            }
+
+            string greeting = _pendingGateTeacher.Dialogue?.OnEncounter;
+            if (string.IsNullOrWhiteSpace(greeting))
+            {
+                StartBossBattle();
+                return;
+            }
+
+            _dialogueBox.Open(greeting, Speaker.ForTeacher(_pendingGateTeacher));
+            _awaitingBossBattle = true;
+        }
+
+        private void StartBossBattle()
+        {
+            TeacherStats stats  = _pendingGateTeacher;
+            _pendingGate        = null;
+            _pendingGateTeacher = null;
+
+            if (stats == null) return;
+
+            PushBattle(new Teacher(stats));
         }
 
 #if DEBUG
@@ -434,19 +628,11 @@ namespace FinalProject.States
         // this state resumes when the battle pops itself
         private void StartDebugBattle()
         {
-            string teachersDir = Path.GetFullPath(
-                Path.Combine(AppContext.BaseDirectory, "..", "..", "..", "Content", "Teachers"));
-            // swap this filename to whoever you're testing (dorbendor.json, yakir.json, david.json, substitute.json)
-            TeacherStats stats = TeacherLoader.Load(Path.Combine(teachersDir, "david.json"));
-            var teacher = new Teacher(stats);
+            // swap this id to whoever you're testing (dorbendor, yakir, david, substitute)
+            TeacherStats stats = LoadTeacherStatsById("david", "DEBUG BATTLE ERROR");
+            if (stats == null) return;
 
-            // the Undertale-style intro plays first, then hands off to the battle.
-            // Soul starts where the player is standing on screen (world → screen).
-            float tileSize = _map != null ? _map.TileWidth : GameSettings.TileSize;
-            Vector2 soulStart = Vector2.Transform(
-                _player.WorldPosition + new Vector2(tileSize / 2f, tileSize / 2f),
-                _camera.GetTransform());
-            StateManager.Push(new BattleTransition(Game, StateManager, teacher, _player, soulStart, GameSettings.Zoom));
+            PushBattle(new Teacher(stats));
         }
 #endif
 
@@ -527,7 +713,17 @@ namespace FinalProject.States
             _player.Teleport(spawnX, spawnY);
             _transitions = LoadTransitions(mapsDir, mapName);
             _warps       = LoadWarps(mapsDir, mapName);
+            _bossGates   = LoadBossGates(mapsDir, mapName);
             RefreshNpcs();
+
+            // a gate mid-conversation on the map we just left doesn't carry
+            // over — new map, nothing pending, nothing on cooldown
+            _pendingGate        = null;
+            _pendingGateTeacher = null;
+            _awaitingBossChoice = false;
+            _awaitingBossBattle = false;
+            _bossGateCooldown   = null;
+            _bossChoiceBox.Close();
 
             EventBus.Instance.Publish(new AreaChangedEvent(_currentAreaName));
             UpdateAreaMusic();
@@ -565,6 +761,21 @@ namespace FinalProject.States
                     ?? new List<MapWarp>();
             }
             catch { return new List<MapWarp>(); }
+        }
+
+        private static List<BossGate> LoadBossGates(string mapsDir, string mapName)
+        {
+            string path = Path.Combine(mapsDir, mapName + ".bossgates.json");
+            if (!File.Exists(path)) return new List<BossGate>();
+
+            try
+            {
+                string json = File.ReadAllText(path);
+                var options = new JsonSerializerOptions { PropertyNameCaseInsensitive = true };
+                return JsonSerializer.Deserialize<List<BossGate>>(json, options)
+                    ?? new List<BossGate>();
+            }
+            catch { return new List<BossGate>(); }
         }
 
         private static void LogDebug(string message)

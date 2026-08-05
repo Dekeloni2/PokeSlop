@@ -21,6 +21,7 @@
     ]
   },
   "battleDialogue": {
+    "onEncounter": "Ah, right on time.|Take a seat - it's time to learn C#!.|These lessons will unlock your true potential.",
     "onAttack": [
       "That's a runtime error waiting to happen.",
       "You didn't even check for null first.",

@@ -20,19 +20,26 @@ namespace FinalProject.Data
         public string OnDefeat { get; }
         public string OnSpared { get; }
 
+        // what he says when the player walks into his classroom and agrees to
+        // fight — shown in the overworld DialogueBox, in his own face and
+        // voice, before the battle transition. null skips straight to the
+        // fight, same as a teacher with nothing to say
+        public string OnEncounter { get; }
+
         public TeacherDialogue(
             IReadOnlyList<string> onAttack, IReadOnlyList<string> onAct,
             IReadOnlyList<string> onItem,   IReadOnlyList<string> onSpare,
             IReadOnlyList<PercentThresholdText> byHp,
-            string onDefeat = null, string onSpared = null)
+            string onDefeat = null, string onSpared = null, string onEncounter = null)
         {
-            OnAttack = onAttack;
-            OnAct    = onAct;
-            OnItem   = onItem;
-            OnSpare  = onSpare;
-            ByHp     = byHp;
-            OnDefeat = onDefeat;
-            OnSpared = onSpared;
+            OnAttack    = onAttack;
+            OnAct       = onAct;
+            OnItem      = onItem;
+            OnSpare     = onSpare;
+            ByHp        = byHp;
+            OnDefeat    = onDefeat;
+            OnSpared    = onSpared;
+            OnEncounter = onEncounter;
         }
     }
 }

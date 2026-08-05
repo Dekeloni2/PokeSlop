@@ -22,6 +22,7 @@
     ]
   },
   "battleDialogue": {
+    "onEncounter": "I see you made it to my class in time.|I hope you are ready to learn some math.|I have a lot to teach you, so let's get started.|Prepare to turn whatever you learned in C# into pratcial math skills.|I will be testing you on your knowledge of shapes, curves, and layers.|I hope you are ready to learn some math.",
     "onAttack": [
       "You can't brute force your way through a proof.",
       "Violence is not a valid step in the derivation.",

@@ -97,7 +97,7 @@ namespace FinalProject.Data
             return new TeacherDialogue(
                 json.OnAttack, json.OnAct, json.OnItem, json.OnSpare,
                 json.ByHp != null && json.ByHp.Count > 0 ? ToThresholds(json.ByHp) : null,
-                json.OnDefeat, json.OnSpared);
+                json.OnDefeat, json.OnSpared, json.OnEncounter);
         }
 
         // builds the multi part sprite from the "sprite" block. returns null if
@@ -178,6 +178,7 @@ namespace FinalProject.Data
             public List<PercentThresholdTextJson> ByHp { get; set; }
             public string OnDefeat { get; set; }
             public string OnSpared { get; set; }
+            public string OnEncounter { get; set; }
         }
 
         private class SpriteJson

@@ -368,6 +368,16 @@
 /processorParam:Quality=Best
 /build:Audio/Music/OverworldMusic.ogg
 
+# pitched-down render of the above, swapped in once the genocide checkpoint
+# clears (see OverworldState.ResolveAreaSong). Pre-rendered rather than
+# pitched live because MediaPlayer/Song has no runtime Pitch control —
+# only SoundEffectInstance does.
+#begin Audio/Music/OverworldMusicGenocide.ogg
+/importer:OggImporter
+/processor:SongProcessor
+/processorParam:Quality=Best
+/build:Audio/Music/OverworldMusicGenocide.ogg
+
 #begin Audio/SFX/snd_elecdoor_shut.wav
 /importer:WavImporter
 /processor:SoundEffectProcessor

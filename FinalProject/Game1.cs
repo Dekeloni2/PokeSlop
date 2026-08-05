@@ -137,6 +137,10 @@ namespace FinalProject
             SoundManager.AddSong("elevator",  "Audio/Music/mus_elevator");
             // walking-around music. OverworldState.AreaMusic says which maps get it
             SoundManager.AddSong("overworld", "Audio/Music/OverworldMusic");
+            // same track, pitched down — swapped in for the hallway once the
+            // genocide checkpoint clears (both David and Yakir killed). See
+            // OverworldState.ResolveAreaSong.
+            SoundManager.AddSong("overworld_genocide", "Audio/Music/OverworldMusicGenocide");
             // battle themes, teachers name theirs in their JSON
             SoundManager.AddSong("yakirTheme", "Audio/Music/yakir_theme");
             SoundManager.AddSong("dbdTheme",   "Audio/Music/dbd_theme");

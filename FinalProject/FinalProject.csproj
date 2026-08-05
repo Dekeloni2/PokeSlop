@@ -5,6 +5,11 @@
         <RollForward>Major</RollForward>
         <PublishReadyToRun>false</PublishReadyToRun>
         <TieredCompilation>false</TieredCompilation>
+        <!-- output file is TiltanTale.exe / TiltanTale.dll instead of
+             FinalProject.exe — defaults to the .csproj's own filename
+             otherwise, which is just the project's original name, not the
+             game's actual title -->
+        <AssemblyName>TiltanTale</AssemblyName>
     </PropertyGroup>
     <PropertyGroup>
         <ApplicationManifest>app.manifest</ApplicationManifest>

@@ -427,15 +427,18 @@ namespace FinalProject.UI
 
             DrawText(spriteBatch, $"\"{name}\"", new Vector2(x, y), Color.White, HeadingScale);
 
-            // DF reads "base (from armor)", the way the reference shows it. The
-            // armor's name goes on its own line — the panel is a third narrower
-            // than the reference's and "ARMOR: <name>" runs past the border.
+            // DF is the total (base + armor) — BaseDefense has no way to be
+            // anything but 0 right now (nothing in the game raises it), so
+            // showing it split out as "0 (2)" was just confusing noise next
+            // to a number that's always going to start with "0 (". The
+            // armor's name is already its own line below, so the source of
+            // the bonus isn't lost by collapsing this to one number.
             string[] rows =
             {
                 $"HP  {hp}/{maxHp}",
                 "",
                 $"AT  {atk}",
-                $"DF  {playerData?.BaseDefense ?? 0} ({playerData?.ArmorDefense ?? 0})",
+                $"DF  {playerData?.Defense ?? 0}",
                 "",
                 "ARMOR:",
                 $"  {playerData?.EquippedArmor?.Name ?? "None"}",

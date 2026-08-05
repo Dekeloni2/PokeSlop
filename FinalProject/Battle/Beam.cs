@@ -11,9 +11,6 @@ namespace FinalProject.Battle
     // add/remove them via DodgeContext.
     public class Beam
     {
-<<<<<<< Updated upstream
-        public const int   Damage         = 3;
-=======
         // per-instance rather than shared, so one pattern's beam (garlic
         // gun's) can hit softer than another's (Napoleon's) without either
         // affecting the other. Defaults to the old flat value so anything
@@ -21,7 +18,6 @@ namespace FinalProject.Battle
         public const int DefaultDamage = 5;
         public int Damage { get; }
 
->>>>>>> Stashed changes
         private const float DamageInterval = 0.25f; // seconds between damage ticks
 
         public Rectangle Bounds { get; set; }

@@ -60,7 +60,7 @@ namespace FinalProject.States
             _player      = new Player(Game, 6, 14);
             _camera      = new Camera();
             _dialogueBox   = new DialogueBox(Game.PixelTexture, Game.DialogueFont);
-            _menu          = new OverworldMenu(Game.PixelTexture, Game.DialogueFont);
+            _menu          = new OverworldMenu(Game, Game.PixelTexture, Game.DialogueFont);
             _elevator      = new ElevatorSequence(Game.PixelTexture, Game.DialogueFont);
             _bossChoiceBox = new ChoiceBox(Game.PixelTexture, Game.DialogueFont);
             // TODO: swap back to the real starting map once the tileset rework
@@ -68,7 +68,7 @@ namespace FinalProject.States
             LoadMap("entrance", 6, 14);
 
             _dialogueBox = new DialogueBox(Game.PixelTexture, Game.DialogueFont);
-            _menu        = new OverworldMenu(Game.PixelTexture, Game.DialogueFont);
+            _menu        = new OverworldMenu(Game, Game.PixelTexture, Game.DialogueFont);
         }
 
         // comes back up from black when a battle pops off the stack, picking up
@@ -134,6 +134,16 @@ namespace FinalProject.States
             ["tiltan_hall"] = "overworld",
         };
 
+        // per-track volume, on top of the player's own Music Volume setting.
+        // The hallway loops constantly in the background behind whatever else
+        // is going on, so it runs quieter than something you'd actually stop
+        // to listen to. 1f (full) for anything not listed here.
+        private static readonly Dictionary<string, float> AreaMusicVolume = new()
+        {
+            ["overworld"]          = 0.55f,
+            ["overworld_genocide"] = 0.55f,
+        };
+
         // Undertale's genocide route drops the music's pitch once it's past
         // the point of no return. This is a much narrower version of that —
         // just the hallway's own track — and the checkpoint is killing both
@@ -169,8 +179,15 @@ namespace FinalProject.States
 
             _areaSong = song;
 
-            if (song == null) SoundManager.StopMusic();
-            else              SoundManager.PlayMusic(song);
+            if (song == null)
+            {
+                SoundManager.StopMusic();
+            }
+            else
+            {
+                float volume = AreaMusicVolume.TryGetValue(song, out float v) ? v : 1f;
+                SoundManager.PlayMusic(song, volume: volume);
+            }
         }
 
         public override void Update(GameTime gameTime)
@@ -483,9 +500,7 @@ namespace FinalProject.States
         // fight can start — NPC bump, debug battle, and boss gates.
         private static TeacherStats LoadTeacherStatsById(string id, string errorTag = "TEACHER LOAD ERROR")
         {
-            string teachersDir = Path.GetFullPath(
-                Path.Combine(AppContext.BaseDirectory, "..", "..", "..", "Content", "Teachers"));
-            string path = Path.Combine(teachersDir, id + ".json");
+            string path = ContentPaths.Under("Teachers", id + ".json");
             if (!File.Exists(path))
             {
                 LogDebug($"{errorTag}: no teacher file for \"{id}\" at {path}");
@@ -686,8 +701,7 @@ namespace FinalProject.States
         {
             _currentAreaName = mapName;
 
-            string mapsDir = Path.GetFullPath(
-                Path.Combine(AppContext.BaseDirectory, "..", "..", "..", "Content", "Maps"));
+            string mapsDir = ContentPaths.Under("Maps");
 
             // Return cached map if we've already loaded it
             if (!_mapCache.TryGetValue(mapName, out TileMap loaded))

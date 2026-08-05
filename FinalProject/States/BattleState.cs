@@ -98,6 +98,11 @@ namespace FinalProject.States
         // where a sequential teacher is up to in his move list
         private int _moveIndex;
 
+        // a non-sequential teacher (David, Dorbendor) picks at random, so
+        // this is what keeps that random pick from landing on the same move
+        // twice in a row — see PickEnemyMove
+        private MoveData _lastNormalMove;
+
         // the turn being dodged came off the lesson plan rather than an ACT, so
         // getting through it clean is allowed to advance a gated teacher
         private bool _dodgingLesson;
@@ -199,6 +204,7 @@ namespace FinalProject.States
             _ultimateDodging = false;
             _dodgingLesson   = false;
             _moveIndex       = 0;
+            _lastNormalMove  = null;
             _yielded         = false;
             _yieldStarted    = false;
             _finishingBlowReady = false;
@@ -1209,7 +1215,24 @@ namespace FinalProject.States
                 return normal[i];
             }
 
-            return normal[_rng.Next(normal.Count)];
+            MoveData picked = PickRandomExcluding(normal, _lastNormalMove);
+            _lastNormalMove = picked;
+            return picked;
+        }
+
+        // Picks at random, but not the same move that just went last turn (so
+        // David and Dorbendor don't throw the same attack twice back to
+        // back) — unless there's only the one move to pick from at all, in
+        // which case there's nothing else it could be.
+        private MoveData PickRandomExcluding(List<MoveData> options, MoveData exclude)
+        {
+            if (options.Count <= 1 || exclude == null)
+                return options[_rng.Next(options.Count)];
+
+            var candidates = new List<MoveData>(options);
+            candidates.Remove(exclude);
+
+            return candidates[_rng.Next(candidates.Count)];
         }
 
         // a gated teacher only moves on when the player got through the last

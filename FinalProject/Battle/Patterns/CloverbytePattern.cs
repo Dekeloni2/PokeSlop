@@ -86,7 +86,7 @@ public class CloverbytePattern : IBulletPattern
     private const float RecoverSeconds     = 1.10f;
 
     private const int LashCount   = 5; // plain lashes, tiers 1 and 2
-    private const int LashCountT3 = 8; // tier 3 throws noticeably more
+    private const int LashCountT3 = 6; // tier 3 throws more — was 8, trimmed down some
 
     // tier 3: odds that any given gap between two lashes gets a colour sweep.
     // rolled per gap, so two can land back to back and the layout never repeats

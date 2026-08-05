@@ -126,6 +126,11 @@ namespace FinalProject.Core.Audio
                 if (!char.IsWhiteSpace(text[i])) { Play(beepName); return; }
         }
 
+        // the currently-playing track's own volume (e.g. the hallway plays
+        // quieter than everything else) — remembered so RefreshMusicVolume
+        // can re-apply MusicVolume without forgetting it
+        private static float _currentTrackVolume = 1f;
+
         // starts a track, loops by default and replaces whatever is playing.
         // volume is per track on top of MusicVolume, since tracks come from
         // different places and aren't mastered to the same level
@@ -133,6 +138,7 @@ namespace FinalProject.Core.Audio
         {
             if (!_songs.TryGetValue(name, out Song song)) return;
 
+            _currentTrackVolume = volume;
             MediaPlayer.Volume      = MathHelper.Clamp(MusicVolume * volume, 0f, 1f);
             MediaPlayer.IsRepeating = loop;
             MediaPlayer.Play(song);
@@ -141,7 +147,18 @@ namespace FinalProject.Core.Audio
         // adjust the current track's volume live (used to fade music out). the
         // argument is the per-track volume, same scale as PlayMusic's parameter
         public static void SetMusicVolume(float volume)
-            => MediaPlayer.Volume = MathHelper.Clamp(MusicVolume * volume, 0f, 1f);
+        {
+            _currentTrackVolume = volume;
+            MediaPlayer.Volume = MathHelper.Clamp(MusicVolume * volume, 0f, 1f);
+        }
+
+        // re-applies MusicVolume against whatever's already playing, without
+        // touching that track's own volume — for when the player moves the
+        // music slider but nothing about the current track changes. Calling
+        // SetMusicVolume(1f) for this used to silently reset a quieter track
+        // (like the hallway's) back to full volume.
+        public static void RefreshMusicVolume()
+            => MediaPlayer.Volume = MathHelper.Clamp(MusicVolume * _currentTrackVolume, 0f, 1f);
 
         public static void StopMusic()   => MediaPlayer.Stop();
         public static void PauseMusic()  => MediaPlayer.Pause();

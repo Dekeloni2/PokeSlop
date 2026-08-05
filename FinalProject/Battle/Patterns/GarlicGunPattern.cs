@@ -37,6 +37,10 @@ public class GarlicGunPattern : IBulletPattern
     private const float FeintChance         = 0.1f;  // fraction of charges that are fake-outs
     private const float WarningFlashSeconds = 0.08f; // per warning frame
     private const int   BeamThickness       = 40;
+
+    // how much a tick of the beam hurts — independent of Beam.DefaultDamage
+    // (5), which Napoleon's beam still uses. Was 5; lowered here.
+    private const int   BeamDamage          = 3;
     private const float BeamExtendSeconds   = 0.12f; // beam sweep-in time
 
     // Vegeta's sprite is a one-shot per phase: each phase shows its first frame
@@ -156,7 +160,7 @@ public class GarlicGunPattern : IBulletPattern
     {
         _state = State.Firing;
         _timer = 0f;
-        _beam = context.AddBeam(BeamRect(context.CurrentBox, 0f));
+        _beam = context.AddBeam(BeamRect(context.CurrentBox, 0f), damage: BeamDamage);
     }
 
     private void BeginVanish(DodgeContext context)

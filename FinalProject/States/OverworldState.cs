@@ -50,6 +50,11 @@ namespace FinalProject.States
         private bool          _awaitingBossChoice;   // the prompt just closed, bring up Yes/No
         private bool          _awaitingBossBattle;    // the teacher's greeting just closed, start the fight
         private BossGate      _bossGateCooldown;     // last gate walked into — held until the player steps off so a "No" (or standing still) doesn't re-ask every frame
+
+        // the genocide prompt already was him talking, face and voice — set
+        // whenever that's what was shown, so OnBossChoiceMade knows a second
+        // greeting right after "Yes" would just repeat the same beat
+        private bool _pendingGateGenocidePrompt;
         // Cache of already-loaded maps so backtracking doesn't re-parse JSON from disk
         private readonly Dictionary<string, TileMap> _mapCache = new();
 
@@ -605,6 +610,7 @@ namespace FinalProject.States
             // actually talking, so unlike the plain prompt it gets his face
             // and voice, same as his OnEncounter greeting would
             bool genocidePrompt = GenocideCheckpointCleared() && !string.IsNullOrWhiteSpace(gate.GenocidePromptText);
+            _pendingGateGenocidePrompt = genocidePrompt;
 
             if (genocidePrompt)
                 _dialogueBox.Open(gate.GenocidePromptText, Speaker.ForTeacher(stats));
@@ -629,7 +635,10 @@ namespace FinalProject.States
                 return;
             }
 
-            string greeting = _pendingGateTeacher.Dialogue?.OnEncounter;
+            // the genocide prompt already had him speak, in his own face and
+            // voice — skip the greeting so "Yes" doesn't immediately repeat
+            // the beat with a second, unrelated line
+            string greeting = _pendingGateGenocidePrompt ? null : _pendingGateTeacher.Dialogue?.OnEncounter;
             if (string.IsNullOrWhiteSpace(greeting))
             {
                 StartBossBattle();

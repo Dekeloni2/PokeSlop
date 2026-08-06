@@ -38,6 +38,7 @@
     ]
   },
   "battleDialogue": {
+    "onEncounter": "So, you've finally made it to my studio.|Most students don't get this far.|I hope you're ready - this is the final test of everything you've learned at Tiltan.|Let's see if you truly have what it takes to be a Game Designer.",
     "onAttack": [
       "This will reduce your score on Canvas.",
       "My portfolio won't be affected by this.",

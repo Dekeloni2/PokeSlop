@@ -52,9 +52,11 @@ Every resolved fight is recorded — who, and how. The run is classified as **Pa
 | Key | Overworld | Battle |
 |---|---|---|
 | **Arrow keys** | Walk | Move the menu cursor / move your soul while dodging |
-| **Z** or **Enter** | Talk, interact, advance dialogue | Confirm, advance dialogue, strike on the FIGHT bar |
-| **X** | — | Back out of a submenu |
-| **Escape** | Quit | Quit |
+| **Z** or **Enter** | Talk, interact, advance dialogue, confirm a menu | Confirm, advance dialogue, strike on the FIGHT bar |
+| **X** or **C** | Back out of a submenu | Back out of a submenu |
+| **C** | Open the pause menu (settings) | — |
+| **Escape** | Hold ~1.2s to quit | Hold ~1.2s to quit |
+| **F11** | Toggle fullscreen | Toggle fullscreen |
 
 Debug builds only:
 
@@ -62,18 +64,24 @@ Debug builds only:
 |---|---|
 | **B** | Start a test battle |
 | **O** | Toggle the elevator door layer |
+| **V** | Open the vending machine from anywhere |
+| **1–8** | Jump straight to one of the eight ending scripts, for previewing them without playing the whole route |
 
 ---
 
 ## Gameplay
 
-You start in the entrance hall and move freely — movement is pixel-based
+The game opens on a **main menu** (Begin Game / Settings). Starting a run fades to white and drops you in the entrance hall, where movement is free and pixel-based rather than grid-locked. The very first time you reach the main hall, an Undertale-style title-card sting plays once (`CreditsIntroState`) before control hands over.
 
 Pressing `Z` at a doorway, sign, or person opens a dialogue box. The **elevator** works the same way: interact with the panel inside and a floor menu opens. Pick a floor and the doors shut, the lift judders upward with its own music, a bell rings, and the doors open somewhere new. Walking out of them takes you to that floor.
 
-Behind a classroom door is a teacher. The fight starts, and from there it's the turn loop above — pick an action, survive the reply, repeat. Teachers escalate: Yakir's lessons run in a fixed order and get harder, and his final attack only comes out once he has taught everything he knows.
+A **classroom door is a boss gate**: walk into it and it asks whether you want to go in, showing a line that already hints at the route you're on. Accept and the screen flashes to a battle intro, your soul drops into the box, and the fight starts for real — it isn't a stand-in, it's the same `BattleState` a stray NPC bump uses. Gates also enforce **prerequisites** (`Requires` in the teacher's JSON): a locked door shows its own line until whatever it depends on has been resolved. Once a teacher is resolved, walking back into their door just shows a short reaction line instead of re-starting the fight.
 
-When the fight ends the teacher either crumbles to dust or freezes and fades, depending on how you finished it — and the run tracker quietly writes down which.
+From there it's the turn loop above — pick an action, survive the reply, repeat. Teachers escalate: Yakir's lessons run in a fixed order and get harder, and his final attack only comes out once he has taught everything he knows.
+
+Losing a fight doesn't end the run: `GameOverState` fades in on a random line from `gameover.json`, then revives you back in the overworld to try again. Winning one crumbles the teacher to dust or freezes and fades him, depending on how you finished it, and the run tracker quietly writes down which.
+
+Once every teacher on the floor is resolved, reaching the end of the run plays `EndingState` — one of eight scripted endings (all authored in `Content/endings.json`), chosen by exactly who was killed and who was spared, with a phone call scripted per teacher and a closing title card.
 
 ---
 
@@ -128,10 +136,13 @@ FinalProject/
 
 | Class | Responsibility |
 |---|---|
-| `OverworldState` | Loads maps, moves the player, checks transitions, warps, and interactables. Decides which sequence starts. |
-| `BattleState` | The turn machine: menu → action → enemy turn → feedback → repeat, plus the ending sequence. |
+| `MainMenuState` | The title screen: Begin Game / Settings, and the fade into the first run. |
+| `OverworldState` | Loads maps, moves the player, checks transitions, warps, boss gates, and interactables. Decides which sequence starts. |
+| `CreditsIntroState` | The one-time title-card sting played the first time the player reaches the main hall. |
 | `BattleTransition` | The Undertale-style flash and soul-drop that hands off from the overworld to a fight. |
-| `GameOverState` | Death screen and retry. |
+| `BattleState` | The turn machine: menu → action → enemy turn → feedback → repeat, plus the yield/mercy sequence. |
+| `GameOverState` | Death screen: a random line from `gameover.json`, then revives the player back in the overworld. |
+| `EndingState` | Plays one of the eight scripted endings from `Content/endings.json`, picked by who was killed/spared, and closes on the title card. |
 
 ### Battle
 
@@ -155,7 +166,10 @@ FinalProject/
 | `MoveData` | One enemy move: its pattern, and any authored dialogue beats for it. |
 | `ActOption` | One ACT entry — its text, mercy value, and optionally an attack it provokes. |
 | `PlayerData` | HP, attack, gold, inventory. Publishes an event when HP changes. |
-| `RouteTracker` | Listens for resolved fights and classifies the run as pacifist, neutral, or genocide. |
+| `RouteTracker` | Listens for resolved fights (via `EventBus`) and classifies the run as pacifist, neutral, or genocide. |
+| `ItemData` / `ItemLoader` | The item catalog, loaded once from `Content/Items/items.json` and shared by the shop, the starting inventory, and teacher item rewards. |
+| `EndingConfig` | Picks which of the eight ending scripts fits the run and loads its lines from `Content/endings.json`. |
+| `GameOverConfig` | Loads the random game-over lines from `Content/gameover.json`. |
 
 ### World
 
@@ -165,6 +179,16 @@ FinalProject/
 | `MapLoader` | Reads Tiled `.tmj` files into a `TileMap`. |
 | `ElevatorSequence` | The lift: floor menu, doors, ride, judder, and arrival. Reaches the overworld only through `IElevatorHost`. |
 | `Player` | Free pixel-based movement with per-axis collision sliding, and walk animation. |
+
+### UI
+
+| Class | Responsibility |
+|---|---|
+| `DialogueBox` | The bottom-of-screen box for signs, NPCs, and boss-gate prompts, with a typewriter effect. |
+| `SpeechBubble` | The teacher's own in-battle speech, anchored above him rather than docked to the screen edge. |
+| `BattleHud` | The player's HP bar; subscribes to `PlayerHpChangedEvent` rather than being told directly. |
+| `OverworldMenu` | The `C`-menu opened from the overworld: settings, shared with the main menu's Settings screen. |
+| `VendingMachineMenu` | The shop: browse the item catalog, spend gold, add to the inventory. |
 
 ---
 
@@ -186,8 +210,8 @@ Content is built automatically from `FinalProject/Content/Content.mgcb` as part 
 
 ## Current State
 
-The battle system is complete and the teachers are data-driven. Three teachers are implemented — **Yakir** (five attacks including a full four-lesson arc), **David** (Hexagons, Haymayker) and **Dor Ben Dor** (chess, cloverbyte, boat, napoleon) — alongside a debug "Substitute" used for testing patterns in isolation.
+The battle system is complete and the teachers are data-driven. Three teachers are implemented — **Yakir** (five attacks including a full four-lesson arc), **David** (hexagons, punch) and **Dor Ben Dor** (chess, cloverbyte, boat, napoleon) — alongside a training dummy that teaches the blue/orange dodge rules and a debug "Substitute" used for testing patterns in isolation.
 
-The overworld supports free movement, map transitions, warps, interactables, dialogue, and a working elevator between floors.
+The full loop is wired end to end: main menu → overworld → a classroom door opens a real fight (with locked/spared/killed reactions and prerequisites between teachers) → win or lose → one of eight endings once the run is over, or a revive back into the overworld on defeat. The overworld also supports free movement, map transitions, warps, interactables, dialogue, a working elevator between floors, and a shop.
 
-Still to come: classroom doors that start real fights (battles currently begin from the debug `B` key), the remaining teachers, and the ending that reads the route tracker.
+Still to come: more floors/teachers beyond the current three, and further balancing of the mercy/ACT text now that the full loop is playable.

@@ -130,6 +130,20 @@
       }
     },
     {
+      "name": "Boat",
+      "power": 1,
+      "accuracy": 100,
+      "description": "Dor Ben Dor calls up the boat.",
+      "pattern": "Boat",
+      "speech": {
+        "opening": [
+          "This boat is the only thing my sister and I ever agreed on.",
+          "We fought over who got to keep it. I won.",
+          "Still seaworthy. Still mine."
+        ]
+      }
+    },
+    {
       "name": "Napoleon",
       "power": 1,
       "accuracy": 100,

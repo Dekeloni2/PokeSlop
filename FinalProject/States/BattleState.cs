@@ -218,6 +218,7 @@ namespace FinalProject.States
             // patterns that escalate the more they're thrown count their own
             // uses in a static, so a new fight has to start them from zero
             CloverbytePattern.ResetUseCount();
+            BoatPattern.ResetUseCount();
             ChessPattern.ResetBoard();
             _moveIndex     = 0;
             _lastDodgeSpeech = null;

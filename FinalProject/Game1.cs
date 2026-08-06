@@ -199,6 +199,10 @@ namespace FinalProject
             // the ending's phone call. AddSound swallows a missing file, so this
             // stays harmless until snd_phone.wav is dropped into Audio/SFX
             SoundManager.AddSound(SoundManager.PhoneRing, "Audio/SFX/snd_phone");
+            // the soul flashing onto the player as a battle starts
+            SoundManager.AddSound("snd_battlefall", "Audio/SFX/snd_battlefall");
+            // buying an item from the shop
+            SoundManager.AddSound("snd_buyitem",    "Audio/SFX/snd_buyitem");
             // SoundManager.AddSong("battle", "Audio/battle_theme");
 
             // every item in the game, loaded once. the shop sells from it and

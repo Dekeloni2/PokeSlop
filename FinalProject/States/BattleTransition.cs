@@ -2,6 +2,7 @@ using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using FinalProject.Battle;
 using FinalProject.Core;
+using FinalProject.Core.Audio;
 using FinalProject.Core.Graphics;
 using FinalProject.Core.StateMachine;
 using FinalProject.Entities;
@@ -33,6 +34,11 @@ namespace FinalProject.States
             Player player, Vector2 soulStartScreenPos, float playerScale)
             : base(game, sm)
         {
+            // fires the instant this state is created — before the blink, the
+            // lerp, anything. the transition starting IS the cue, not the soul
+            // reaching a particular frame of its blink
+            SoundManager.Play("snd_battlefall");
+
             _teacher     = teacher;
             _player      = player;
             _soulStart   = soulStartScreenPos;

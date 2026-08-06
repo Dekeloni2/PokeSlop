@@ -517,6 +517,18 @@
 /processorParam:Quality=Best
 /build:Audio/SFX/thud.wav
 
+#begin Audio/SFX/snd_battlefall.wav
+/importer:WavImporter
+/processor:SoundEffectProcessor
+/processorParam:Quality=Best
+/build:Audio/SFX/snd_battlefall.wav
+
+#begin Audio/SFX/snd_buyitem.wav
+/importer:WavImporter
+/processor:SoundEffectProcessor
+/processorParam:Quality=Best
+/build:Audio/SFX/snd_buyitem.wav
+
 
 #begin Sprites/World/dummy.png
 /importer:TextureImporter

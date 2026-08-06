@@ -191,7 +191,7 @@ public class VendingMachineMenu
             return;
         }
 
-        SoundManager.Play(SoundManager.MenuSelect);
+        SoundManager.Play("snd_buyitem");
         playerData.Money -= item.Price;
         playerData.Inventory.Add(item);
         _statusMessage = "Thanks!";

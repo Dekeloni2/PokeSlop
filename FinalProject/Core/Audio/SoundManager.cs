@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Audio;
@@ -65,6 +66,13 @@ namespace FinalProject.Core.Audio
 
             _oneShots.Add(instance);
         }
+
+        // how long a registered one-shot actually runs — for callers that need
+        // to sequence something after it finishes (the toilet's flush, then
+        // the payoff line) without a callback system. Zero for anything not
+        // registered, so a missing sound just means no wait instead of a crash
+        public static TimeSpan GetDuration(string name)
+            => _sounds.TryGetValue(name, out SoundEffect sfx) ? sfx.Duration : TimeSpan.Zero;
 
         // drops the ones that have finished. runs on every Play so the list
         // can't grow all fight — the text blip alone fires ~20 times a second,

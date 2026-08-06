@@ -59,6 +59,10 @@ namespace FinalProject
         // CreditsIntroState and OverworldState's pending-load handling.
         public bool HasFirstCreditPlayed { get; set; }
 
+        // same idea — the hall's pickable cheese only ever gives itself up
+        // once. See OverworldState's Action "cheese" handling.
+        public bool HasPickedUpCheese { get; set; }
+
         // by name, as teacher JSON refers to them. null if nothing matches
         public ItemData FindItem(string name)
         {
@@ -76,7 +80,10 @@ namespace FinalProject
         // The shop lives here rather than on OverworldState because Update gates
         // the whole state machine on it — that's what freezes the world while
         // you're buying. Interactables with Action="shop" come in through here.
-        public void OpenVendingMachine() => _vendingMachine?.Open(Items);
+        // Hidden items (found rather than bought, like the cheese) never make
+        // it into what's actually offered.
+        public void OpenVendingMachine()
+            => _vendingMachine?.Open(Items.FindAll(i => !i.Hidden));
 
         public Game1()
         {
@@ -203,6 +210,9 @@ namespace FinalProject
             SoundManager.AddSound("snd_battlefall", "Audio/SFX/snd_battlefall");
             // buying an item from the shop
             SoundManager.AddSound("snd_buyitem",    "Audio/SFX/snd_buyitem");
+            // flushing a toilet stall
+            SoundManager.AddSound("snd_toilet",      "Audio/SFX/snd_toilet");
+            SoundManager.AddSound("snd_dumbvictory", "Audio/SFX/snd_dumbvictory");
             // SoundManager.AddSong("battle", "Audio/battle_theme");
 
             // every item in the game, loaded once. the shop sells from it and

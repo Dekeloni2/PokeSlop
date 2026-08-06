@@ -55,6 +55,39 @@ namespace FinalProject.States
         // whenever that's what was shown, so OnBossChoiceMade knows a second
         // greeting right after "Yes" would just repeat the same beat
         private bool _pendingGateGenocidePrompt;
+
+        // ── Toilets ──────────────────────────────────────────────────────────
+        // an Interactable with Action "toilet" (the stalls in the toilet map)
+        // asks "flush it?" on the same shared Yes/No ChoiceBox the boss gates
+        // use. _toiletChoiceActive is what tells the shared box's resolution
+        // below which of the two flows ("enter his class?" or "flush it?") to
+        // route the answer to, since only one _bossChoiceBox exists
+        private bool  _awaitingToiletChoice; // the prompt just closed, bring up Yes/No
+        private bool  _toiletChoiceActive;   // the Yes/No currently up is this one, not a boss gate's
+
+        // counts down snd_toilet's own length after "Yes" — the payoff (the
+        // victory jingle and the line) only fires once it hits zero, so the
+        // flush is heard in full before either one steps on it
+        private float _toiletFlushTimer;
+
+        // ── Pickable Cheese ──────────────────────────────────────────────────
+        // tiltan_hall's Action "cheese" — same shared Yes/No ChoiceBox again,
+        // see _toiletChoiceActive above for why a dispatch flag is needed
+        private bool  _awaitingCheeseChoice; // the joke + prompt just closed, bring up Yes/No
+        private bool  _cheeseChoiceActive;   // the Yes/No currently up is this one
+
+        // which Interactable asked, so a "Yes" knows which map tiles to swap
+        // to the empty plate — held across the Yes/No wait, not read until then
+        private Interactable _pendingCheeseSpot;
+
+        // the sprite is built from two tiles side by side (cheese.tsx); these
+        // are what they turn into once it's picked up — the empty table sits
+        // right below the full one in the same tileset (1383/1384 -> 1385/1386)
+        private const int CheeseFullGidA  = 1383;
+        private const int CheeseFullGidB  = 1384;
+        private const int CheeseEmptyGidA = 1385;
+        private const int CheeseEmptyGidB = 1386;
+
         // Cache of already-loaded maps so backtracking doesn't re-parse JSON from disk
         private readonly Dictionary<string, TileMap> _mapCache = new();
 
@@ -137,6 +170,11 @@ namespace FinalProject.States
         private static readonly Dictionary<string, string> AreaMusic = new()
         {
             ["tiltan_hall"] = "overworld",
+
+            // same track as the hall — it's just a room off of it, walking in
+            // shouldn't cut the music. mapping both to "overworld" means
+            // UpdateAreaMusic sees no change and never restarts the track
+            ["toilet"] = "overworld",
         };
 
         // per-track volume, on top of the player's own Music Volume setting.
@@ -246,11 +284,41 @@ namespace FinalProject.States
                 return;
             }
 
-            // Boss gate's Yes/No prompt owns input while it's up
+            // Boss gate's Yes/No prompt owns input while it's up (also used
+            // for the toilet's "flush it?" and the cheese's "pick it up?" —
+            // see _toiletChoiceActive/_cheeseChoiceActive)
             if (_bossChoiceBox.IsActive)
             {
                 if (_bossChoiceBox.Update(Game.Input))
-                    OnBossChoiceMade(_bossChoiceBox.SelectedIndex);
+                {
+                    if (_toiletChoiceActive)
+                    {
+                        _toiletChoiceActive = false;
+                        OnToiletChoiceMade(_bossChoiceBox.SelectedIndex);
+                    }
+                    else if (_cheeseChoiceActive)
+                    {
+                        _cheeseChoiceActive = false;
+                        OnCheeseChoiceMade(_bossChoiceBox.SelectedIndex);
+                    }
+                    else
+                    {
+                        OnBossChoiceMade(_bossChoiceBox.SelectedIndex);
+                    }
+                }
+                return;
+            }
+
+            // holding still through the flush itself, same idea as the fade
+            // wait above — the jingle and the line only land once it's over
+            if (_toiletFlushTimer > 0f)
+            {
+                _toiletFlushTimer -= dt;
+                if (_toiletFlushTimer <= 0f)
+                {
+                    SoundManager.Play("snd_dumbvictory");
+                    _dialogueBox.Open("You have flushed the toilet. You successfully wasted water.");
+                }
                 return;
             }
 
@@ -285,6 +353,24 @@ namespace FinalProject.States
             if (_awaitingBossChoice)
             {
                 _awaitingBossChoice = false;
+                _bossChoiceBox.Open(new List<string> { "Yes", "No" });
+                return;
+            }
+
+            // the "flush it?" prompt just closed, bring up its own Yes/No
+            if (_awaitingToiletChoice)
+            {
+                _awaitingToiletChoice = false;
+                _toiletChoiceActive   = true;
+                _bossChoiceBox.Open(new List<string> { "Yes", "No" });
+                return;
+            }
+
+            // the joke + "pick up cheese?" prompt just closed, bring up its own Yes/No
+            if (_awaitingCheeseChoice)
+            {
+                _awaitingCheeseChoice = false;
+                _cheeseChoiceActive   = true;
                 _bossChoiceBox.Open(new List<string> { "Yes", "No" });
                 return;
             }
@@ -427,6 +513,23 @@ namespace FinalProject.States
                 case "warp":
                     if (interactable.TargetMap != null)
                         BeginMapChange(interactable.TargetMap, interactable.SpawnX, interactable.SpawnY);
+                    return;
+
+                // a toilet stall — see OnToiletChoiceMade for the payoff
+                case "toilet":
+                    _dialogueBox.Open("A toilet, flush it?");
+                    _awaitingToiletChoice = true;
+                    return;
+
+                // the hall's pickable cheese — already gone once picked up,
+                // so it quietly does nothing rather than re-running the joke
+                case "cheese":
+                    if (Game.HasPickedUpCheese) return;
+
+                    _pendingCheeseSpot = interactable;
+                    _dialogueBox.Open("This is here because we don't have any assets.|"
+                        + "Wait a minute, this cheese is pickable?|Pick up cheese?");
+                    _awaitingCheeseChoice = true;
                     return;
 
                 // no Action, or one that isn't handled — it's a sign. Staying
@@ -647,6 +750,65 @@ namespace FinalProject.States
 
             _dialogueBox.Open(greeting, Speaker.ForTeacher(_pendingGateTeacher));
             _awaitingBossBattle = true;
+        }
+
+        // "flush it?" answered. No just drops it, same as a boss gate's — no
+        // cooldown needed here since the prompt only ever comes from a fresh
+        // Z press, not from standing on a tile like a boss gate's does
+        private void OnToiletChoiceMade(int selectedIndex)
+        {
+            const int YesIndex = 0;
+            if (selectedIndex != YesIndex) return;
+
+            SoundManager.Play("snd_toilet");
+
+            // the payoff waits for the flush to actually finish — see
+            // _toiletFlushTimer's tick in Update
+            _toiletFlushTimer = (float)SoundManager.GetDuration("snd_toilet").TotalSeconds;
+        }
+
+        // "pick up cheese?" answered. No just leaves it sitting there — no
+        // cooldown needed, same reasoning as the toilet's.
+        private void OnCheeseChoiceMade(int selectedIndex)
+        {
+            const int YesIndex = 0;
+
+            Interactable spot = _pendingCheeseSpot;
+            _pendingCheeseSpot = null;
+
+            if (selectedIndex != YesIndex) return;
+
+            if (Game.PlayerData.IsInventoryFull)
+            {
+                _dialogueBox.Open("The cheese does not fit in your inventory because you have no space.");
+                return;
+            }
+
+            ItemData cheese = Game.Items.Find(i => i.Name == "Cheese");
+            if (cheese == null) return; // items.json is missing the entry — nothing to give
+
+            Game.PlayerData.Inventory.Add(cheese);
+            Game.HasPickedUpCheese = true;
+            SoundManager.Play("snd_buyitem");
+
+            if (_map != null && spot != null)
+                SwapCheeseTile(spot);
+
+            _dialogueBox.Open("You picked up Cheese. Cheese is now in your inventory.");
+        }
+
+        // swaps every full-plate cell within the interactable's own footprint
+        // to the empty variant, rather than hardcoding tile coordinates here —
+        // so this stays correct even if the cheese ever moves in Tiled
+        private void SwapCheeseTile(Interactable spot)
+        {
+            for (int y = spot.TileMinY; y <= spot.TileMaxY; y++)
+            for (int x = spot.TileMinX; x <= spot.TileMaxX; x++)
+            {
+                int gid = _map.GetObjectsTileGid(x, y);
+                if (gid == CheeseFullGidA)      _map.SetObjectsTile(x, y, CheeseEmptyGidA);
+                else if (gid == CheeseFullGidB) _map.SetObjectsTile(x, y, CheeseEmptyGidB);
+            }
         }
 
         private void StartBossBattle()

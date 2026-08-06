@@ -124,6 +124,16 @@ namespace FinalProject.World
             return null;
         }
 
+        // Reads/overwrites a single Objects-layer cell at runtime — for a
+        // one-off visual change tied to game state rather than a whole extra
+        // overlay layer (the elevator door's approach). The cheese stand
+        // swapping to its empty tile once picked up is the first user of this.
+        public int GetObjectsTileGid(int tileX, int tileY)
+            => _objectsLayer.InBounds(tileX, tileY) ? _objectsLayer.GetTileGid(tileX, tileY) : 0;
+
+        public void SetObjectsTile(int tileX, int tileY, int gid)
+            => _objectsLayer.SetTileGid(tileX, tileY, gid);
+
         private void DrawLayer(TileLayer layer, SpriteBatch spriteBatch,
                                 int minX, int minY, int maxX, int maxY)
         {

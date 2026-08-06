@@ -121,7 +121,7 @@ public class VendingMachineMenu
         if (_slideTimer < SlideSeconds)
             _slideTimer += (float)gameTime.ElapsedGameTime.TotalSeconds;
 
-        if (input.IsKeyPressed(Keys.X) || input.IsKeyPressed(Keys.LeftShift))
+        if (input.IsKeyPressed(Keys.X) || input.IsKeyPressed(Keys.RightShift))
         {
             Close();
             return;

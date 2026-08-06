@@ -1,0 +1,8 @@
+[
+  {
+    "tiles": [ { "x": 18, "y": 12 }, { "x": 18, "y": 13 } ],
+    "targetMap": "tiltan_hall",
+    "spawnX": 3,
+    "spawnY": 9
+  }
+]

@@ -25,7 +25,7 @@ namespace FinalProject.Data
 
             var items = new List<ItemData>();
             foreach (ItemJson i in data)
-                items.Add(new ItemData(i.Name, i.Description, i.HealAmount, i.Price, i.Kind, i.Defense));
+                items.Add(new ItemData(i.Name, i.Description, i.HealAmount, i.Price, i.Kind, i.Defense, i.Hidden));
             return items;
         }
 
@@ -40,6 +40,10 @@ namespace FinalProject.Data
             // food entries keep working untouched
             public ItemKind Kind { get; set; } = ItemKind.Consumable;
             public int Defense { get; set; }
+
+            // omitting "hidden" leaves an item shop-visible, so every existing
+            // entry keeps working untouched
+            public bool Hidden { get; set; }
         }
     }
 }

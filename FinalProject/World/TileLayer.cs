@@ -31,5 +31,14 @@ namespace FinalProject.World
         // True if the coordinate is within the layer bounds
         public bool InBounds(int tileX, int tileY)
             => tileX >= 0 && tileY >= 0 && tileX < Width && tileY < Height;
+
+        // Overwrites one cell's tile ID at runtime — the cheese pickup swapping
+        // its plate to the empty variant, say. The array itself is mutable even
+        // though the field holding it is readonly; only out-of-bounds is guarded.
+        public void SetTileGid(int tileX, int tileY, int gid)
+        {
+            if (!InBounds(tileX, tileY)) return;
+            _data[tileY * Width + tileX] = gid;
+        }
     }
 }

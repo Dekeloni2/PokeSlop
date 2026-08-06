@@ -12,10 +12,16 @@ namespace FinalProject.Data
         // only meaningful on armor — how much it takes off each hit
         public int Defense { get; }
 
+        // true for items that exist but aren't for sale (found, not bought —
+        // the hall's pickable cheese is the first one). Game1.OpenVendingMachine
+        // filters these out of what the shop shows; everything else about them
+        // (healing, taking up bag space) works the same as a bought item
+        public bool Hidden { get; }
+
         public bool IsEquipment => Kind == ItemKind.Armor;
 
         public ItemData(string name, string description, int healAmount, int price,
-                        ItemKind kind = ItemKind.Consumable, int defense = 0)
+                        ItemKind kind = ItemKind.Consumable, int defense = 0, bool hidden = false)
         {
             Name        = name;
             Description = description;
@@ -23,6 +29,7 @@ namespace FinalProject.Data
             Price       = price;
             Kind        = kind;
             Defense     = defense;
+            Hidden      = hidden;
         }
     }
 }

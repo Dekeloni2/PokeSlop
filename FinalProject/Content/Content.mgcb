@@ -236,6 +236,30 @@
 /processorParam:TextureFormat=Color
 /build:Sprites/Tilesets/cheese.png
 
+#begin Sprites/Tilesets/toilet.png
+/importer:TextureImporter
+/processor:TextureProcessor
+/processorParam:ColorKeyColor=255,0,255,255
+/processorParam:ColorKeyEnabled=False
+/processorParam:GenerateMipmaps=False
+/processorParam:PremultiplyAlpha=True
+/processorParam:ResizeToPowerOfTwo=False
+/processorParam:MakeSquare=False
+/processorParam:TextureFormat=Color
+/build:Sprites/Tilesets/toilet.png
+
+#begin Sprites/Tilesets/toilet_back.png
+/importer:TextureImporter
+/processor:TextureProcessor
+/processorParam:ColorKeyColor=255,0,255,255
+/processorParam:ColorKeyEnabled=False
+/processorParam:GenerateMipmaps=False
+/processorParam:PremultiplyAlpha=True
+/processorParam:ResizeToPowerOfTwo=False
+/processorParam:MakeSquare=False
+/processorParam:TextureFormat=Color
+/build:Sprites/Tilesets/toilet_back.png
+
 #begin Sprites/Battle/attack.png
 /importer:TextureImporter
 /processor:TextureProcessor
@@ -528,6 +552,18 @@
 /processor:SoundEffectProcessor
 /processorParam:Quality=Best
 /build:Audio/SFX/snd_buyitem.wav
+
+#begin Audio/SFX/snd_toilet.wav
+/importer:WavImporter
+/processor:SoundEffectProcessor
+/processorParam:Quality=Best
+/build:Audio/SFX/snd_toilet.wav
+
+#begin Audio/SFX/snd_dumbvictory.wav
+/importer:WavImporter
+/processor:SoundEffectProcessor
+/processorParam:Quality=Best
+/build:Audio/SFX/snd_dumbvictory.wav
 
 
 #begin Sprites/World/dummy.png

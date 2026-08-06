@@ -208,6 +208,19 @@ namespace FinalProject.States
                 _fadeOut        = 0f;
 
                 LoadMap(map, x, y);
+
+                // the very first time the elevator (or however else) lands
+                // the player on tiltan_hall, the Undertale-style credits play
+                // instead of fading straight in — Resume() (called when it
+                // pops) picks up the fade-in from there, so the sequence
+                // reads as one continuous transition rather than a detour
+                if (map == "tiltan_hall" && !Game.HasFirstCreditPlayed)
+                {
+                    Game.HasFirstCreditPlayed = true;
+                    StateManager.Push(new CreditsIntroState(Game, StateManager));
+                    return;
+                }
+
                 _fadeInLeft = FadeInSeconds;
                 return;
             }

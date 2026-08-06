@@ -52,6 +52,13 @@ namespace FinalProject
         // the item catalog, straight from items.json
         public List<ItemData> Items { get; private set; } = new();
 
+        // lives here rather than on OverworldState so it survives even if
+        // OverworldState itself is ever rebuilt (e.g. starting a fresh run
+        // from the main menu after an ending) — the credits should still
+        // only ever play once per time the game is actually launched. See
+        // CreditsIntroState and OverworldState's pending-load handling.
+        public bool HasFirstCreditPlayed { get; set; }
+
         // by name, as teacher JSON refers to them. null if nothing matches
         public ItemData FindItem(string name)
         {
@@ -148,6 +155,8 @@ namespace FinalProject
             SoundManager.AddSound("doorShut", "Audio/SFX/snd_elecdoor_shut");
             SoundManager.AddSound("bell",     "Audio/SFX/snd_bell");
             SoundManager.AddSong("elevator",  "Audio/Music/mus_elevator");
+            // the Undertale-style credits sting, see CreditsIntroState
+            SoundManager.AddSound("mus_intronoise", "Audio/Music/mus_intronoise");
             // walking-around music. OverworldState.AreaMusic says which maps get it
             SoundManager.AddSong("overworld", "Audio/Music/OverworldMusic");
             // same track, pitched down — swapped in for the hallway once the

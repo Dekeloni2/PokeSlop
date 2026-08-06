@@ -378,6 +378,15 @@
 /processorParam:Quality=Best
 /build:Audio/Music/OverworldMusicGenocide.ogg
 
+# the Undertale-style intro stinger — a short jingle played on its own cue
+# (up to three times in a row for the credits sequence), not a looping
+# background track, so it's a SoundEffect like beep_sound rather than a Song
+#begin Audio/Music/mus_intronoise.ogg
+/importer:OggImporter
+/processor:SoundEffectProcessor
+/processorParam:Quality=Best
+/build:Audio/Music/mus_intronoise.ogg
+
 #begin Audio/SFX/snd_elecdoor_shut.wav
 /importer:WavImporter
 /processor:SoundEffectProcessor

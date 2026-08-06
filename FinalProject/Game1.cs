@@ -157,6 +157,8 @@ namespace FinalProject
             SoundManager.AddSong("elevator",  "Audio/Music/mus_elevator");
             // the Undertale-style credits sting, see CreditsIntroState
             SoundManager.AddSound("mus_intronoise", "Audio/Music/mus_intronoise");
+            // plays as the main menu fades to white on "Begin Game", see MainMenuState
+            SoundManager.AddSound("mus_cymbal", "Audio/Music/mus_cymbal");
             // walking-around music. OverworldState.AreaMusic says which maps get it
             SoundManager.AddSong("overworld", "Audio/Music/OverworldMusic");
             // same track, pitched down — swapped in for the hallway once the

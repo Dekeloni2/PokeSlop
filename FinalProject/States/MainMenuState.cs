@@ -29,6 +29,14 @@ namespace FinalProject.States
         private readonly string[] _menuOptions = { "Begin Game", "Settings" };
         private int _selectedIndex = 0;
 
+        // "Begin Game" doesn't cut to the overworld directly — the screen
+        // fades to white over mus_cymbal (~5.19s), then swaps the instant
+        // it's fully white, so the actual state change lands on a blank
+        // frame rather than a visible pop
+        private const float StartGameFadeSeconds = 5.3f;
+        private bool  _startingGame;
+        private float _startGameFadeT;
+
         // shared with OverworldMenu's in-game C-menu settings, so the same
         // knobs behave identically whether opened before or during a run
         private readonly SettingsMenu _settings;
@@ -41,14 +49,26 @@ namespace FinalProject.States
 
         public override void OnEnter()
         {
-            _selectedIndex = 0;
-            _currentScreen = ScreenState.Main;
+            _selectedIndex  = 0;
+            _currentScreen  = ScreenState.Main;
+            _startingGame   = false;
+            _startGameFadeT = 0f;
 
             //StateManager.Replace(new OverworldState(Game, StateManager)); //---------------------------------remove comment to skip the menu--------------------------
         }
 
         public override void Update(GameTime gameTime)
         {
+            // owns input outright while it plays — no backing out of a
+            // fade that's already committed to starting the run
+            if (_startingGame)
+            {
+                _startGameFadeT += (float)gameTime.ElapsedGameTime.TotalSeconds;
+                if (_startGameFadeT >= StartGameFadeSeconds)
+                    StateManager.Replace(new OverworldState(Game, StateManager));
+                return;
+            }
+
             if (Game.Input.IsKeyPressed(Keys.X) || Game.Input.IsKeyPressed(Keys.Escape))
             {
                 if (_currentScreen == ScreenState.Settings)
@@ -94,7 +114,11 @@ namespace FinalProject.States
                 SoundManager.Play(SoundManager.MenuSelect);
 
                 if (_selectedIndex == 0)
-                    StateManager.Replace(new OverworldState(Game, StateManager));
+                {
+                    _startingGame   = true;
+                    _startGameFadeT = 0f;
+                    SoundManager.Play("mus_cymbal");
+                }
                 else if (_selectedIndex == 1)
                 {
                     _currentScreen = ScreenState.Settings;
@@ -184,6 +208,15 @@ namespace FinalProject.States
                 // Draw helper key tip at bottom
                 DrawText(spriteBatch, "[LEFT/RIGHT] Adjust    [X] Back",
                     new Vector2(LeftMargin, lineY + 30), Color.DarkGray, HintScale);
+            }
+
+            // over everything above, growing to solid white as the run starts
+            if (_startingGame)
+            {
+                float t = MathHelper.Clamp(_startGameFadeT / StartGameFadeSeconds, 0f, 1f);
+                spriteBatch.Draw(Game.PixelTexture,
+                    new Rectangle(0, 0, GameSettings.WindowWidth, GameSettings.WindowHeight),
+                    Color.White * t);
             }
 
             spriteBatch.End();

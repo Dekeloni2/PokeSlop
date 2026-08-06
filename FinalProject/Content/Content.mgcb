@@ -387,6 +387,14 @@
 /processorParam:Quality=Best
 /build:Audio/Music/mus_intronoise.ogg
 
+# plays once as the main menu fades to white on "Begin Game" — a one-shot
+# swell, not a loop, so SoundEffect rather than Song
+#begin Audio/Music/mus_cymbal.ogg
+/importer:OggImporter
+/processor:SoundEffectProcessor
+/processorParam:Quality=Best
+/build:Audio/Music/mus_cymbal.ogg
+
 #begin Audio/SFX/snd_elecdoor_shut.wav
 /importer:WavImporter
 /processor:SoundEffectProcessor

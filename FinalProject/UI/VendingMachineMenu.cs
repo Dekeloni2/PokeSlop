@@ -121,7 +121,7 @@ public class VendingMachineMenu
         if (_slideTimer < SlideSeconds)
             _slideTimer += (float)gameTime.ElapsedGameTime.TotalSeconds;
 
-        if (input.IsKeyPressed(Keys.X) || input.IsKeyPressed(Keys.Escape))
+        if (input.IsKeyPressed(Keys.X) || input.IsKeyPressed(Keys.LeftShift))
         {
             Close();
             return;
@@ -194,7 +194,7 @@ public class VendingMachineMenu
         SoundManager.Play("snd_buyitem");
         playerData.Money -= item.Price;
         playerData.Inventory.Add(item);
-        _statusMessage = "Thanks!";
+        _statusMessage = "Toda, nismach lir'otcha shuv";
     }
 
     // ── Draw ─────────────────────────────────────────────────────────────────

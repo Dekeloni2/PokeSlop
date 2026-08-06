@@ -62,6 +62,15 @@ namespace FinalProject.States
             (int)TeacherAnchor.X, (int)TeacherAnchor.Y,
             (int)_teacherSprite.Size.X, (int)_teacherSprite.Size.Y);
 
+        // true once the dodge about to start (or already running) has asked
+        // for him off screen — DodgePhase.Start runs the moment StartDodge
+        // constructs it, so this is already correct during the shrink into
+        // Dodging, not just once Dodging itself is current. Without this the
+        // box-shrink transition after an IntroLeap briefly showed the idle
+        // teacher and the buttons again, undoing the leap that just cleared
+        // the stage for him
+        private bool TeacherHiddenForDodge => _dodgePhase != null && !_dodgePhase.TeacherVisible;
+
         // slash + damage number + the teacher's HP bar, shown right after a hit
         private readonly DamageDisplay _damageDisplay = new();
 
@@ -128,6 +137,11 @@ namespace FinalProject.States
         // an attack waiting behind its intro cutscene, started once he's done
         private IBulletPattern _pendingPattern;
         private MoveData       _pendingMove;
+
+        // MoveData.IntroLeap's timer — counts through TeacherLeap.TotalSeconds
+        // while he crouches and launches off screen, see UpdateMoveLeap
+        private float _leapTimer;
+        private bool  _leapJumpPlayed; // plays once, right as the crouch releases into the launch
 
         // the move currently being dodged, kept so its Outro can be found once
         // the attack finishes. null on the provoked path, which has no move
@@ -291,6 +305,10 @@ namespace FinalProject.States
                     UpdateMoveIntro(gameTime);
                     break;
 
+                case BattlePhase.MoveLeap:
+                    UpdateMoveLeap(gameTime);
+                    break;
+
                 case BattlePhase.MoveOutro:
                     UpdateMoveOutro(gameTime);
                     break;
@@ -371,7 +389,18 @@ namespace FinalProject.States
             {
                 // not drawn while dodging, attacks like napoleon take over the
                 // whole screen and it would just clash
-                _teacherSprite.Draw(spriteBatch, TeacherAnchor);
+                if (_phase == BattlePhase.MoveLeap)
+                {
+                    TeacherLeap.Pose(_leapTimer, out float rise, out float scaleX, out float scaleY);
+                    Vector2 leapAnchor = TeacherAnchor - new Vector2(0f, rise * LeapOffscreenDistance);
+                    _teacherSprite.Draw(spriteBatch, leapAnchor, new Vector2(scaleX, scaleY));
+                }
+                // BoxTransition shrinking into a dodge that wants him gone —
+                // see TeacherHiddenForDodge
+                else if (!TeacherHiddenForDodge)
+                {
+                    _teacherSprite.Draw(spriteBatch, TeacherAnchor);
+                }
 
                 // slash/number/HP bar, only alive right after a hit
                 _damageDisplay.Draw(spriteBatch, Game.PixelTexture);
@@ -410,7 +439,9 @@ namespace FinalProject.States
                 // his last stand takes them away too — nothing to press until
                 // he's finished talking
                 if (_phase != BattlePhase.Yielding && _phase != BattlePhase.MoveIntro
-                                                   && _phase != BattlePhase.MoveOutro)
+                                                   && _phase != BattlePhase.MoveLeap
+                                                   && _phase != BattlePhase.MoveOutro
+                                                   && !TeacherHiddenForDodge)
                     _menu.Draw(spriteBatch, showSoul: _phase == BattlePhase.SelectingMove);
             }
 
@@ -831,11 +862,55 @@ namespace FinalProject.States
             if (_bubble.IsActive) return; // let him finish
 
             _bubble.Clear();
+
+            // moves flagged IntroLeap (David's ultimate) don't just cut to the
+            // attack — he crouches and launches off screen first, same leap
+            // PunchPattern uses between hits. see UpdateMoveLeap
+            if (_pendingMove != null && _pendingMove.IntroLeap)
+            {
+                _leapTimer      = 0f;
+                _leapJumpPlayed = false;
+                _phase          = BattlePhase.MoveLeap;
+                return;
+            }
+
             StartDodge(_pendingPattern, _pendingMove);
 
             _pendingPattern = null;
             _pendingMove    = null;
         }
+
+        // ── Phase: MoveLeap ──────────────────────────────────────────────────
+
+        // the crouch-and-launch wind up for a move whose intro ends with him
+        // leaving the screen (see MoveData.IntroLeap) rather than a straight
+        // cut into the attack. Shares its pose with PunchPattern's own leap
+        // (TeacherLeap), just measured off the idle sprite's height instead of
+        // the assembled rig PunchPattern draws for itself — see LeapOffscreenDistance
+        private void UpdateMoveLeap(GameTime gameTime)
+        {
+            _leapTimer += (float)gameTime.ElapsedGameTime.TotalSeconds;
+
+            // the crouch releasing into the launch — same beat PunchPattern's
+            // own leap plays it on, see JumpSound there
+            if (!_leapJumpPlayed && _leapTimer >= TeacherLeap.ChargeSeconds)
+            {
+                _leapJumpPlayed = true;
+                SoundManager.Play("slash");
+            }
+
+            if (_leapTimer < TeacherLeap.TotalSeconds) return;
+
+            StartDodge(_pendingPattern, _pendingMove);
+
+            _pendingPattern = null;
+            _pendingMove    = null;
+        }
+
+        // how far he has to rise before he's fully clear of the screen —
+        // generous like PunchPattern's OffscreenY, measured off the idle
+        // sprite since that's the only rig this phase draws
+        private float LeapOffscreenDistance => _teacherSprite.Size.Y * 1.6f + 60f;
 
         // ── Phase: BoxTransition ─────────────────────────────────────────────
 
@@ -1357,5 +1432,5 @@ namespace FinalProject.States
 
     public enum PlayerMoveList { Attack, Act, Item, Spare }
 
-    public enum BattlePhase { SelectingMove, ActionMenu, AttackMinigame, ExecutingTurn, TurnFeedback, BoxTransition, MoveIntro, Dodging, MoveOutro, Yielding, Ending, PlayerDying, BattleOver }
+    public enum BattlePhase { SelectingMove, ActionMenu, AttackMinigame, ExecutingTurn, TurnFeedback, BoxTransition, MoveIntro, MoveLeap, Dodging, MoveOutro, Yielding, Ending, PlayerDying, BattleOver }
 }

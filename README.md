@@ -212,6 +212,6 @@ Content is built automatically from `FinalProject/Content/Content.mgcb` as part 
 
 The battle system is complete and the teachers are data-driven. Three teachers are implemented — **Yakir** (five attacks including a full four-lesson arc), **David** (hexagons, punch) and **Dor Ben Dor** (chess, cloverbyte, boat, napoleon) — alongside a training dummy that teaches the blue/orange dodge rules and a debug "Substitute" used for testing patterns in isolation.
 
-The full loop is wired end to end: main menu → overworld → a classroom door opens a real fight (with locked/spared/killed reactions and prerequisites between teachers) → win or lose → one of eight endings once the run is over, or a revive back into the overworld on defeat. The overworld also supports free movement, map transitions, warps, interactables, dialogue, a working elevator between floors, and a shop.
+The full loop is wired end to end and the game is functionally complete: main menu → overworld → a classroom door opens a real fight (with locked/spared/killed reactions and prerequisites between teachers) → win or lose → one of eight endings once the run is over, or a revive back into the overworld on defeat. The overworld also supports free movement, map transitions, warps, interactables, dialogue, a working elevator between floors, and a shop.
 
-Still to come: more floors/teachers beyond the current three, and further balancing of the mercy/ACT text now that the full loop is playable.
+Still to come is polish rather than functionality: cosmetic touch-ups to the Tiltan Hall map, and an additional Bathroom map, both in progress.

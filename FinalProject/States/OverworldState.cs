@@ -40,11 +40,18 @@ namespace FinalProject.States
         // player menu
         private OverworldMenu _menu;
 
+        // the one soul-cursor Yes/No box every prompt in this file shares —
+        // boss gates, the toilet, the cheese, the keypad. Only one of them is
+        // ever open at a time, so a single instance is all that's needed; the
+        // *ChoiceActive flags by each feature below are what tell its
+        // resolution (see the _choiceBox.IsActive block in Update) which
+        // On...ChoiceMade to call.
+        private ChoiceBox _choiceBox;
+
         // ── Boss gates ───────────────────────────────────────────────────────
-        // walking into a BossGate's tiles asks "enter his class?" with the
-        // soul-cursor ChoiceBox, plays the teacher's own greeting on Yes, then
-        // hands off to the battle transition. See CheckBossGates/OpenBossGate.
-        private ChoiceBox     _bossChoiceBox;
+        // walking into a BossGate's tiles asks "enter his class?" on the
+        // shared choice box above, plays the teacher's own greeting on Yes,
+        // then hands off to the battle transition. See CheckBossGates/OpenBossGate.
         private BossGate      _pendingGate;         // the gate currently being resolved
         private TeacherStats  _pendingGateTeacher;   // its teacher, loaded once and carried through the steps
         private bool          _awaitingBossChoice;   // the prompt just closed, bring up Yes/No
@@ -61,7 +68,7 @@ namespace FinalProject.States
         // asks "flush it?" on the same shared Yes/No ChoiceBox the boss gates
         // use. _toiletChoiceActive is what tells the shared box's resolution
         // below which of the two flows ("enter his class?" or "flush it?") to
-        // route the answer to, since only one _bossChoiceBox exists
+        // route the answer to, since only one _choiceBox exists
         private bool  _awaitingToiletChoice; // the prompt just closed, bring up Yes/No
         private bool  _toiletChoiceActive;   // the Yes/No currently up is this one, not a boss gate's
 
@@ -88,6 +95,16 @@ namespace FinalProject.States
         private const int CheeseEmptyGidA = 1385;
         private const int CheeseEmptyGidB = 1386;
 
+        // ── Keypad ───────────────────────────────────────────────────────────
+        // floor_2's Action "keypad" — same shared Yes/No ChoiceBox once more,
+        // see _toiletChoiceActive above for why a dispatch flag is needed.
+        // Whatever code gets dialed in, there's no correct one — Cloverbyte
+        // never gave the player the real digits, so confirming always answers
+        // "Incorrect code."
+        private bool _awaitingKeypadChoice; // the prompt just closed, bring up Yes/No
+        private bool _keypadChoiceActive;   // the Yes/No currently up is this one
+        private KeypadEntry _keypadEntry;
+
         // Cache of already-loaded maps so backtracking doesn't re-parse JSON from disk
         private readonly Dictionary<string, TileMap> _mapCache = new();
 
@@ -100,7 +117,8 @@ namespace FinalProject.States
             _dialogueBox   = new DialogueBox(Game.PixelTexture, Game.DialogueFont);
             _menu          = new OverworldMenu(Game, Game.PixelTexture, Game.DialogueFont);
             _elevator      = new ElevatorSequence(Game.PixelTexture, Game.DialogueFont);
-            _bossChoiceBox = new ChoiceBox(Game.PixelTexture, Game.DialogueFont);
+            _choiceBox = new ChoiceBox(Game.PixelTexture, Game.DialogueFont);
+            _keypadEntry   = new KeypadEntry(Game.PixelTexture, Game.DialogueFont);
             // TODO: swap back to the real starting map once the tileset rework
             // lands — pointed at "entrance" for now to test the Interactables layer.
             LoadMap("entrance", 6, 14);
@@ -252,6 +270,13 @@ namespace FinalProject.States
 
                 LoadMap(map, x, y);
 
+                // the panel and the keypad both sit above the spawn point on
+                // their respective maps, so arriving there always faces up
+                // rather than keeping whatever direction the player walked in
+                // facing on the map they just left
+                if (map == "elevator" || map == "floor_2")
+                    _player.Face(Direction.Up);
+
                 // the very first time the elevator (or however else) lands
                 // the player on tiltan_hall, the Undertale-style credits play
                 // instead of fading straight in — Resume() (called when it
@@ -284,26 +309,32 @@ namespace FinalProject.States
                 return;
             }
 
-            // Boss gate's Yes/No prompt owns input while it's up (also used
-            // for the toilet's "flush it?" and the cheese's "pick it up?" —
-            // see _toiletChoiceActive/_cheeseChoiceActive)
-            if (_bossChoiceBox.IsActive)
+            // the shared Yes/No box owns input while it's up — a boss gate's
+            // "enter his class?", the toilet's "flush it?", the cheese's
+            // "pick it up?", or the keypad's "type code in?" — see the
+            // matching *ChoiceActive flags for which one is currently open
+            if (_choiceBox.IsActive)
             {
-                if (_bossChoiceBox.Update(Game.Input))
+                if (_choiceBox.Update(Game.Input))
                 {
                     if (_toiletChoiceActive)
                     {
                         _toiletChoiceActive = false;
-                        OnToiletChoiceMade(_bossChoiceBox.SelectedIndex);
+                        OnToiletChoiceMade(_choiceBox.SelectedIndex);
                     }
                     else if (_cheeseChoiceActive)
                     {
                         _cheeseChoiceActive = false;
-                        OnCheeseChoiceMade(_bossChoiceBox.SelectedIndex);
+                        OnCheeseChoiceMade(_choiceBox.SelectedIndex);
+                    }
+                    else if (_keypadChoiceActive)
+                    {
+                        _keypadChoiceActive = false;
+                        OnKeypadChoiceMade(_choiceBox.SelectedIndex);
                     }
                     else
                     {
-                        OnBossChoiceMade(_bossChoiceBox.SelectedIndex);
+                        OnBossChoiceMade(_choiceBox.SelectedIndex);
                     }
                 }
                 return;
@@ -319,6 +350,15 @@ namespace FinalProject.States
                     SoundManager.Play("snd_dumbvictory");
                     _dialogueBox.Open("You have flushed the toilet. You successfully wasted water.");
                 }
+                return;
+            }
+
+            // the keypad owns input while it's up — confirming a code always
+            // fails, see the field comment on _keypadEntry
+            if (_keypadEntry.IsActive)
+            {
+                if (_keypadEntry.Update(Game.Input))
+                    _dialogueBox.Open("Incorrect code.");
                 return;
             }
 
@@ -353,7 +393,7 @@ namespace FinalProject.States
             if (_awaitingBossChoice)
             {
                 _awaitingBossChoice = false;
-                _bossChoiceBox.Open(new List<string> { "Yes", "No" });
+                _choiceBox.Open(new List<string> { "Yes", "No" });
                 return;
             }
 
@@ -362,7 +402,7 @@ namespace FinalProject.States
             {
                 _awaitingToiletChoice = false;
                 _toiletChoiceActive   = true;
-                _bossChoiceBox.Open(new List<string> { "Yes", "No" });
+                _choiceBox.Open(new List<string> { "Yes", "No" });
                 return;
             }
 
@@ -371,7 +411,16 @@ namespace FinalProject.States
             {
                 _awaitingCheeseChoice = false;
                 _cheeseChoiceActive   = true;
-                _bossChoiceBox.Open(new List<string> { "Yes", "No" });
+                _choiceBox.Open(new List<string> { "Yes", "No" });
+                return;
+            }
+
+            // the "type code in?" prompt just closed, bring up its own Yes/No
+            if (_awaitingKeypadChoice)
+            {
+                _awaitingKeypadChoice = false;
+                _keypadChoiceActive   = true;
+                _choiceBox.Open(new List<string> { "Yes", "No" });
                 return;
             }
 
@@ -466,7 +515,8 @@ namespace FinalProject.States
             // UI layer — screen space, unaffected by the world camera's zoom/scroll.
             spriteBatch.Begin(samplerState: SamplerState.PointClamp);
             _dialogueBox.Draw(spriteBatch);
-            _bossChoiceBox.Draw(spriteBatch);
+            _choiceBox.Draw(spriteBatch);
+            _keypadEntry.Draw(spriteBatch);
             _elevator.Draw(spriteBatch);
             _menu.Draw(spriteBatch, Game.PlayerData);
 
@@ -530,6 +580,12 @@ namespace FinalProject.States
                     _dialogueBox.Open("This is here because we don't have any assets.|"
                         + "Wait a minute, this cheese is pickable?|Pick up cheese?");
                     _awaitingCheeseChoice = true;
+                    return;
+
+                // floor_2's keypad — see OnKeypadChoiceMade for the payoff
+                case "keypad":
+                    _dialogueBox.Open("There is a keypad that allows you access to Cloverbyte offices. Type code in?");
+                    _awaitingKeypadChoice = true;
                     return;
 
                 // no Action, or one that isn't handled — it's a sign. Staying
@@ -811,6 +867,17 @@ namespace FinalProject.States
             }
         }
 
+        // "type code in?" answered. No leaves the keypad alone; Yes opens the
+        // dialer — see the _keypadEntry.IsActive block in Update for the
+        // "Incorrect code." payoff once a code is actually confirmed
+        private void OnKeypadChoiceMade(int selectedIndex)
+        {
+            const int YesIndex = 0;
+            if (selectedIndex != YesIndex) return;
+
+            _keypadEntry.Open();
+        }
+
         private void StartBossBattle()
         {
             TeacherStats stats  = _pendingGateTeacher;
@@ -921,7 +988,7 @@ namespace FinalProject.States
             _awaitingBossChoice = false;
             _awaitingBossBattle = false;
             _bossGateCooldown   = null;
-            _bossChoiceBox.Close();
+            _choiceBox.Close();
 
             EventBus.Instance.Publish(new AreaChangedEvent(_currentAreaName));
             UpdateAreaMusic();

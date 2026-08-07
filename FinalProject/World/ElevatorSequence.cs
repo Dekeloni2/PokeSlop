@@ -38,7 +38,7 @@ namespace FinalProject.World
         private static readonly (int Floor, string Label, string Map, int X, int Y)[] Floors =
         {
             (0, "Floor 0", "entrance",    6, 14),
-            (2, "Floor 2", null,          0,  0),
+            (2, "Floor 2", "floor_2",    10, 18),
             (3, "Floor 3", "tiltan_hall", 53, 7),
         };
 

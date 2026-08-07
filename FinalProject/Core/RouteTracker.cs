@@ -4,10 +4,6 @@ using FinalProject.Events;
 
 namespace FinalProject.Core
 {
-    // which way the run is going. sparing everyone is the good ending, killing
-    // everyone is the other one, and anything in between is neutral
-    public enum Route { Pacifist, Neutral, Genocide }
-
     // remembers how every teacher's fight ended, so the ending can react to the
     // whole run rather than the last fight.
     //
@@ -37,18 +33,6 @@ namespace FinalProject.Core
         // David" is a different ending from the other way round
         public IEnumerable<string> KilledIds
             => _resolved.Where(p => p.Value == BattleOutcome.Killed).Select(p => p.Key);
-
-        public IEnumerable<string> SparedIds
-            => _resolved.Where(p => p.Value == BattleOutcome.Spared).Select(p => p.Key);
-
-        // how many fights have been settled either way
-        public int ResolvedCount => _resolved.Count;
-
-        // killing is what taints a run, so a run with no kills is still clean
-        // even before anyone has been fought
-        public Route Current => Killed == 0 ? Route.Pacifist
-                              : Spared == 0 ? Route.Genocide
-                              :               Route.Neutral;
 
         // null when that teacher hasn't been fought to a finish yet
         public BattleOutcome? OutcomeFor(string teacherId)

@@ -117,8 +117,6 @@ namespace FinalProject.Core.Audio
         // the ending's phone call
         public const string PhoneRing  = "snd_phone";
 
-        public static void PlayTextBeep() => Play(TextBeepName);
-
         // only blips if text[from..to) has an actual character in it, so
         // spaces and newlines stay quiet
         public static void PlayTextBeep(string text, int from, int to)
@@ -168,9 +166,7 @@ namespace FinalProject.Core.Audio
         public static void RefreshMusicVolume()
             => MediaPlayer.Volume = MathHelper.Clamp(MusicVolume * _currentTrackVolume, 0f, 1f);
 
-        public static void StopMusic()   => MediaPlayer.Stop();
-        public static void PauseMusic()  => MediaPlayer.Pause();
-        public static void ResumeMusic() => MediaPlayer.Resume();
+        public static void StopMusic() => MediaPlayer.Stop();
 
         // ── loops ─────────────────────────────────────────────────────────────
         // Play() can't be stopped, so anything that runs while something is

@@ -21,8 +21,4 @@ public class InputManager
     // True only on the first frame the key goes down.
     public bool IsKeyPressed(Keys key)
         => _current.IsKeyDown(key) && !_previous.IsKeyDown(key);
-
-    // True only on the first frame the key is released.
-    public bool IsKeyReleased(Keys key)
-        => !_current.IsKeyDown(key) && _previous.IsKeyDown(key);
 }

@@ -11,10 +11,7 @@ public static class GameSettings
     public const int  WindowHeight = 480;
 
     public const int TileSize = 20;
-    
-    public static int TilesWide => WindowWidth / TileSize;
-    public static int TilesTall => WindowHeight / TileSize;
-    
+
     public const float Zoom = 2f;
 
     // undertale moves 2px per frame at 30fps, so 60px/sec. ours is time based

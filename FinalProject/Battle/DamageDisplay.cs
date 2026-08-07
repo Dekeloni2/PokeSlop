@@ -1,3 +1,4 @@
+using System;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using FinalProject.Core.Graphics;
@@ -49,6 +50,11 @@ namespace FinalProject.Battle
         // for a teacher that dodges everything and can only be ACTed past
         private static readonly Rectangle Miss = new Rectangle(823, 4, 118, 30);
 
+        // the attack.png flipbook over the teacher — plays once per Show(),
+        // frozen on its last frame past SlashSeconds (DrawSlash stops drawing
+        // it by then anyway, see the _timer > SlashSeconds guard below)
+        private readonly Animation _slashAnim = new Animation("attackSlash");
+
         private bool  _active;
         private float _timer;
 
@@ -72,20 +78,25 @@ namespace FinalProject.Battle
             _box    = box;
             _timer  = 0f;
             _active = true;
+
+            _slashAnim.PlayOnce(SlashSeconds);
         }
 
         public void Hide() => _active = false;
 
         public void Update(float dt)
         {
-            if (_active) _timer += dt;
+            if (!_active) return;
+
+            _timer += dt;
+            _slashAnim.Update(new GameTime(TimeSpan.Zero, TimeSpan.FromSeconds(dt)));
         }
 
         public void Draw(SpriteBatch spriteBatch, Texture2D pixel)
         {
             if (!_active) return;
 
-            DrawSlash(spriteBatch, SpriteManager.GetSprite("attackSlash"));
+            DrawSlash(spriteBatch);
 
             // health and the number only come up once the slash has played out
             if (_timer < SlashSeconds) return;
@@ -95,26 +106,19 @@ namespace FinalProject.Battle
         }
 
         // plays attack.png once over him, scaled to about his height
-        private void DrawSlash(SpriteBatch spriteBatch, Spritesheet sheet)
+        private void DrawSlash(SpriteBatch spriteBatch)
         {
-            if (sheet == null || _timer > SlashSeconds) return;
+            if (_timer > SlashSeconds) return;
 
-            int frame = (int)(_timer / SlashSeconds * sheet.Columns);
-            if (frame >= sheet.Columns) frame = sheet.Columns - 1;
+            Rectangle? src = _slashAnim.CurrentFrame;
+            if (src == null || src.Value.Height <= 0) return;
 
-            Rectangle src = sheet[frame, 0];
-            if (src.Height <= 0) return;
+            float s = _target.Height / (float)src.Value.Height * SlashScale;
 
-            float s = _target.Height / (float)src.Height * SlashScale;
-            int   w = (int)(src.Width  * s);
-            int   h = (int)(src.Height * s);
+            _slashAnim.Transform.Position = new Vector2(_target.Center.X, _target.Center.Y);
+            _slashAnim.Transform.Scale    = new Vector2(s, s);
 
-            var dst = new Rectangle(
-                _target.Center.X - w / 2,
-                _target.Center.Y - h / 2,
-                w, h);
-
-            spriteBatch.Draw(sheet.Texture, dst, src, Color.White);
+            _slashAnim.Draw(spriteBatch);
         }
 
         private void DrawHpBar(SpriteBatch spriteBatch, Texture2D pixel)

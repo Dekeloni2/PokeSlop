@@ -57,8 +57,7 @@ namespace FinalProject.Battle
         private Vector2 _slideFrom;
         private float   _slideLeft;
 
-        public bool  IsGridMode => _gridMode;
-        public Point Tile       => _tile;
+        public Point Tile => _tile;
 
         public void EnterGrid(Point originPx, int tileSize, int cols, int rows, Point startTile)
         {

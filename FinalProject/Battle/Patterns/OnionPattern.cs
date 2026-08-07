@@ -23,9 +23,6 @@ public class OnionPattern : IBulletPattern
     private readonly int  _maxRings;  // 0 = keep layering for the full Duration
     private int _spawnedRings;
 
-    // so a host can tell whether there's still something live out there
-    public bool HasRings => _rings.Count > 0;
-
     public OnionPattern(bool ownsArena = true, int maxRings = 0)
     {
         _ownsArena = ownsArena;

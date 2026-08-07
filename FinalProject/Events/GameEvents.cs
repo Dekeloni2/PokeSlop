@@ -4,18 +4,6 @@ using FinalProject.Core;
 namespace FinalProject.Events
 
 {
-    public class AreaChangedEvent : GameEvent
-    {
-        
-        // Fired when the player moves into a new area.
-        // Listeners: HUD, AudioManager
-        public string NewAreaName { get;  }
-        public AreaChangedEvent(string newAreaName)
-        {
-            NewAreaName = newAreaName;
-        }
-    }
-
     // how a teacher's fight finished. only the two ways a teacher actually gets
     // resolved — losing to him doesn't settle anything, you just try again
     public enum BattleOutcome { Killed, Spared }

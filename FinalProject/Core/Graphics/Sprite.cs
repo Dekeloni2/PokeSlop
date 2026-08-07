@@ -38,6 +38,15 @@ public class Sprite
     {
         // Origin must be recalculated after the source rect updates, which
         // happens in Animation.Update — so this needs to run after that, not before.
+        RecalculateOrigin();
+    }
+
+    // exposed so a subclass that changes SourceRect outside of Update (e.g.
+    // Animation.Reset, picking frame (0,0) up front) can keep the origin in
+    // sync instead of leaving it at Vector2.Zero until the next Update call
+    protected void RecalculateOrigin()
+    {
+        if (!SourceRect.HasValue) return;
         _origin = new Vector2(SourceRect.Value.Width * 0.5f, SourceRect.Value.Height * 0.5f);
     }
 

@@ -26,7 +26,6 @@ namespace FinalProject.Core.Text
 
         public bool   IsFullyShown => _visibleChars >= _text.Length;
         public string VisibleText  => _text.Substring(0, _visibleChars);
-        public string FullText     => _text;
 
         public void SetText(string text)
         {

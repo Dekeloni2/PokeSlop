@@ -12,8 +12,6 @@ namespace FinalProject.Battle
     {
         private readonly List<Particle> _particles = new();
 
-        public int Count => _particles.Count;
-
         public void Spawn(Vector2 position, Vector2 velocity, float lifeSeconds,
                           int size, Color color, float fadeInSeconds = 0.3f,
                           Texture2D texture = null)

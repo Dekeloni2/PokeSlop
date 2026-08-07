@@ -36,9 +36,6 @@ public class Teacher
     public void TakeDamage(int amount)
         => CurrentHp = Math.Max(0, CurrentHp - amount);
 
-    public void Heal(int amount)
-        => CurrentHp = Math.Min(MaxHp, CurrentHp + amount);
-
     public void IncreaseSparePercent(int amount)
         => SparePercent = Math.Clamp(SparePercent + amount, 0, 100);
 

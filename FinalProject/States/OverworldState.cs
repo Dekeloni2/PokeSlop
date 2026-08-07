@@ -114,11 +114,9 @@ namespace FinalProject.States
         {
             _player      = new Player(Game, 6, 14);
             _camera      = new Camera();
-            _dialogueBox   = new DialogueBox(Game.PixelTexture, Game.DialogueFont);
-            _menu          = new OverworldMenu(Game, Game.PixelTexture, Game.DialogueFont);
-            _elevator      = new ElevatorSequence(Game.PixelTexture, Game.DialogueFont);
-            _choiceBox = new ChoiceBox(Game.PixelTexture, Game.DialogueFont);
-            _keypadEntry   = new KeypadEntry(Game.PixelTexture, Game.DialogueFont);
+            _elevator    = new ElevatorSequence(Game.PixelTexture, Game.DialogueFont);
+            _choiceBox   = new ChoiceBox(Game.PixelTexture, Game.DialogueFont);
+            _keypadEntry = new KeypadEntry(Game.PixelTexture, Game.DialogueFont);
             // TODO: swap back to the real starting map once the tileset rework
             // lands — pointed at "entrance" for now to test the Interactables layer.
             LoadMap("entrance", 6, 14);
@@ -373,8 +371,8 @@ namespace FinalProject.States
                 return;
             }
 
-            // Open Menu when C is pressed ─
-            if (Game.Input.IsKeyPressed(Keys.C))
+            // Open Menu when C (or LeftControl) is pressed ─
+            if (Game.Input.IsKeyPressed(Keys.C) || Game.Input.IsKeyPressed(Keys.LeftControl))
             {
                 SoundManager.Play(SoundManager.MenuSelect);
                 _menu.Open();
@@ -435,28 +433,6 @@ namespace FinalProject.States
             if (Game.Input.IsKeyPressed(Keys.Z) || Game.Input.IsKeyPressed(Keys.Enter))
             {
                 TryInteract();
-                return;
-            }
-            
-            if (_dialogueBox.IsActive)
-            {
-                _dialogueBox.Update(gameTime, Game.Input);
-                return;
-            }
-
-            if (_menu.IsActive)
-            {
-                _menu.Update(Game.Input, Game.PlayerData, (message) =>
-                {
-                    _menu.Close();
-                    _dialogueBox.Open(message);
-                });
-                return;
-            }
-
-            if (Game.Input.IsKeyPressed(Keys.C) || Game.Input.IsKeyPressed(Keys.LeftControl))
-            {
-                _menu.Open();
                 return;
             }
 
@@ -990,7 +966,6 @@ namespace FinalProject.States
             _bossGateCooldown   = null;
             _choiceBox.Close();
 
-            EventBus.Instance.Publish(new AreaChangedEvent(_currentAreaName));
             UpdateAreaMusic();
         }
 

@@ -58,21 +58,6 @@ namespace FinalProject.UI
             IsActive  = true;
         }
 
-        public void Close() => IsActive = false;
-
-        // digits dialed in so far, most significant first — read this once
-        // Update returns true, before the caller decides what it means
-        public string Code
-        {
-            get
-            {
-                var chars = new char[DigitCount];
-                for (int i = 0; i < DigitCount; i++)
-                    chars[i] = (char)('0' + _digits[i]);
-                return new string(chars);
-            }
-        }
-
         // returns true the frame Z confirms a code
         public bool Update(InputManager input)
         {

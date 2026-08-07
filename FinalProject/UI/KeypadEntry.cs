@@ -109,7 +109,7 @@ namespace FinalProject.UI
 
             // backing out without submitting anything — same X/Escape every
             // other menu in the overworld uses
-            if (input.IsKeyPressed(Keys.X) || input.IsKeyPressed(Keys.Escape))
+            if (input.IsKeyPressed(Keys.X) || input.IsKeyPressed(Keys.RightShift) || input.IsKeyPressed(Keys.Escape))
                 IsActive = false;
 
             return false;

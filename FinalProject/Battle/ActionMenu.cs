@@ -75,14 +75,14 @@ namespace FinalProject.Battle
                 }
             }
 
-            if (allowCancel && input.IsKeyPressed(Keys.X))
+            if (allowCancel && (input.IsKeyPressed(Keys.X) || input.IsKeyPressed(Keys.RightShift)))
             {
                 _pages.Pop();
                 _cursor = 0;
                 return _pages.Count > 0;
             }
 
-            if (input.IsKeyPressed(Keys.Z))
+            if (input.IsKeyPressed(Keys.Z) || input.IsKeyPressed(Keys.Enter))
             {
                 // first Z finishes the typing, second Z actually confirms
                 if (typewriter && !_typewriter.IsFullyShown)

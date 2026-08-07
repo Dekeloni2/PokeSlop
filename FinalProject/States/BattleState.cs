@@ -1218,7 +1218,7 @@ namespace FinalProject.States
 
             _victoryTyper.Update(dt);
 
-            if (!Game.Input.IsKeyPressed(Keys.Z)) return;
+            if (!Game.Input.IsKeyPressed(Keys.Z) && !Game.Input.IsKeyPressed(Keys.Enter)) return;
 
             // first Z finishes the typing, second starts the fade out
             if (!_victoryTyper.IsFullyShown) { _victoryTyper.SkipToEnd(); return; }

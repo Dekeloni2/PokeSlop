@@ -69,7 +69,7 @@ namespace FinalProject.States
                 return;
             }
 
-            if (Game.Input.IsKeyPressed(Keys.X) || Game.Input.IsKeyPressed(Keys.Escape))
+            if (Game.Input.IsKeyPressed(Keys.X) || Game.Input.IsKeyPressed(Keys.RightShift) || Game.Input.IsKeyPressed(Keys.Escape))
             {
                 if (_currentScreen == ScreenState.Settings)
                 {

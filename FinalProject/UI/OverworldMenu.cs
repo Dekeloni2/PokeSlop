@@ -139,7 +139,8 @@ namespace FinalProject.UI
                 case MenuState.Stat:
                 case MenuState.Cell:
                     // Any cancel / accept key returns to main menu
-                    if (input.IsKeyPressed(Keys.X) || input.IsKeyPressed(Keys.C) ||
+                    if (input.IsKeyPressed(Keys.X) || input.IsKeyPressed(Keys.RightShift) ||
+                        input.IsKeyPressed(Keys.C) ||
                         input.IsKeyPressed(Keys.Z) || input.IsKeyPressed(Keys.Enter) ||
                         input.IsKeyPressed(Keys.Escape))
                     {
@@ -156,7 +157,8 @@ namespace FinalProject.UI
         private void UpdateMain(InputManager input)
         {
             // Close the menu with X, C or Esc
-            if (input.IsKeyPressed(Keys.X) || input.IsKeyPressed(Keys.C) || input.IsKeyPressed(Keys.Escape))
+            if (input.IsKeyPressed(Keys.X) || input.IsKeyPressed(Keys.RightShift) ||
+                input.IsKeyPressed(Keys.C) || input.IsKeyPressed(Keys.Escape))
             {
                 Close();
                 return;
@@ -201,7 +203,8 @@ namespace FinalProject.UI
 
         private void UpdateSettings(InputManager input)
         {
-            if (input.IsKeyPressed(Keys.X) || input.IsKeyPressed(Keys.C) || input.IsKeyPressed(Keys.Escape))
+            if (input.IsKeyPressed(Keys.X) || input.IsKeyPressed(Keys.RightShift) ||
+                input.IsKeyPressed(Keys.C) || input.IsKeyPressed(Keys.Escape))
             {
                 SoundManager.Play(SoundManager.MenuSelect);
                 _state = MenuState.Main;
@@ -227,7 +230,8 @@ namespace FinalProject.UI
         private void UpdateItem(InputManager input, PlayerData playerData, Action<string> onMessage)
         {
             // Back out to main menu
-            if (input.IsKeyPressed(Keys.X) || input.IsKeyPressed(Keys.C) || input.IsKeyPressed(Keys.Escape))
+            if (input.IsKeyPressed(Keys.X) || input.IsKeyPressed(Keys.RightShift) ||
+                input.IsKeyPressed(Keys.C) || input.IsKeyPressed(Keys.Escape))
             {
                 SoundManager.Play(SoundManager.MenuSelect);
                 _state = MenuState.Main;

@@ -119,7 +119,7 @@ namespace FinalProject.UI
 
             _typer.Update((float)gameTime.ElapsedGameTime.TotalSeconds);
 
-            if (!input.IsKeyPressed(Keys.Z)) return;
+            if (!input.IsKeyPressed(Keys.Z) && !input.IsKeyPressed(Keys.Enter)) return;
 
             if (!_typer.IsFullyShown) { _typer.SkipToEnd(); return; }
 

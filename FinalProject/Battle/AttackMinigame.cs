@@ -51,7 +51,7 @@ namespace FinalProject.Battle
                         break;
                     }
 
-                    if (input.IsKeyPressed(Keys.Z))
+                    if (input.IsKeyPressed(Keys.Z) || input.IsKeyPressed(Keys.Enter))
                     {
                         float halfWidth = _zone.Width / 2f;
                         DamageMultiplier = 1f - Math.Abs(_barX - _zone.Center.X) / halfWidth;

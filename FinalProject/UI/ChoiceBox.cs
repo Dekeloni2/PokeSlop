@@ -79,7 +79,7 @@ namespace FinalProject.UI
                 SoundManager.Play(SoundManager.MenuMove);
             }
 
-            if (!input.IsKeyPressed(Keys.Z)) return false;
+            if (!input.IsKeyPressed(Keys.Z) && !input.IsKeyPressed(Keys.Enter)) return false;
 
             SoundManager.Play(SoundManager.MenuSelect);
             SelectedIndex = _cursor;

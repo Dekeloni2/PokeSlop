@@ -36,7 +36,7 @@ Every teacher has a hidden mercy value. The right ACT choices raise it; the wron
 On the teacher's turn the battle box becomes the arena and you control your soul inside it with the arrow keys. Each teacher has their own **bullet patterns**, and the patterns are the characterisation:
 
 - **Yakir**, the C# teacher, doesn't attack so much as *teach*. His turns are a four-lesson curriculum — data types, conditionals, loops, and finally a program that runs against the battle box itself, resizing and dragging the arena while code rains down. His ultimate is the single pixel he has spent his whole career failing to draw.
-- **David**, The math teacher, uses both his body and shapes to attack you. 
+- **David**, the math teacher, uses both his body and shapes to attack you — onion-ring waves, a hexagon barrage, a heavy punch he leaps off screen and back in to throw. His ultimate puts a song on and layers all three on top of it at once, with a real crouch-and-launch exit animation before it starts.
 - **Dor Ben Dor** uses objects that are close to him or to his profession. Such as a Chess board, a boat that he fought over with his sister, or cloverbyte. Each time he uses those attacks, they evolve and become stronger and harder.
 
 Getting hit costs HP and grants brief invulnerability frames. Run out and it's game over.
@@ -62,8 +62,8 @@ Debug builds only:
 
 | Key | Action |
 |---|---|
-| **B** | Start a test battle |
-| **O** | Toggle the elevator door layer |
+| **B** | Start a test battle with an assigned teacher at StartDebugBattle() |
+| **O** | Toggle the elevator door layer (To test if the layering works) |
 | **V** | Open the vending machine from anywhere |
 | **1–8** | Jump straight to one of the eight ending scripts, for previewing them without playing the whole route |
 
@@ -79,7 +79,7 @@ A **classroom door is a boss gate**: walk into it and it asks whether you want t
 
 From there it's the turn loop above — pick an action, survive the reply, repeat. Teachers escalate: Yakir's lessons run in a fixed order and get harder, and his final attack only comes out once he has taught everything he knows.
 
-Losing a fight doesn't end the run: `GameOverState` fades in on a random line from `gameover.json`, then revives you back in the overworld to try again. Winning one crumbles the teacher to dust or freezes and fades him, depending on how you finished it, and the run tracker quietly writes down which.
+Losing a fight doesn't end the run: `GameOverState` fades in on a random line from `gameover.json`, then revives you back in the overworld in the spot they entered the classroom to try again. Winning one crumbles the teacher to dust or freezes and fades him, depending on how you finished it, and the run tracker quietly writes down which. The player can attempt to enter the room again after the fight, to get a certain message depending on what ending they chose
 
 Once every teacher on the floor is resolved, reaching the end of the run plays `EndingState` — one of eight scripted endings (all authored in `Content/endings.json`), chosen by exactly who was killed and who was spared, with a phone call scripted per teacher and a closing title card.
 
@@ -119,76 +119,24 @@ FinalProject/
 
 ## Core Classes and Their Responsibilities
 
-### Engine
-
 | Class | Responsibility |
 |---|---|
 | `Game1` | Entry point. Loads assets, registers sprites and sounds, owns `PlayerData` and `RouteTracker`. |
 | `GameStateManager` | A stack of game states with push / pop / replace, so a battle can sit on top of the overworld and return to it. |
-| `GameState` | Base class for a screen. `OnEnter` / `OnExit` / `Pause` / `Resume` / `Update` / `Draw`. |
-| `InputManager` | One keyboard snapshot per frame, distinguishing "held" from "just pressed". |
-| `SpriteManager` | Named sprite lookup, so nothing loads textures by path at draw time. |
-| `SoundManager` | Sound effects, music, and looping SFX behind names rather than files. |
-| `EventBus` | Publish/subscribe keyed by event type. Used where a publisher genuinely shouldn't know its listeners. |
-| `GameSettings` | Window size, zoom, movement speed, and other tuning constants in one place. |
-
-### States
-
-| Class | Responsibility |
-|---|---|
-| `MainMenuState` | The title screen: Begin Game / Settings, and the fade into the first run. |
-| `OverworldState` | Loads maps, moves the player, checks transitions, warps, boss gates, and interactables. Decides which sequence starts. |
-| `CreditsIntroState` | The one-time title-card sting played the first time the player reaches the main hall. |
-| `BattleTransition` | The Undertale-style flash and soul-drop that hands off from the overworld to a fight. |
+| `OverworldState` | Loads maps, moves the player, and checks transitions, warps, boss gates, and interactables. |
 | `BattleState` | The turn machine: menu → action → enemy turn → feedback → repeat, plus the yield/mercy sequence. |
-| `GameOverState` | Death screen: a random line from `gameover.json`, then revives the player back in the overworld. |
-| `EndingState` | Plays one of the eight scripted endings from `Content/endings.json`, picked by who was killed/spared, and closes on the title card. |
-
-### Battle
-
-| Class | Responsibility |
-|---|---|
-| `Teacher` | A live opponent in a fight — current HP, mercy progress, spared/alive state. |
-| `IBulletPattern` | The interface every attack implements: a duration, a `Start`, and an `Update`. |
+| `IBulletPattern` | The interface every attack implements: a duration, a `Start`, and an `Update`. One class per attack. |
 | `DodgePhase` | Runs one enemy turn — updates the pattern, moves the soul, resolves collisions and damage. |
-| `DodgeContext` | The narrow surface a pattern is allowed to touch. Patterns can spawn hazards and shake the camera; they cannot reach the player's save data. |
-| `PatternRegistry` | Maps a pattern name in JSON to the class that implements it. |
-| `AttackMinigame` | The FIGHT timing bar and the accuracy it produces. |
-| `ActionMenu` | The paged, two-column option lists and result text inside the battle box. |
-| `TeacherSprite` | Multi-part procedural animation — each body part bobs on its own sine wave — plus hurt, dust, and freeze effects. |
-
-### Data
-
-| Class | Responsibility |
-|---|---|
-| `TeacherStats` | Everything defining a teacher, built from JSON. |
-| `TeacherLoader` | Parses a teacher file into `TeacherStats`. |
-| `MoveData` | One enemy move: its pattern, and any authored dialogue beats for it. |
-| `ActOption` | One ACT entry — its text, mercy value, and optionally an attack it provokes. |
-| `PlayerData` | HP, attack, gold, inventory. Publishes an event when HP changes. |
+| `TeacherLoader` / `TeacherStats` | Parses a teacher's JSON file (stats, dialogue, moves) into the data the rest of the game reads. |
+| `PatternRegistry` | Maps a pattern name in a teacher's JSON to the class that implements it. |
 | `RouteTracker` | Listens for resolved fights (via `EventBus`) and classifies the run as pacifist, neutral, or genocide. |
-| `ItemData` / `ItemLoader` | The item catalog, loaded once from `Content/Items/items.json` and shared by the shop, the starting inventory, and teacher item rewards. |
-| `EndingConfig` | Picks which of the eight ending scripts fits the run and loads its lines from `Content/endings.json`. |
-| `GameOverConfig` | Loads the random game-over lines from `Content/gameover.json`. |
+| `EventBus` | Publish/subscribe keyed by event type, used where a publisher genuinely shouldn't know its listeners (e.g. the HP bar reacting to damage). |
+| `TileMap` / `MapLoader` | A loaded map and the Tiled `.tmj` reader that builds it — layers, collision, interactables. |
+| `Interactable` | One object from a map's `Interactables` layer: a tile footprint, some text, and an `Action` string (`"shop"`, `"warp"`, `"toilet"`, etc.) that `OverworldState` dispatches on. |
+| `ElevatorSequence` | The lift: floor menu, doors, ride, and arrival, reaching the overworld only through a small `IElevatorHost` interface. |
+| `ChoiceBox` | The soul-cursor Yes/No box, shared by every yes/no prompt in the overworld rather than one box per feature. |
 
-### World
-
-| Class | Responsibility |
-|---|---|
-| `TileMap` | A loaded map: layers, collision, interactables, the elevator door layer. |
-| `MapLoader` | Reads Tiled `.tmj` files into a `TileMap`. |
-| `ElevatorSequence` | The lift: floor menu, doors, ride, judder, and arrival. Reaches the overworld only through `IElevatorHost`. |
-| `Player` | Free pixel-based movement with per-axis collision sliding, and walk animation. |
-
-### UI
-
-| Class | Responsibility |
-|---|---|
-| `DialogueBox` | The bottom-of-screen box for signs, NPCs, and boss-gate prompts, with a typewriter effect. |
-| `SpeechBubble` | The teacher's own in-battle speech, anchored above him rather than docked to the screen edge. |
-| `BattleHud` | The player's HP bar; subscribes to `PlayerHpChangedEvent` rather than being told directly. |
-| `OverworldMenu` | The `C`-menu opened from the overworld: settings, shared with the main menu's Settings screen. |
-| `VendingMachineMenu` | The shop: browse the item catalog, spend gold, add to the inventory. |
+A full class-by-class breakdown (every class, not just the central ones) is in [ARCHITECTURE.md](ARCHITECTURE.md).
 
 ---
 
@@ -210,8 +158,8 @@ Content is built automatically from `FinalProject/Content/Content.mgcb` as part 
 
 ## Current State
 
-The battle system is complete and the teachers are data-driven. Three teachers are implemented — **Yakir** (five attacks including a full four-lesson arc), **David** (hexagons, punch) and **Dor Ben Dor** (chess, cloverbyte, boat, napoleon) — alongside a training dummy that teaches the blue/orange dodge rules and a debug "Substitute" used for testing patterns in isolation.
+The battle system is complete and the teachers are data-driven. Three teachers are implemented — **Yakir** (five attacks including a full four-lesson arc), **David** (onion, hexagon, punch, and a song-driven ultimate) and **Dor Ben Dor** (chess, cloverbyte, boat, napoleon) — alongside a training dummy that teaches the blue/orange dodge rules and a debug "Substitute" used for testing patterns in isolation.
 
-The full loop is wired end to end and the game is functionally complete: main menu → overworld → a classroom door opens a real fight (with locked/spared/killed reactions and prerequisites between teachers) → win or lose → one of eight endings once the run is over, or a revive back into the overworld on defeat. The overworld also supports free movement, map transitions, warps, interactables, dialogue, a working elevator between floors, and a shop.
+The full loop is wired end to end and the game is functionally complete: main menu → overworld → a classroom door opens a real fight (with locked/spared/killed reactions and prerequisites between teachers) → win or lose → one of eight endings once the run is over, or a revive back into the overworld on defeat. The overworld also supports free movement, map transitions, warps, interactables, dialogue, a shop, and a **three-floor elevator** connecting the entrance, Tiltan Hall, and Floor 2.
 
-Still to come is polish rather than functionality: cosmetic touch-ups to the Tiltan Hall map, and an additional Bathroom map, both in progress.
+Two rooms exist purely as side content, built to prove out the `Interactable`/`MapWarp` systems beyond the main path: a **bathroom** off Tiltan Hall with three usable stalls (one of which is just a sign, uselessly), and **Floor 2**, home to a keypad that authoritatively rejects every code you dial into it. Both are walk-in-and-explore rather than gated behind progress. Tiltan Hall also hides one genuine secret: a wedge of cheese sitting out in plain sight, a leftover placeholder that got a joke about itself and a real 99-HP item instead of being deleted.

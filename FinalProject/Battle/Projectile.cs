@@ -56,7 +56,7 @@ namespace FinalProject.Battle
         
         public int ProjectileWidth => Type switch
         {
-            ProjectileType.Smoke => 25,
+            ProjectileType.Smoke => 19, // 25 * 0.75 — boat pattern's smoke, sized down 25%
             ProjectileType.Laser => 40,
             ProjectileType.Pixel => PixelSize,
             ProjectileType.FrenchFlag => FlagWidth,
@@ -65,7 +65,7 @@ namespace FinalProject.Battle
         };
         
         public int ProjectileHeight => Type switch {
-            ProjectileType.Smoke => 25,
+            ProjectileType.Smoke => 19, // 25 * 0.75 — boat pattern's smoke, sized down 25%
             ProjectileType.Laser => 50,
             ProjectileType.Pixel => PixelSize,
             ProjectileType.FrenchFlag => FlagHeight,

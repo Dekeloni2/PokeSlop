@@ -828,7 +828,7 @@ namespace FinalProject.States
         private void StartDebugBattle()
         {
             // swap this id to whoever you're testing (dorbendor, yakir, david, substitute)
-            TeacherStats stats = LoadTeacherStatsById("david", "DEBUG BATTLE ERROR");
+            TeacherStats stats = LoadTeacherStatsById("dorbendor", "DEBUG BATTLE ERROR");
             if (stats == null) return;
 
             PushBattle(new Teacher(stats));

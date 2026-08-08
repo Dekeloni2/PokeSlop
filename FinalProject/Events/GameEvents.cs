@@ -27,7 +27,7 @@ namespace FinalProject.Events
 
 
     // Fired when the player's HP changes.
-    // Listeners: BattleHUD
+    // Listeners: PlayerHpBar
     public class PlayerHpChangedEvent : GameEvent
     {
         public int CurrentHp { get;  }

@@ -8,7 +8,7 @@ namespace FinalProject.UI
     // the battle HP bar. keeps itself updated by subscribing to
     // PlayerHpChangedEvent instead of BattleState reading PlayerData every
     // frame. call Unsubscribe() when the fight ends or the handler sticks around
-    public class BattleHud
+    public class PlayerHpBar
     {
         private const int   BarX      = 40;
         private const int   BarY      = 390;
@@ -19,7 +19,7 @@ namespace FinalProject.UI
 
         // set from the current stats first, the event only fires when HP changes
         // so without this the bar would show 0 until you get hit
-        public BattleHud(int currentHp, int maxHp)
+        public PlayerHpBar(int currentHp, int maxHp)
         {
             _currentHp = currentHp;
             _maxHp     = maxHp;

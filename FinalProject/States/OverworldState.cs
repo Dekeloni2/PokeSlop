@@ -585,7 +585,7 @@ namespace FinalProject.States
         {
             if (_map == null) return;
 
-            foreach (NpcSpawn npc in _map.Npcs)
+            foreach (Npc npc in _map.Npcs)
                 _map.SetTileBlocked(npc.TileX, npc.TileY, !Game.Route.IsResolved(npc.Id));
         }
 
@@ -593,57 +593,44 @@ namespace FinalProject.States
         {
             if (_map == null) return;
 
-            foreach (NpcSpawn npc in _map.Npcs)
+            foreach (Npc npc in _map.Npcs)
             {
                 if (Game.Route.IsResolved(npc.Id)) continue;
-
-                Spritesheet sheet = SpriteManager.GetSprite(npc.SpriteName);
-                if (sheet?.Texture == null) continue;
-
-                Rectangle src = sheet[0, 0];
-
-                // scaled to standing height first, then bottom-anchored to its
-                // tile off the SCALED size — same idea as the player's own draw
-                // offset, so a tall sprite stands on the tile instead of
-                // floating in it or sinking through the floor
-                int tileSize = _map.TileWidth;
-                int w = (int)(src.Width  * npc.Scale);
-                int h = (int)(src.Height * npc.Scale);
-
-                var dst = new Rectangle(
-                    (int)(npc.TileX * tileSize + tileSize / 2f - w / 2f),
-                    npc.TileY * tileSize + tileSize - h,
-                    w, h);
-
-                spriteBatch.Draw(sheet.Texture, dst, src, Color.White);
+                npc.Draw(spriteBatch, _map.TileWidth);
             }
         }
 
         // solid NPCs block movement (see TileMap.IsWalkable), so "colliding"
         // with one means the player is facing it and pushing into it. Returns
-        // true if a battle was started, so Update can bail out immediately —
-        // this state is about to be paused underneath BattleTransition
+        // true if an interaction fired, so Update can bail out immediately —
+        // e.g. a battle NPC is about to pause this state underneath
+        // BattleTransition. What actually happens is entirely up to the NPC's
+        // own Kind (see Npc/INpcInteraction) — this only decides WHEN.
         private bool CheckNpcBump()
         {
             if (_map == null || _transitioning || !_player.IsMoving) return false;
 
             Point facingTile = _player.Facing.GetNeighbour(_player.TilePosition);
 
-            foreach (NpcSpawn npc in _map.Npcs)
+            foreach (Npc npc in _map.Npcs)
             {
                 if (Game.Route.IsResolved(npc.Id)) continue;
                 if (npc.TileX != facingTile.X || npc.TileY != facingTile.Y) continue;
 
-                StartNpcBattle(npc);
+                npc.Interact(new NpcInteractionContext(StartBattleById));
                 return true;
             }
 
             return false;
         }
 
-        private void StartNpcBattle(NpcSpawn npc)
+        // what a battle-kind NPC interaction calls into — the only piece of
+        // starting a fight that isn't generic across NPCs, boss gates and the
+        // debug battle, since it needs the camera/player position PushBattle
+        // reads (see PushBattle).
+        private void StartBattleById(string id)
         {
-            TeacherStats stats = LoadTeacherStatsById(npc.Id, "NPC BATTLE ERROR");
+            TeacherStats stats = LoadTeacherStatsById(id, "NPC BATTLE ERROR");
             if (stats == null) return;
 
             PushBattle(new Teacher(stats));

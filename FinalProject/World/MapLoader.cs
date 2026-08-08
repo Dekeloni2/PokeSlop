@@ -49,7 +49,7 @@ namespace FinalProject.World
             TileLayer objectsLayer = null;
             TileLayer elevatorDoor = null;
             var interactables = new List<Interactable>();
-            var npcs = new List<NpcSpawn>();
+            var npcs = new List<Npc>();
 
             foreach (JsonElement layerEl in root.GetProperty("layers").EnumerateArray())
             {
@@ -153,10 +153,12 @@ namespace FinalProject.World
         // Reads every object in an "NPCs" object layer. "Id" is required — it's
         // both the RouteTracker key and the Teachers/{id}.json filename. "Sprite"
         // is optional and falls back to Id, for when the SpriteManager key
-        // happens to match (rare — most NPCs will set it explicitly).
-        private static List<NpcSpawn> ParseNpcs(JsonElement layerEl, int tileWidth, int tileHeight)
+        // happens to match (rare — most NPCs will set it explicitly). "Kind"
+        // is optional too and picks the NPC's behavior through
+        // NpcInteractionRegistry — omitted, it defaults to a battle NPC.
+        private static List<Npc> ParseNpcs(JsonElement layerEl, int tileWidth, int tileHeight)
         {
-            var results = new List<NpcSpawn>();
+            var results = new List<Npc>();
 
             if (!layerEl.TryGetProperty("objects", out JsonElement objectsEl))
                 return results;
@@ -171,6 +173,7 @@ namespace FinalProject.World
 
                 string id     = null;
                 string sprite = null;
+                string kind   = null;
                 float  scale  = 1f;
                 if (objEl.TryGetProperty("properties", out JsonElement propsEl))
                 {
@@ -180,12 +183,13 @@ namespace FinalProject.World
                         if (name == "Id")     id     = propEl.GetProperty("value").GetString();
                         if (name == "Sprite") sprite = propEl.GetProperty("value").GetString();
                         if (name == "Scale")  scale  = (float)propEl.GetProperty("value").GetDouble();
+                        if (name == "Kind")   kind   = propEl.GetProperty("value").GetString();
                     }
                 }
 
                 if (string.IsNullOrEmpty(id)) continue; // can't spawn a battle or track it without one
 
-                results.Add(new NpcSpawn(tileX, tileY, id, sprite ?? id, scale));
+                results.Add(new Npc(tileX, tileY, id, sprite ?? id, scale, kind));
             }
 
             return results;

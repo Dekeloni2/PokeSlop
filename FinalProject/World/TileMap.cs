@@ -26,14 +26,14 @@ namespace FinalProject.World
         private readonly TileLayer         _objectsLayer;
         private readonly TileLayer         _elevatorDoorLayer;
         private readonly List<Interactable> _interactables;
-        private readonly List<NpcSpawn>     _npcs;
+        private readonly List<Npc>     _npcs;
 
         // tiles blocked by something that isn't baked into the Objects layer —
         // right now just NPCs that haven't been resolved yet. OverworldState
         // keeps this in sync with RouteTracker every time it loads or resumes.
         private readonly HashSet<Point> _blockedTiles = new();
 
-        public IReadOnlyList<NpcSpawn> Npcs => _npcs;
+        public IReadOnlyList<Npc> Npcs => _npcs;
 
         public void SetTileBlocked(int tileX, int tileY, bool blocked)
         {
@@ -53,7 +53,7 @@ namespace FinalProject.World
                        TileLayer groundLayer, TileLayer objectsLayer,
                        TileLayer elevatorDoorLayer = null,
                        List<Interactable> interactables = null,
-                       List<NpcSpawn> npcs = null)
+                       List<Npc> npcs = null)
         {
             Width         = width;
             Height        = height;
@@ -64,7 +64,7 @@ namespace FinalProject.World
             _objectsLayer = objectsLayer;
             _elevatorDoorLayer = elevatorDoorLayer;
             _interactables = interactables ?? new List<Interactable>();
-            _npcs          = npcs ?? new List<NpcSpawn>();
+            _npcs          = npcs ?? new List<Npc>();
         }
 
         // true on the tiles the elevator door covers, used to catch the player

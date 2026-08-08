@@ -1,9 +1,10 @@
 using System;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
+using FinalProject.Battle.Dodge;
 using FinalProject.Core.Audio;
 
-namespace FinalProject.Battle
+namespace FinalProject.Battle.Hazards
 {
     // An expanding hexagon hazard. Only its 6 edges hurt (continuous damage) —
     // the interior is safe, so it can grow right over the player. It fades in

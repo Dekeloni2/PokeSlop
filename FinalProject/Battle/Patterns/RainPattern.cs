@@ -2,6 +2,7 @@ using System;
 using Microsoft.Xna.Framework;
 using FinalProject.Core;
 
+using FinalProject.Battle.Dodge;
 namespace FinalProject.Battle.Patterns
 {
     // test pattern - bullets fall straight down from random spots along the top.

@@ -1,6 +1,8 @@
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using FinalProject.Battle;
+using FinalProject.Battle.Menu;
+using FinalProject.Battle.Teachers;
 using FinalProject.Core;
 using FinalProject.Core.Audio;
 using FinalProject.Core.Graphics;

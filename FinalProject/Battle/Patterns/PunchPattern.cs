@@ -6,6 +6,8 @@ using FinalProject.Core.Audio;
 using FinalProject.Core.Graphics;
 using FinalProject.Data;
 
+using FinalProject.Battle.Dodge;
+using FinalProject.Battle.Teachers;
 namespace FinalProject.Battle.Patterns;
 
 // David's heavy punch. He hops in from one side of the arena, coils down into

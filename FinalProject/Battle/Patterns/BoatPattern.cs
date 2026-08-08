@@ -6,6 +6,8 @@ using FinalProject.Core;
 using FinalProject.Core.Audio;
 using FinalProject.Core.Graphics;
 
+using FinalProject.Battle.Dodge;
+using FinalProject.Battle.Hazards;
 namespace FinalProject.Battle.Patterns;
 
 // the boat attack. box shrinks, boat settles in place, then it repeats a cycle

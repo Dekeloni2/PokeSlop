@@ -5,7 +5,7 @@ using FinalProject.Core;
 using FinalProject.Core.Graphics;
 using FinalProject.Core.Input;
 
-namespace FinalProject.Battle
+namespace FinalProject.Battle.Dodge
 {
     public class PlayerHitbox
     {

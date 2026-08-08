@@ -1,12 +1,13 @@
 using System;
 using Microsoft.Xna.Framework;
 
-namespace FinalProject.Battle
+namespace FinalProject.Battle.Teachers
 {
-    // the crouch-and-launch a teacher does when he leaves the screen. shared so
-    // David's haymaker and the run up to his ultimate are literally the same
+    // the crouch-and-launch David does when he leaves the screen. shared so
+    // his haymaker and the run up to his ultimate are literally the same
     // motion — it's the same character doing the same thing, and two copies of
     // these numbers would drift apart the moment either one got retuned.
+    // not a general teacher pose — no other teacher leaps, so this stays David-only.
     //
     // only the pose lives here. how far "off screen" actually is depends on who
     // is asking: PunchPattern measures it off the rig it assembled, BattleState

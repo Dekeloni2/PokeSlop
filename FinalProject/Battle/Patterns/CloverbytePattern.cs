@@ -6,6 +6,7 @@ using FinalProject.Core;
 using FinalProject.Core.Audio;
 using FinalProject.Core.Graphics;
 
+using FinalProject.Battle.Dodge;
 namespace FinalProject.Battle.Patterns;
 
 // Dor's cloverbyte attack. The camera pans so he and the arena slide left,

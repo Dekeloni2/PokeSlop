@@ -6,7 +6,7 @@ using FinalProject.Core;
 using FinalProject.Core.Graphics;
 using FinalProject.Core.Input;
 
-namespace FinalProject.Battle
+namespace FinalProject.Battle.Menu
 {
     // The FIGHT timing bar. A bar sweeps across the target image, Z stops it,
     // and the closer it stops to the center the more damage you deal. If the

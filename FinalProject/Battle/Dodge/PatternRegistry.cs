@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using FinalProject.Battle.Patterns;
 
-namespace FinalProject.Battle
+namespace FinalProject.Battle.Dodge
 {
     // maps the "pattern" string from the teacher JSON to the actual pattern
     // class. New patterns need an entry here to be usable from JSON.

@@ -1,7 +1,7 @@
 using System;
 using Microsoft.Xna.Framework;
 
-namespace FinalProject.Battle
+namespace FinalProject.Battle.Menu
 {
     // one line in an ActionMenu page. Activate runs when the player confirms it.
     // Color is normally white, a teacher's name goes yellow on the MERCY page

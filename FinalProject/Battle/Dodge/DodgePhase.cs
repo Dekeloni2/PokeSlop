@@ -5,11 +5,14 @@ using Microsoft.Xna.Framework.Input;
 using FinalProject.Core;
 using FinalProject.Core.Input;
 using FinalProject.Core.Graphics;
+using FinalProject.Battle.Effects;
+using FinalProject.Battle.Hazards;
 using FinalProject.Battle.Patterns;
+using FinalProject.Battle.Teachers;
 using FinalProject.Data;
 using System;
 
-namespace FinalProject.Battle
+namespace FinalProject.Battle.Dodge
 {
     // runs one enemy attack: updates the bullet pattern, moves the soul,
     // handles collisions and damage

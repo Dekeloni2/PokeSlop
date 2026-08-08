@@ -1,6 +1,6 @@
 using Microsoft.Xna.Framework;
 
-namespace FinalProject.Battle
+namespace FinalProject.Battle.Effects
 {
     // a Rectangle that animates towards a target rect over time. Used for
     // the battle box transitions and mid-attack arena resizes.

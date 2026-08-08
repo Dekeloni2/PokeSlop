@@ -2,7 +2,7 @@ using System.Collections.Generic;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 
-namespace FinalProject.Battle
+namespace FinalProject.Battle.Effects
 {
     // holds a list of particles and updates/draws them. whatever is running the
     // scene keeps one, DodgePhase for attacks and later BattleState for the

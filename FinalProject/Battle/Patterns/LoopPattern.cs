@@ -4,6 +4,8 @@ using Microsoft.Xna.Framework.Graphics;
 using FinalProject.Core;
 using FinalProject.Core.Graphics;
 
+using FinalProject.Battle.Dodge;
+using FinalProject.Battle.Hazards;
 namespace FinalProject.Battle.Patterns;
 
 // Yakir's third lesson: loops. the arena splits into columns and his bubble

@@ -4,6 +4,8 @@ using Microsoft.Xna.Framework.Graphics;
 using FinalProject.Core;
 using FinalProject.Core.Graphics;
 
+using FinalProject.Battle.Dodge;
+using FinalProject.Battle.Hazards;
 namespace FinalProject.Battle.Patterns;
 
 // Yakir's second lesson: conditionals. he shows a line of code in his bubble,

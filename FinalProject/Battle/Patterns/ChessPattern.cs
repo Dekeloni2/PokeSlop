@@ -5,6 +5,7 @@ using Microsoft.Xna.Framework.Graphics;
 using FinalProject.Core.Audio;
 using FinalProject.Core.Graphics;
 
+using FinalProject.Battle.Dodge;
 namespace FinalProject.Battle.Patterns;
 
 // Dor's chess board. "Simple to learn, hard to master" is his line about chess,

@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 
+using FinalProject.Battle.Dodge;
+using FinalProject.Battle.Hazards;
 namespace FinalProject.Battle.Patterns;
 
 // Also runs as one beat inside David's ultimate — see AllStarPattern. In that

@@ -3,6 +3,7 @@ using FinalProject.Core;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 
+using FinalProject.Battle.Dodge;
 namespace FinalProject.Battle.Patterns;
 
 // David's ultimate: he puts the song on, then keeps interrupting it with the

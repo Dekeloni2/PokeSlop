@@ -1,7 +1,7 @@
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 
-namespace FinalProject.Battle
+namespace FinalProject.Battle.Dodge
 {
     // the bullet choreography for one enemy move. A fresh instance is made
     // every turn since patterns keep their own timers.

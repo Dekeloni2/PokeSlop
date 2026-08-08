@@ -1,6 +1,8 @@
 using System;
 using Microsoft.Xna.Framework;
 
+using FinalProject.Battle.Dodge;
+using FinalProject.Battle.Hazards;
 namespace FinalProject.Battle.Patterns;
 
 

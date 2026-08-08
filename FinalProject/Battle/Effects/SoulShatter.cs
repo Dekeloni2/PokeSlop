@@ -4,7 +4,7 @@ using Microsoft.Xna.Framework.Graphics;
 using FinalProject.Core.Audio;
 using FinalProject.Core.Graphics;
 
-namespace FinalProject.Battle
+namespace FinalProject.Battle.Effects
 {
     // The Undertale death effect. Frame 0 of the soul_lost sheet (the soul cut
     // in half) holds for a beat, then it bursts into its 6 shards (frames 1-6)

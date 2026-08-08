@@ -1,7 +1,7 @@
 using System;
 using System.Collections.Generic;
 using FinalProject.Data;
-namespace FinalProject.Battle;
+namespace FinalProject.Battle.Teachers;
 
 // a boss during battle. TeacherStats holds the fixed data (loaded from JSON),
 // this tracks what changes during the fight - HP, spare progress etc.

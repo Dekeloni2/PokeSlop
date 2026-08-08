@@ -3,7 +3,7 @@ using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using FinalProject.Core.Graphics;
 
-namespace FinalProject.Battle
+namespace FinalProject.Battle.Effects
 {
     // the feedback right after you hit the teacher: the slash animation over
     // them, the damage number, and their HP bar. undertale only shows the

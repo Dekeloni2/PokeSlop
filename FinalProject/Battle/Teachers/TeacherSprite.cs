@@ -4,7 +4,7 @@ using Microsoft.Xna.Framework.Graphics;
 using FinalProject.Core.Graphics;
 using FinalProject.Data;
 
-namespace FinalProject.Battle
+namespace FinalProject.Battle.Teachers
 {
     // draws a teacher from its separate parts and drifts each one on a sine wave.
     // nothing here is hand animated, the movement comes from every part having

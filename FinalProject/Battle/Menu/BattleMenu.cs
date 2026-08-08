@@ -7,7 +7,7 @@ using FinalProject.Core.Graphics;
 using FinalProject.Core.Input;
 using FinalProject.States;
 
-namespace FinalProject.Battle
+namespace FinalProject.Battle.Menu
 {
     // The FIGHT/ACT/ITEM/MERCY button row at the bottom of the battle screen.
     public class BattleMenu

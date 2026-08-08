@@ -1,9 +1,10 @@
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
+using FinalProject.Battle.Hazards;
 using FinalProject.Data;
 
-namespace FinalProject.Battle
+namespace FinalProject.Battle.Dodge
 {
     // what a pattern is allowed to touch. Patterns can't reach PlayerData or
     // the projectile list directly, damage stays inside DodgePhase.

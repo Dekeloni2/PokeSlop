@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using FinalProject.Battle;
+using FinalProject.Battle.Dodge;
 
 namespace FinalProject.Data
 {

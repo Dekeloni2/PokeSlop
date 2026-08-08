@@ -1,7 +1,7 @@
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 
-namespace FinalProject.Battle
+namespace FinalProject.Battle.Effects
 {
     // small visual speck. unlike Projectile/Beam/HexHazard it never damages the
     // player, it just drifts and fades out. fades in at the start of its life

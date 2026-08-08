@@ -7,6 +7,8 @@ using FinalProject.Core.Audio;
 using FinalProject.Core.Graphics;
 using FinalProject.Data;
 
+using FinalProject.Battle.Dodge;
+using FinalProject.Battle.Hazards;
 namespace FinalProject.Battle.Patterns;
 
 // the napoleon attack. box grows over the whole screen (HP bar gets hidden),

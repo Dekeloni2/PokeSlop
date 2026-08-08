@@ -4,6 +4,7 @@ using Microsoft.Xna.Framework.Graphics;
 using FinalProject.Core;
 using FinalProject.Core.Audio;
 
+using FinalProject.Battle.Dodge;
 namespace FinalProject.Battle.Patterns;
 
 // The training dummy's three lessons. Each one is a single line sweeping across

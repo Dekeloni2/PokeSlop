@@ -2,7 +2,7 @@ using System;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 
-namespace FinalProject.Battle
+namespace FinalProject.Battle.Hazards
 {
     // A persistent hazard (Vegeta's galick gun, Napoleon's beam). Unlike a
     // Projectile it doesn't move or expire on contact — it stays put for its

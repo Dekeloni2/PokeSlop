@@ -4,6 +4,7 @@ using System.IO;
 using System.Text.Json;
 using Microsoft.Xna.Framework;
 using FinalProject.Battle;
+using FinalProject.Battle.Dodge;
 
 namespace FinalProject.Data
 {

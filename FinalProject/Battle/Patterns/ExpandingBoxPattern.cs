@@ -1,6 +1,7 @@
 using Microsoft.Xna.Framework;
 using FinalProject.Core;
 
+using FinalProject.Battle.Dodge;
 namespace FinalProject.Battle.Patterns
 {
     // test pattern - expands the arena, fires shots aimed at the player,

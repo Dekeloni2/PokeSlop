@@ -8,7 +8,7 @@ using FinalProject.Core.Graphics;
 using FinalProject.Core.Input;
 using FinalProject.Core.Text;
 
-namespace FinalProject.Battle
+namespace FinalProject.Battle.Menu
 {
     // The menu pages shown inside the battle box (target lists, ACT options,
     // result text). Pages stack on top of each other, X goes back one page.

@@ -3,6 +3,7 @@ using Microsoft.Xna.Framework.Graphics;
 using FinalProject.Core;
 using FinalProject.Core.Audio;
 
+using FinalProject.Battle.Dodge;
 namespace FinalProject.Battle.Patterns;
 
 // Yakir's lesson. instead of dodging, the player answers data type questions by

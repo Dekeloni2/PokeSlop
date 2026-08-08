@@ -1,6 +1,7 @@
 using System;
 using Microsoft.Xna.Framework;
 
+using FinalProject.Battle.Dodge;
 namespace FinalProject.Battle.Patterns;
 
 // The hexagon attack. The arena widens, then hexagons fade in at random spots,

@@ -1,6 +1,8 @@
 using Microsoft.Xna.Framework;
 using FinalProject.Core;
 
+using FinalProject.Battle.Dodge;
+using FinalProject.Battle.Hazards;
 namespace FinalProject.Battle.Patterns;
 
 // Yakir's ultimate. a callback to him spending a whole lesson failing to get one

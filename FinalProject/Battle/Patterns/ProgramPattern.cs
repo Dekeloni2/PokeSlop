@@ -2,6 +2,8 @@ using System;
 using Microsoft.Xna.Framework;
 using FinalProject.Core;
 
+using FinalProject.Battle.Dodge;
+using FinalProject.Battle.Hazards;
 namespace FinalProject.Battle.Patterns;
 
 // Yakir's fourth lesson: everything at once. he writes an actual program line

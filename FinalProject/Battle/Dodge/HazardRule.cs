@@ -1,6 +1,6 @@
 using Microsoft.Xna.Framework;
 
-namespace FinalProject.Battle
+namespace FinalProject.Battle.Dodge
 {
     // the undertale style rule a hazard plays by. White always hurts; Blue only
     // catches you moving; Orange only catches you standing still.

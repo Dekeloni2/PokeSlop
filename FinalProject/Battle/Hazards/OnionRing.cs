@@ -2,7 +2,7 @@ using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using System;
 
-namespace FinalProject.Battle;
+namespace FinalProject.Battle.Hazards;
 
 public class OnionRing
 {

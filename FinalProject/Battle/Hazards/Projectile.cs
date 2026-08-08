@@ -4,7 +4,7 @@ using Microsoft.Xna.Framework.Graphics;
 using FinalProject.Core;
 using FinalProject.Core.Graphics;
 
-namespace FinalProject.Battle
+namespace FinalProject.Battle.Hazards
 {
 
     public enum ProjectileType

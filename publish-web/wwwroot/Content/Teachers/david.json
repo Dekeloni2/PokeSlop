@@ -1,0 +1,138 @@
+{
+  "name": "David",
+  "id": "david",
+  "spriteName": "david",
+  "baseHp": 48,
+  "baseAtk": 4,
+  "goldReward": 35,
+  "itemReward": "Lab Coat",
+  "speakingVoice": "snd_txtdavid",
+  "theme": "davidTheme",
+  "themeVolume": 0.4,
+  "sequentialMoves": false,
+  "sprite": {
+    "sheet": "david",
+    "anchor": [ 0, 0 ],
+    "scale": 1.0,
+    "parts": [
+      { "name": "farArm",  "src": [ 0, 0, 44, 52 ],    "offset": [ 4, 0 ],   "bobX": 0, "bobY": 3, "speed": 0.55, "phase": 0.50 },
+      { "name": "torso",   "src": [ 57, 0, 51, 140 ],  "offset": [ 7, 34 ],  "bobX": 0, "bobY": 2, "speed": 0.45, "phase": 0.00 },
+      { "name": "head",    "src": [ 165, 0, 52, 64 ],  "srcHurt": [ 225, 0, 51, 64 ], "offset": [ 14, 10 ], "bobX": 0, "bobY": 2, "speed": 0.45, "phase": 0.00 },
+      { "name": "nearArm", "src": [ 110, 0, 49, 49 ],  "offset": [ 29, 47 ], "bobX": 0, "bobY": 3, "speed": 0.65, "phase": 0.80 }
+    ]
+  },
+  "battleDialogue": {
+    "onEncounter": "I see you made it to my class in time.|I hope you are ready to learn some math.|I have a lot to teach you, so let's get started.|Prepare to turn whatever you learned in C# into pratcial math skills.|I will be testing you on your knowledge of shapes, curves, and layers.|I hope you are ready to learn some math.",
+    "onAttack": [
+      "You can't brute force your way through a proof.",
+      "Violence is not a valid step in the derivation.",
+      "Show your work. I'm not marking that."
+    ],
+    "onAct": [
+      "Everything in a game is math.|Movement, collision, the curve on a jump.|My lessons should be translated into your work in Unity.",
+      "Students think geometry is decoration.|Then they wonder why their hitboxes feel wrong.",
+      "A hexagon tiles the plane with the least perimeter per area.|Nature worked that out before either of us did.",
+      "You're not bad at this.|You're just impatient.",
+      "Numbers don't care how you feel about them.|That's the nicest thing about them.",
+      "I once tried to invert a matrix on a first date.|We did not have a second date.",
+      "A vector has direction and magnitude.|My GPS has neither, and somehow we still get places.",
+      "The dot product of two vectors can be zero.|So can my raise this year. We call both of them 'orthogonal to reality.'",
+      "The cross product needs exactly three dimensions to work.|My apartment has two, and a lot of regrets.",
+      "Every point on a circle is the same distance from the center.|Unlike my students, who all sit as far from the front as legally possible."
+    ],
+    "onSpare": [
+      "Mercy isn't a theorem. You can't prove it to me."
+    ],
+    "onDefeat": "Hm.|You found the shorter proof.|I've been doing it the long way for years....",
+    "onSpared": "You had the win and you didn't take it.|That's not a mistake. That's a choice.|Go on. The next door is yours."
+  },
+  "moves": [
+    {
+      "name": "Onion",
+      "power": 1,
+      "accuracy": 100,
+      "description": "David explains about unit circle.",
+      "pattern": "Onion",
+      "isUltimate": false,
+      "intro": "Math is like onions, it has layers"
+    },
+    {
+      "name": "Punch",
+      "power": 1,
+      "accuracy": 100,
+      "description": "David punches us",
+      "pattern": "Punch",
+      "isUltimate": false,
+      "intro": ""
+    },
+    {
+      "name": "Hexagon",
+      "power": 1,
+      "accuracy": 100,
+      "description": "David shows u why hexagons are the bestagons.",
+      "pattern": "Hexagon",
+      "isUltimate": false,
+      "intro": "Hexagons are the bestagons"
+    },
+    {
+      "name": "All Star",
+      "power": 1,
+      "accuracy": 100,
+      "description": "David puts the song on and teaches the whole lesson at once.",
+      "pattern": "AllStar",
+      "isUltimate": true,
+      "intro": "You've been patient with me. I'll return the favour.|Everything I've taught you was one idea at a time.|Shapes. Layers. Curves.|That was the courtesy.|Now let's see you hold all of it at once.",
+      "introLeap": true
+    }
+  ],
+  "actOptions": [
+    {
+      "name": "Check",
+      "descriptionByHp": [
+        { "minPercent": 0, "text": "David - HP 48, ATK 4. Teaches math at Tiltan.|Somehow weaker than Yakir? Who designed this game?|Ah wait, David's damage is doubled against students.|Good job game designer!." }
+      ],
+      "spareGain": 0
+    },
+    {
+      "name": "Flex",
+      "description": "You flex back at David.",
+      "extraMessages": [ "David sizes up your form.|He seems to approve of the symmetry." ],
+      "spareGain": 20
+    },
+    {
+      "name": "Final Project Score",
+      "description": "You ask David about Math 1 final project score.",
+      "extraMessages": [ "David is looking at you with a blank face.|He wants to say something, but is probably just coming up with an excuse" ],
+      "spareGain": 20
+    },
+    {
+      "name": "Test Score",
+      "description": "You ask David about Math 2 test score.",
+      "extraMessages": [ "David is looking at you with a blank face.|He wants to say something, but is probably just coming up with an excuse|Oh wait, he actually already gave you the tests back." ],
+      "spareGain": 20
+    },
+    {
+      "name": "Shrek",
+      "description": "You ask David about watching Shrek 2 during the class.",
+      "extraMessages": [ "David uses the TV remove to go to Shrek 2.|''You need a subscription to watch this movie''|David is audibly pissed off and throws the remote across the room." ],
+      "spareGain": 20
+    }
+  ],
+  "spareSuccessAt": 100,
+  "spareSuccessText": "David steps aside and lets you through.",
+  "spareTextByPercent": [
+    { "minPercent": 0,  "text": "David isn't convinced yet." },
+    { "minPercent": 50, "text": "David is listening more than he's arguing." },
+    { "minPercent": 80, "text": "David has stopped keeping score..." }
+  ],
+  "turnNarrationByHp": [
+    { "minPercent": 67, "text": " * David draws a shape in the air." },
+    { "minPercent": 34, "text": " * David checks his working." },
+    { "minPercent": 0,  "text": " * David is down to his last example." }
+  ],
+  "turnNarrationBySpare": [
+    { "minPercent": 0,  "text": " * David waits for you to show your work." },
+    { "minPercent": 50, "text": " * David seems less interested in the lesson." },
+    { "minPercent": 80, "text": " * David is ready to call it here." }
+  ]
+}

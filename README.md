@@ -1,6 +1,6 @@
 # TiltanTale
 
-An Undertale-style RPG built in C# with MonoGame, where the bosses are the teachers of Tiltan College.
+An Undertale-style RPG built in C# with [KNI](https://github.com/kniEngine/kni) (a MonoGame-compatible fork), where the bosses are the teachers of Tiltan College. It runs both as a desktop window and in a browser, from the same game code.
 
 ---
 
@@ -87,6 +87,18 @@ Once every teacher on the floor is resolved, reaching the end of the run plays `
 
 ## How the Project Is Organized
 
+The solution is one game library with two thin platform heads on top of it:
+
+```
+FinalProject/           The whole game. Knows nothing about where it runs.
+TiltanTale.DesktopGL/   Desktop head — a window, via SDL2/OpenGL
+TiltanTale.Blazor/      Browser head — a WebGL canvas, via WebAssembly
+```
+
+Between them the heads contribute an entry point, an icon, a page, and the
+answers to two questions (`CanExitToDesktop`, `CanToggleFullscreen`) — no game
+logic and no duplicated content. See [Building and Running](#building-and-running).
+
 ```
 FinalProject/
 ├── Core/            Engine-level systems, no game rules
@@ -94,7 +106,8 @@ FinalProject/
 │   ├── Graphics/        Sprites, spritesheets, animation, camera
 │   ├── Audio/           Sound effects, music, looping SFX
 │   ├── Input/           Keyboard snapshot, edge-triggered key presses
-│   └── Text/            Typewriter effect and word wrapping
+│   ├── Text/            Typewriter effect and word wrapping
+│   └── ContentFiles     Reads data files the same way on disk and over HTTP
 ├── States/          The screens: menu, overworld, battle, game over
 ├── Battle/          Everything that happens inside a fight
 │   └── Patterns/        One class per attack, all implementing IBulletPattern
@@ -115,13 +128,16 @@ FinalProject/
 
 **Sequences own themselves.** Anything that takes over input and runs through its own phases — the elevator, a battle's dodge phase — lives in its own class with a small interface back to whoever is hosting it. States decide *which* sequence runs; they don't implement it.
 
+**The platform is a head, not a branch.** There is no `#if BLAZOR` anywhere in the game. Where the two targets genuinely differ, `Game1` asks a question a subclass answers — a browser tab can't close itself or take over the screen, so `BrowserTiltanTaleGame` says so, and both the quit timer and the instructions screen follow from that one answer. Reading data files is the same story: every loader goes through `ContentFiles`, which is a file read on desktop and an HTTP fetch in the browser, and neither the loaders nor the maps know which.
+
 ---
 
 ## Core Classes and Their Responsibilities
 
 | Class | Responsibility |
 |---|---|
-| `Game1` | Entry point. Loads assets, registers sprites and sounds, owns `PlayerData` and `RouteTracker`. |
+| `Game1` | The game proper. Loads assets, registers sprites and sounds, owns `PlayerData` and `RouteTracker`. Platform-independent — each head subclasses it (`DesktopTiltanTaleGame`, `BrowserTiltanTaleGame`). |
+| `ContentFiles` | The one door every hand-authored data file goes through. A file read on desktop, an HTTP fetch in the browser, one call either way. |
 | `GameStateManager` | A stack of game states with push / pop / replace, so a battle can sit on top of the overworld and return to it. |
 | `OverworldState` | Loads maps, moves the player, and checks transitions, warps, boss gates, and interactables. |
 | `BattleState` | The turn machine: menu → action → enemy turn → feedback → repeat, plus the yield/mercy sequence. |
@@ -142,17 +158,35 @@ A full class-by-class breakdown (every class, not just the central ones) is in [
 
 ## Building and Running
 
-Requires the **.NET SDK** and the **MonoGame Content Builder**.
+Requires the **.NET 8 SDK**. The content builder comes in as a NuGet package, so there's nothing else to install.
+
+**Desktop:**
 
 ```bash
-dotnet build
+dotnet run --project TiltanTale.DesktopGL
 ```
+
+**Browser** (then open the printed `localhost` URL):
 
 ```bash
-dotnet run --project FinalProject
+dotnet run --project TiltanTale.Blazor
 ```
 
-Content is built automatically from `FinalProject/Content/Content.mgcb` as part of the build.
+**Publish the web build** to a folder you can upload anywhere that serves static files — itch.io, GitHub Pages, any web host:
+
+```bash
+dotnet publish TiltanTale.Blazor -c Release -o publish-web
+```
+
+The site to upload is `publish-web/wwwroot`.
+
+Content is built from `FinalProject/Content/Content.mgcb` as part of each head's build, compiled for that head's platform — `.xnb` next to the executable for desktop, `.xnb` under `wwwroot` for the browser (where the music is also transcoded to `.mp3`, since that's what browsers can decode). The hand-authored JSON and Tiled maps skip the pipeline entirely and are listed once in `FinalProject/Content/RawContent.props`, which both heads import.
+
+### Notes on the browser build
+
+- **Everything is fetched over HTTP.** WebAssembly has no filesystem, so `ContentFiles` reads through KNI's `TitleContainer`, which is a synchronous `XMLHttpRequest` in the browser and a plain file read on desktop. That's what let every loader stay synchronous instead of turning the whole game async.
+- **A map's optional sidecar files 404 when absent.** `entrance.transitions.json` and `entrance.bossgates.json` don't exist, and asking for them is how the game finds that out — there's no cheap "does this exist" over HTTP. It's handled as "there are none", exactly as the old `File.Exists` check was; the 404s in devtools are expected, not errors.
+- **The page owns the frame loop.** `requestAnimationFrame` calls into `Index.razor.cs`, which advances the game one `Tick()` per frame. `Game.Run()` can't block a browser tab the way it blocks on desktop.
 
 ---
 

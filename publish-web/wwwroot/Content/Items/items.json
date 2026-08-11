@@ -1,0 +1,11 @@
+[
+  { "name": "Tortit", "description": "A disgusting snack. Why would you buy this?", "healAmount": 1, "price": 6 },
+  { "name": "Ex-De", "description": "A refreshing energy drink.", "healAmount": 10, "price": 6 },
+  { "name": "Coka Cola", "description": "A sweet fizzy drink.", "healAmount": 15, "price": 8 },
+  { "name": "Cheese Toast", "description": "A warm slice of cheese toast.", "healAmount": 20, "price": 15 },
+  { "name": "Bueno", "description": "A sweet chocolate bar with tasty filling.",
+    "healAmount": 15, "price": 8},
+  { "name": "Faded Hoodie", "kind": "armor", "defense": 2, "description": "Worn soft. Takes the edge off.", "price": 40 },
+  { "name": "Lab Coat", "kind": "armor", "defense": 4, "description": "Stained, but sturdy.", "price": 90 },
+  { "name": "Cheese", "description": "A delicious cheese from the Tiltan Hall.", "healAmount": 99, "price": 0, "hidden": true }
+]

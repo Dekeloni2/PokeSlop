@@ -1,0 +1,92 @@
+{
+  "name": "Substitute",
+  "id": "substitute",
+  "spriteName": "teacher_debug",
+  "baseHp": 30,
+  "baseAtk": 4,
+  "goldReward": 25,
+  "sprite": {
+    "sheet": "yakir",
+    "anchor": [ 0, 0 ],
+    "scale": 2.0,
+    "parts": [
+      { "name": "leftArm",  "src": [ 0, 16, 14, 29 ],  "offset": [ 10, 38 ], "bobX": 0, "bobY": 1.5, "speed": 0.55, "phase": 0.50 },
+      { "name": "rightArm", "src": [ 54, 16, 14, 29 ], "offset": [ 36, 38 ], "bobX": 0, "bobY": 1.5, "speed": 0.65, "phase": 0.80 },
+      { "name": "torso",    "src": [ 18, 0, 32, 68 ],  "offset": [ 14, 34 ], "bobX": 0, "bobY": 1, "speed": 0.45, "phase": 0.00 },
+      { "name": "head",     "src": [ 72, 7, 32, 42 ],  "srcHurt": [ 108, 7, 32, 42 ], "offset": [ 14, 0 ], "bobX": 0, "bobY": 1, "speed": 0.45, "phase": 0.00 }
+    ]
+  },
+  "battleDialogue": {
+    "onAttack": [
+      "Stop trying to attack me! This is not how students behave.",
+      "You are going to regret raising your hand at me.",
+      "Detention. For the rest of your natural life."
+    ],
+    "onAct": [
+      "This lesson will be your last. Fight me like a man!",
+      "Students who usually come to my lessons don't come out alive....|This time won't be an exception!",
+      "Flattery will not raise your grade."
+    ],
+    "onSpare": [
+      "Mercy? I don't recall teaching that unit."
+    ],
+    "onDefeat": "I cannot believe...|I was defeated....|Like this....",
+    "onSpared": "...Fine.|Class dismissed."
+  },
+  "moves": [
+    {
+      "name": "Napoleon",
+      "power": 1,
+      "accuracy": 100,
+      "description": "The room falls away and something enormous rises.",
+      "pattern": "Napoleon"
+    },
+    {
+      "name": "Hexagon",
+      "power": 1,
+      "accuracy": 100,
+      "description": "Hexagons bloom across the arena.",
+      "pattern": "Hexagon"
+    }
+  ],
+  "actOptions": [
+    {
+      "name": "Check",
+      "descriptionByHp": [
+        { "minPercent": 67, "text": "Substitute - HP 30, ATK 4. They seem to be annoyed with you." },
+        { "minPercent": 34, "text": "Substitute - HP 30, ATK 4. They seem to be annoyed with you." },
+        { "minPercent": 0,  "text": "Substitute - HP 30, ATK 4. They seem to be annoyed with you" }
+      ],
+      "spareGain": 0
+    },
+    {
+      "name": "Compliment",
+      "description": "You tell Substitute they are doing a good job.",
+      "extraMessages": [ "... They seem to be blushing" ],
+      "spareGain": 15
+    },
+    {
+      "name": "Joke",
+      "description": "You make a funny joke about how clovers dont bite.",
+      "extraMessages": [ "The Substitute doesn't seem to really get the joke." ],
+      "spareGain": 100
+    }
+  ],
+  "spareSuccessAt": 100,
+  "spareSuccessText": "Substitute accepts your mercy and steps aside.",
+  "spareTextByPercent": [
+    { "minPercent": 0,  "text": "Substitute doesn't seem ready to be spared yet." },
+    { "minPercent": 50, "text": "Substitute hesitates, unsure if they should let this go." },
+    { "minPercent": 80, "text": "Substitute looks like they might be persuaded..." }
+  ],
+  "turnNarrationByHp": [
+    { "minPercent": 67, "text": " * The Substitute is annoyed with you and is preparing an attack." },
+    { "minPercent": 34, "text": " * The Substitute grits their teeth and gets ready to strike back." },
+    { "minPercent": 0,  "text": " * The Substitute, desperate, prepares one last attack." }
+  ],
+  "turnNarrationBySpare": [
+    { "minPercent": 0,  "text": " * The Substitute eyes you, unsure whether you're worth the trouble." },
+    { "minPercent": 50, "text": " * The Substitute is starting to consider letting you off." },
+    { "minPercent": 80, "text": " * The Substitute would rather end this peacefully now." }
+  ]
+}

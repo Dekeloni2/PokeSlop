@@ -32,7 +32,7 @@ namespace FinalProject.Core.Audio
         {
             if (_content == null) return;
             try   { _sounds[name] = _content.Load<SoundEffect>(fileName); }
-            catch { }
+            catch (Exception e) { LogFailure("sound", name, fileName, e); }
         }
 
         // same but for background tracks, .ogg/.mp3 built as Song
@@ -40,8 +40,17 @@ namespace FinalProject.Core.Audio
         {
             if (_content == null) return;
             try   { _songs[name] = _content.Load<Song>(fileName); }
-            catch { }
+            catch (Exception e) { LogFailure("song", name, fileName, e); }
         }
+
+        // A cue that won't load is still not worth taking the game down for —
+        // silence beats a crash. But it used to be swallowed outright, which
+        // made "this track doesn't play" indistinguishable from "this track
+        // was never meant to play": Play() and PlayMusic() both no-op on an
+        // unregistered name, so a failed load left no trace anywhere. Say it
+        // out loud instead. See GameLog for where that ends up per platform.
+        private static void LogFailure(string kind, string name, string fileName, Exception e)
+            => GameLog.Write($"AUDIO LOAD FAILED ({kind} \"{name}\" from \"{fileName}\"): {e.GetType().Name}: {e.Message}");
 
         // ── playback ──────────────────────────────────────────────────────────
 

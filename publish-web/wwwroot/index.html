@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+    <title>TiltanTale</title>
+    <!--
+        Relative, not "/", so the same published output works wherever it's
+        dropped: the root of a domain, a subfolder like
+        username.github.io/TiltanTale/, or an itch.io zip. With "/" every
+        asset would be looked up at the domain root and 404 the moment the
+        game isn't there.
+    -->
+    <base href="./" />
+    <style>
+        html, body { margin: 0; padding: 0; height: 100%; overflow: hidden; background: #000; }
+
+        #loading {
+            display: flex; align-items: center; justify-content: center;
+            width: 100vw; height: 100vh;
+            color: #fff; background: #000;
+            font-family: 'Courier New', monospace; font-size: 1.4em; letter-spacing: 0.1em;
+        }
+
+        #blazor-error-ui {
+            display: none; position: fixed; bottom: 0; left: 0; right: 0; z-index: 1000;
+            padding: 0.8rem 1.2rem;
+            background: #ffe0e0; color: #500; font-family: sans-serif;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div id="app">
+        <div id="loading">loading&hellip;</div>
+    </div>
+
+    <div id="blazor-error-ui">
+        Something went wrong.
+        <a href="" class="reload">Reload</a>
+    </div>
+
+    <script src="_framework/blazor.webassembly.js"></script>
+
+    <!--
+        KNI's browser backend is a thin .NET wrapper over real browser APIs,
+        and these are the JS halves of it — canvas and WebGL context, keyboard
+        and gamepad input, WebAudio, and the XMLHttpRequest that TitleContainer
+        (and so ContentFiles, and so every map and teacher file) reads through.
+        The version in each filename tracks the nkast.Wasm.* package version
+        that nkast.Kni.Platform.Blazor.GL depends on — bump the package and
+        these have to move with it.
+    -->
+    <script src="_content/nkast.Wasm.JSInterop/js/JSObject.8.0.11.js"></script>
+    <script src="_content/nkast.Wasm.Dom/js/Window.8.0.11.js"></script>
+    <script src="_content/nkast.Wasm.Dom/js/Document.8.0.11.js"></script>
+    <script src="_content/nkast.Wasm.Dom/js/Navigator.8.0.11.js"></script>
+    <script src="_content/nkast.Wasm.Dom/js/Gamepad.8.0.11.js"></script>
+    <script src="_content/nkast.Wasm.Dom/js/Media.8.0.11.js"></script>
+    <script src="_content/nkast.Wasm.XHR/js/XHR.8.0.11.js"></script>
+    <script src="_content/nkast.Wasm.Canvas/js/Canvas.8.0.11.js"></script>
+    <script src="_content/nkast.Wasm.Canvas/js/CanvasGLContext.8.0.11.js"></script>
+    <script src="_content/nkast.Wasm.Audio/js/Audio.8.0.11.js"></script>
+
+    <script>
+        // The game loop, such as it is. The page owns frame timing in a
+        // browser, so every frame it calls back into .NET and lets the game
+        // advance once — see Pages/Index.razor.cs for the other end.
+        function tickJS() {
+            window.theInstance.invokeMethod('TickDotNet');
+            window.requestAnimationFrame(tickJS);
+        }
+
+        window.initRenderJS = (instance) => {
+            window.theInstance = instance;
+
+            const canvas = document.getElementById('theCanvas');
+            const holder = document.getElementById('canvasHolder');
+
+            // The canvas keeps its HTML default of 300x150 otherwise —
+            // PreferredBackBufferWidth/Height doesn't reach it on this
+            // backend, so the game would render into a postage stamp. Sizing
+            // it to the page instead makes the back buffer the window, which
+            // is the case Game1.Draw already handles: it renders the scene at
+            // its fixed 720x480 and letterboxes that to fit, exactly as it
+            // does for a fullscreen desktop window. No resolution is
+            // duplicated here as a result.
+            canvas.width = holder.clientWidth;
+            canvas.height = holder.clientHeight;
+
+            // right-click is a real input in a game, not a request for the
+            // browser's context menu
+            canvas.addEventListener('contextmenu', e => e.preventDefault());
+
+            window.requestAnimationFrame(tickJS);
+        };
+
+        // Arrows and space move the player and confirm dialogue. Left alone
+        // they'd also scroll the page they're embedded in, which is very
+        // visible on somewhere like itch.io that runs the game in an iframe.
+        window.addEventListener('keydown', function (event) {
+            if ([32, 37, 38, 39, 40].indexOf(event.keyCode) > -1)
+                event.preventDefault();
+        });
+        window.addEventListener('wheel', function (event) {
+            event.preventDefault();
+        }, { passive: false });
+    </script>
+</body>
+
+</html>

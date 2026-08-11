@@ -1,6 +1,6 @@
 using System.Collections.Generic;
-using System.IO;
 using System.Text.Json;
+using FinalProject.Core;
 
 namespace FinalProject.Data
 {
@@ -14,11 +14,13 @@ namespace FinalProject.Data
 
         public static GameOverConfig Load(string path)
         {
-            if (!File.Exists(path)) return Fallback();
+            // one read rather than an exists-then-read, which on the web would
+            // mean fetching the file twice — see ContentFiles.Exists
+            string json = ContentFiles.ReadAllTextOrNull(path);
+            if (json == null) return Fallback();
 
             try
             {
-                string json = File.ReadAllText(path);
                 var options = new JsonSerializerOptions { PropertyNameCaseInsensitive = true };
                 GameOverConfig cfg = JsonSerializer.Deserialize<GameOverConfig>(json, options);
 

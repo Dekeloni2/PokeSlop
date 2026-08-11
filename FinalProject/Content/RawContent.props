@@ -1,0 +1,41 @@
+<Project>
+
+    <!-- ══════════════════════════════════════════════════════════════════
+         The content that does NOT go through the content pipeline.
+
+         Sprites, fonts and audio are built into .xnb by MGCB (see
+         Content.mgcb). These aren't: maps, tilesets, teacher stats, items,
+         endings and game-over lines are hand-authored JSON/XML read straight
+         at runtime through ContentFiles, precisely so they can be edited
+         without rebuilding anything.
+
+         They still have to physically reach the player, and where "there" is
+         differs per platform — next to the .exe for desktop, inside wwwroot
+         for the browser. So the list lives here once and each head project
+         imports it and decides the destination. Adding a new map or teacher
+         is dropping the file in; neither head needs touching.
+         ══════════════════════════════════════════════════════════════════ -->
+
+    <PropertyGroup>
+        <TiltanTaleContentDir>$(MSBuildThisFileDirectory)</TiltanTaleContentDir>
+    </PropertyGroup>
+
+    <ItemGroup>
+        <!-- Every glob is rooted at the Content folder itself so that
+             %(RecursiveDir) is the path *within* Content ("Maps\",
+             "Teachers\"), which is what both heads rebuild the destination
+             from. Globbing per-subfolder instead would flatten that.
+
+             .tmj is Tiled's JSON map export and .tsx/.tsj are the external
+             tilesets a map can reference by name; .tmx is Tiled's own source
+             format and is deliberately not here, since nothing reads it at
+             runtime. -->
+        <TiltanTaleRawContent Include="$(TiltanTaleContentDir)**\*.tmj;
+                                       $(TiltanTaleContentDir)**\*.tsx;
+                                       $(TiltanTaleContentDir)**\*.tsj;
+                                       $(TiltanTaleContentDir)**\*.json"
+                              Exclude="$(TiltanTaleContentDir)bin\**;
+                                       $(TiltanTaleContentDir)obj\**"/>
+    </ItemGroup>
+
+</Project>

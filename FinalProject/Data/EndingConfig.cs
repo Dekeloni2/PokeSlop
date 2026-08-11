@@ -1,9 +1,9 @@
 using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
 using System.Text.Json;
 using Microsoft.Xna.Framework;
+using FinalProject.Core;
 
 namespace FinalProject.Data
 {
@@ -84,7 +84,10 @@ namespace FinalProject.Data
 
         public static EndingConfig Load(string path)
         {
-            if (!File.Exists(path))
+            // one read rather than an exists-then-read, which on the web would
+            // mean fetching the file twice — see ContentFiles.Exists
+            string json = ContentFiles.ReadAllTextOrNull(path);
+            if (json == null)
             {
                 LogDebug($"endings.json not found at {path}");
                 return new EndingConfig();
@@ -92,7 +95,6 @@ namespace FinalProject.Data
 
             try
             {
-                string json = File.ReadAllText(path);
                 var options = new JsonSerializerOptions
                 {
                     PropertyNameCaseInsensitive = true,
@@ -113,18 +115,8 @@ namespace FinalProject.Data
             }
         }
 
-        // next to the executable, same place MapLoader logs — there's no console
-        // attached to look at
-        private static void LogDebug(string message)
-        {
-            try
-            {
-                File.AppendAllText(
-                    Path.GetFullPath(Path.Combine(AppContext.BaseDirectory, "map_debug.txt")),
-                    message + "\n");
-            }
-            catch { }
-        }
+        // same place MapLoader logs — see GameLog
+        private static void LogDebug(string message) => GameLog.Write(message);
 
         // The ending whose Killed list matches exactly who died this run —
         // order and casing don't matter. Falls back to something playable rather

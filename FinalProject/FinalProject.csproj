@@ -1,79 +1,57 @@
 <Project Sdk="Microsoft.NET.Sdk">
+
+    <!-- ══════════════════════════════════════════════════════════════════
+         The game itself — all of it, and nothing about where it runs.
+
+         This used to be the executable. It's now a library that two head
+         projects sit on top of: TiltanTale.DesktopGL (a window, via SDL2)
+         and TiltanTale.Blazor (a browser tab, via WebGL). Neither owns any
+         game logic; they own an entry point and the answers to the handful
+         of questions Game1 asks about its platform.
+
+         That split is what the browser build needs. MonoGame has no web
+         target, so the framework here is KNI (nkast.Xna.Framework) — a fork
+         of MonoGame that keeps the same Microsoft.Xna.Framework API and adds
+         one. Nothing in this project changed shape to accommodate it; the
+         package references did.
+
+         Note the framework packages are referenced here but no *platform*
+         package is: this project compiles against the API and stays ignorant
+         of the backend, which is exactly what lets both heads use it.
+         ══════════════════════════════════════════════════════════════════ -->
+
     <PropertyGroup>
-        <OutputType>WinExe</OutputType>
-        <TargetFramework>net9.0</TargetFramework>
+        <OutputType>Library</OutputType>
+        <!-- net8.0 because that's what KNI ships and what Blazor
+             WebAssembly is happiest on; the heads target it too -->
+        <TargetFramework>net8.0</TargetFramework>
         <RollForward>Major</RollForward>
-        <PublishReadyToRun>false</PublishReadyToRun>
         <TieredCompilation>false</TieredCompilation>
-        <!-- output file is TiltanTale.exe / TiltanTale.dll instead of
-             FinalProject.exe — defaults to the .csproj's own filename
-             otherwise, which is just the project's original name, not the
-             game's actual title -->
-        <AssemblyName>TiltanTale</AssemblyName>
+        <AssemblyName>TiltanTale.Game</AssemblyName>
+        <RootNamespace>FinalProject</RootNamespace>
     </PropertyGroup>
-    <PropertyGroup>
-        <ApplicationManifest>app.manifest</ApplicationManifest>
-        <ApplicationIcon>Icon.ico</ApplicationIcon>
-    </PropertyGroup>
+
     <ItemGroup>
-        <None Remove="Icon.ico"/>
-        <None Remove="Icon.bmp"/>
-    </ItemGroup>
-    <ItemGroup>
-        <EmbeddedResource Include="Icon.ico">
-            <LogicalName>Icon.ico</LogicalName>
-        </EmbeddedResource>
-        <EmbeddedResource Include="Icon.bmp">
-            <LogicalName>Icon.bmp</LogicalName>
-        </EmbeddedResource>
-    </ItemGroup>
-    <ItemGroup>
-        <PackageReference Include="MonoGame.Framework.DesktopGL" Version="3.8.*"/>
-        <PackageReference Include="MonoGame.Content.Builder.Task" Version="3.8.*"/>
+        <PackageReference Include="nkast.Xna.Framework" Version="4.2.9001"/>
+        <PackageReference Include="nkast.Xna.Framework.Content" Version="4.2.9001"/>
+        <PackageReference Include="nkast.Xna.Framework.Graphics" Version="4.2.9001"/>
+        <PackageReference Include="nkast.Xna.Framework.Audio" Version="4.2.9001"/>
+        <PackageReference Include="nkast.Xna.Framework.Media" Version="4.2.9001"/>
+        <PackageReference Include="nkast.Xna.Framework.Input" Version="4.2.9001"/>
+        <PackageReference Include="nkast.Xna.Framework.Game" Version="4.2.9001"/>
+        <PackageReference Include="nkast.Xna.Framework.Storage" Version="4.2.9001"/>
     </ItemGroup>
 
-    <!-- Copy all map files to the output directory as-is (not through content pipeline) -->
+    <!-- Content/ lives here rather than in either head, because both build
+         it. Each head points a KniContentReference at Content/Content.mgcb
+         and gets it compiled for its own platform (.xnb next to the exe for
+         desktop, .xnb under wwwroot for the browser) — see the heads'
+         csproj files. The raw data files that don't go through the pipeline
+         at all are listed in Content/RawContent.props, which both heads
+         import for the same reason: one list, two consumers. -->
     <ItemGroup>
-        <Content Include="Content\Maps\*.tmj">
-            <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-        </Content>
-        <Content Include="Content\Maps\*.json">
-            <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-        </Content>
-        <!-- External tileset files a .tmj can reference by "source" (Tiled's
-             .tsx XML format, or .tsj if a tileset is ever exported as JSON
-             instead) — MapLoader.LoadExternalTileset reads these straight
-             off disk too, same as the .tmj itself. tiltan_hall.tmj needs
-             vending_machine.tsx and cheese.tsx specifically; missing this
-             rule was why Floor 3 (tiltan_hall) alone failed to load once
-             the game was run from outside the dev tree — entrance.tmj and
-             elevator.tmj don't reference any external tileset, so they
-             never surfaced the gap. -->
-        <Content Include="Content\Maps\*.tsx">
-            <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-        </Content>
-        <Content Include="Content\Maps\*.tsj">
-            <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-        </Content>
-        <!-- Data files are loaded at runtime via File.ReadAllText, not the content pipeline -->
-        <Content Include="Content\Data\*.json">
-            <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-        </Content>
-        <!-- Same story: teachers, items, endings.json and gameover.json are
-             all read directly via File.ReadAllText (see Core/ContentPaths),
-             not through the content pipeline, so they need their own copy
-             rule to end up next to the exe. -->
-        <Content Include="Content\Teachers\*.json">
-            <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-        </Content>
-        <Content Include="Content\Items\*.json">
-            <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-        </Content>
-        <Content Include="Content\*.json">
-            <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-        </Content>
+        <None Include="Content\Content.mgcb"/>
+        <None Include="Content\RawContent.props"/>
     </ItemGroup>
-    <ItemGroup>
-      <Folder Include="Tiled_Maps\" />
-    </ItemGroup>
+
 </Project>

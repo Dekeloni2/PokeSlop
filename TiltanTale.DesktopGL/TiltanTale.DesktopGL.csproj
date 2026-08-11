@@ -1,0 +1,72 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+    <!-- ══════════════════════════════════════════════════════════════════
+         The desktop head: a window, via KNI's SDL2/OpenGL backend.
+
+         All it contributes is an entry point, the icon and manifest, and
+         DesktopTiltanTaleGame's answers to the platform questions Game1
+         asks. Everything else comes from the FinalProject library, which
+         the browser head consumes identically.
+         ══════════════════════════════════════════════════════════════════ -->
+
+    <PropertyGroup>
+        <OutputType>WinExe</OutputType>
+        <TargetFramework>net8.0</TargetFramework>
+        <RollForward>Major</RollForward>
+        <PublishReadyToRun>false</PublishReadyToRun>
+        <TieredCompilation>false</TieredCompilation>
+        <!-- output file is TiltanTale.exe / TiltanTale.dll — defaults to the
+             .csproj's own filename otherwise, which would put the backend's
+             name in front of the player -->
+        <AssemblyName>TiltanTale</AssemblyName>
+        <RootNamespace>FinalProject</RootNamespace>
+        <DefineConstants>$(DefineConstants);DESKTOPGL</DefineConstants>
+        <!-- what the content builder compiles Content.mgcb for -->
+        <KniPlatform>DesktopGL</KniPlatform>
+    </PropertyGroup>
+
+    <PropertyGroup>
+        <ApplicationManifest>app.manifest</ApplicationManifest>
+        <ApplicationIcon>Icon.ico</ApplicationIcon>
+    </PropertyGroup>
+
+    <ItemGroup>
+        <None Remove="Icon.ico"/>
+        <None Remove="Icon.bmp"/>
+        <EmbeddedResource Include="Icon.ico">
+            <LogicalName>Icon.ico</LogicalName>
+        </EmbeddedResource>
+        <EmbeddedResource Include="Icon.bmp">
+            <LogicalName>Icon.bmp</LogicalName>
+        </EmbeddedResource>
+    </ItemGroup>
+
+    <ItemGroup>
+        <PackageReference Include="nkast.Kni.Platform.SDL2.GL" Version="4.2.9001.1"/>
+        <PackageReference Include="nkast.Xna.Framework.Content.Pipeline.Builder" Version="4.2.9001"/>
+    </ItemGroup>
+
+    <ItemGroup>
+        <ProjectReference Include="..\FinalProject\FinalProject.csproj"/>
+    </ItemGroup>
+
+    <!-- Builds the shared Content.mgcb for DesktopGL and drops the .xnb into
+         the output folder under Content\ -->
+    <ItemGroup>
+        <KniContentReference Include="..\FinalProject\Content\Content.mgcb">
+            <Link>Content\Content.mgcb</Link>
+        </KniContentReference>
+    </ItemGroup>
+
+    <!-- The hand-authored JSON/XML that skips the pipeline. RawContent.props
+         says which files; this says where they go — alongside the exe, under
+         Content\, which is where TitleContainer looks. -->
+    <Import Project="..\FinalProject\Content\RawContent.props"/>
+    <ItemGroup>
+        <Content Include="@(TiltanTaleRawContent)">
+            <Link>Content\%(RecursiveDir)%(Filename)%(Extension)</Link>
+            <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+        </Content>
+    </ItemGroup>
+
+</Project>

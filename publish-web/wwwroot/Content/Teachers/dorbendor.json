@@ -1,0 +1,200 @@
+{
+  "name": "Dor Ben Dor",
+  "id": "dorbendor",
+  "requires": [ "yakir", "david" ],
+  "lockedText": "You may not enter the Studio until you took classes from both Yakir and David.",
+  "spriteName": "dorbendor",
+  "speakingVoice": "snd_txtasg",
+  "baseHp": 100,
+  "baseAtk": 5,
+  "goldReward": 100,
+  "endsGame": true,
+  "theme": "dbdTheme",
+  "themeVolume": 0.4,
+  "sequentialMoves": false,
+  "ultimateAtHp": 10,
+  "yield": {
+    "speech": "Huff...|Puff....|I see....|A game designer's wits don't come from the way they fight...|But the way they think about how games work....|.....|So even after everything I threw at you....|You are still standing.....|......",
+    "flawlessLine": "With not a single point of damage taken....",
+    "closing": "........|I yield.....|I leave the decision on what to do next in your hands.",
+    "actOptions": [
+      {
+        "name": "Check",
+        "description": "Dor Ben Dor - 100 Health, 5 Attack. The decision on what to do now, rests in your hands",
+        "speech": ".........",
+        "spareGain": 0
+      }
+    ]
+  },
+  "sprite": {
+    "sheet": "dorbendor",
+    "anchor": [ 0, 0 ],
+    "scale": 2.0,
+    "parts": [
+      { "name": "rightArm", "src": [ 0, 18, 10, 24 ], "offset": [ 0, 30 ],  "bobX": 0, "bobY": 1.5, "speed": 0.55, "phase": 0.50 },
+      { "name": "torso",    "src": [ 38, 0, 34, 51 ],  "offset": [ 0, 15 ],  "bobX": 0, "bobY": 1,   "speed": 0.45, "phase": 0.00 },
+      { "name": "leftArm",  "src": [ 15, 1, 18, 38 ],  "offset": [ 21, 18 ], "bobX": 0, "bobY": 1.5, "speed": 0.65, "phase": 0.80 },
+      { "name": "head",     "src": [ 81, 0, 29, 37 ],  "srcHurt": [ 119, 0, 29, 37 ], "offset": [ 0, 0 ], "bobX": 0, "bobY": 1, "speed": 0.45, "phase": 0.00 }
+    ]
+  },
+  "battleDialogue": {
+    "onEncounter": "So, you've finally made it to my studio.|Most students don't get this far.|I hope you're ready - this is the final test of everything you've learned at Tiltan.|Let's see if you truly have what it takes to be a Game Designer.",
+    "onAttack": [
+      "This will reduce your score on Canvas.",
+      "My portfolio won't be affected by this.",
+      "Don't expect me to help you with your Final Project!",
+      "This is why you can't make a good game."
+    ],
+    "onAct": [
+      "You know...|After the thousands of students I have taught here in Tiltan|I don't think I have seen more potential here than you|You have some energy emitting from you...",
+      "This generation of students is really pissing me off....|None of you students have the potential to even be successful in the market.|If you keep making platformers, you surely won't get anywhere",
+      "You know|At this point...|I don't care about you escaping this place.",
+      "Being a Game Designer is a commitment. A test of your might|Prove to me with this next attack that you truly are a Game Designer.",
+      "Hmph.|Most students were not able to reach to this point.|Your endurance and skill are impressive.|But don't get too comfortable.",
+      "The world of game creation is a cruel mistress.|Creating games is not only a craft, but an art.|It shows the nature of your character.|Who is the person behind making games?|This next attack, hopefully, will show you what good game design can achieve.",
+      "Knowing how to make games is not enough.|Always ask yourself: What is the purpose of this game?|What is the player supposed to feel when playing this game?|What is the player supposed to learn from this game?|This next attack will show you what good game design can achieve.",
+      "I truly am starting to get impressed with you.|I usually just kick students out of Tiltan when they reach this point.|But you have shown me that you are a student with potential.",
+      "One of my main goals as a Game Designer teachers is to reduce slop.|What we are missing right now are good games.|You might have the potential to make a good one.|But I am not counting on it.|At the end of the day, students can't deliver."
+    ],
+    "onSpare": [
+      "The ocean shows no mercy."
+    ],
+    "onDefeat": ".......................................|Defeated.......|This fight was so much fun........|..........",
+    "onSpared": "You truly are remakable.|You survived everything I threw at you, yet you still show mercy?|I shouldn't have been so harsh with you.|Thank you for giving me a chance to see the world through your eyes.|I will let you go, but I hope you will remember this lesson for the rest of your life."
+  },
+  "moves": [
+    {
+      "name": "Cloverbyte",
+      "power": 1,
+      "accuracy": 100,
+      "description": "Dor unleashes a cloverbyte.",
+      "pattern": "Cloverbyte",
+      "speech": {
+        "opening": [
+          "Let me show you what we ship at Cloverbyte.",
+          "You've seen this one already. Let's add a step.",
+          "You know both rules now. Keep up.",
+          "Cloverbyte will be a successful studio when you are not in its way.",
+          "With each game Cloverbyte releases, we only get richer and richer."
+        ],
+        "feint": [
+          "Enough warm up."
+        ],
+        "blue": [
+          "BLUE means you hold still. Were you not listening?"
+        ],
+        "orange": [
+          "ORANGE. Now MOVE."
+        ]
+      }
+    },
+    {
+      "name": "Chess",
+      "power": 1,
+      "accuracy": 100,
+      "description": "Dor Ben Dor sets the board.",
+      "pattern": "Chess",
+      "speech": {
+        "opening": [
+          "Chess. Simple to learn.",
+          "Again. This time I add a piece.",
+          "You have earned a queen. Congratulations.",
+          "Six pieces. Still think this is a game?",
+          "Two queens. I am done being generous.",
+          "The full rank. No more lessons."
+        ],
+        "landing": [
+          "Hard to master.",
+          "Everything scales. Keep up.",
+          "The queen does not forgive.",
+          "Commitment. That is what this tests.",
+          "The ocean shows no mercy. Neither do I.",
+          "Soon all the world shall know this board."
+        ],
+        "cleared": [
+          "Luck. Nothing more.",
+          "Faster than last time. Barely.",
+          "You took my queen. Do not enjoy it.",
+          "...You are not what I expected.",
+          "Both of them? ...Impossible.",
+          "You cleared it. Truly splendid movement."
+        ],
+        "survived": [
+          "Survival is not skill. Anyone can wait.",
+          "Hiding is not a strategy. It is a delay.",
+          "A whole turn of nothing. Impressive.",
+          "You survive. You do not win. Learn that.",
+          "Still breathing. That will change.",
+          "You endure. The storm does not tire."
+        ]
+      }
+    },
+    {
+      "name": "Boat",
+      "power": 1,
+      "accuracy": 100,
+      "description": "Dor Ben Dor calls up the boat.",
+      "pattern": "Boat",
+      "speech": {
+        "opening": [
+          "This boat is the only thing my sister and I ever agreed on.",
+          "We fought over who got to keep it. I won.",
+          "Still seaworthy. Still mine."
+        ]
+      }
+    },
+    {
+      "name": "Napoleon",
+      "power": 1,
+      "accuracy": 100,
+      "description": "The room falls away and something enormous rises.",
+      "pattern": "Napoleon",
+      "isUltimate": true,
+      "intro": "Hmph.|You truly are a remarkable student.|But lets see you face against my ultimate attack.",
+      "outro": "Parti"
+    }
+  ],
+  "actOptions": [
+    {
+      "name": "Check",
+      "descriptionByHp": [
+        { "minPercent": 0, "text": "Dor Ben Dor - HP 100, ATK 5. The final boss of Tiltan. | Seems like trying to spare him is a waste of time." }
+      ],
+      "spareGain": 0
+    },
+    {
+      "name": "RPG",
+      "description": "You talk with Dor Ben Dor about an RPG.",
+      "extraMessages": [ "He starts to get excited.|RPGs are one of his favourite generes.|This did not affect his SPARE score." ],
+      "spareGain": 0
+    },
+    {
+      "name": "RTS",
+      "description": "You talk with Dor Ben Dor about RTS.",
+      "extraMessages": [
+        "He starts to get excited.|RTSs are one of his favourite generes.|This did not affect his SPARE score"
+      ],
+      "spareGain": 0
+    },
+    {
+      "name": "Student Council",
+      "description": "You ask the student council to extend the period of the Final Project.",
+      "extraMessages": [
+        "Dor Ben Dor nods at the student council.|They just leave you.....|This did not affect his SPARE score"
+      ],
+      "spareGain": 0
+    }
+  ],
+  "spareSuccessAt": 100,
+  "spareSuccessText": "Dor Ben Dor nods and allows you passage.",
+  "spareTextByPercent": [
+    { "minPercent": 0,  "text": "Dor Ben Dor has no intention of letting you pass." }
+  ],
+  "turnNarrationBySpare": [
+    { "minPercent": 0,   "text": " * Dor Ben Dor stands imposing before you." },
+    { "minPercent": 100, "text": " * Dor Ben Dor is weakened and is ready to give up." }
+  ],
+  "turnNarrationByHp": [
+    { "minPercent": 0,  "text": " * Dor Ben Dor stands imposing before you." }
+  ]
+}

@@ -1,8 +1,8 @@
 using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Text.Json;
 using System.Text.Json.Serialization;
+using FinalProject.Core;
 
 namespace FinalProject.Data
 {
@@ -12,7 +12,7 @@ namespace FinalProject.Data
     {
         public static List<ItemData> LoadAll(string jsonPath)
         {
-            string json = File.ReadAllText(jsonPath);
+            string json = ContentFiles.ReadAllText(jsonPath);
             var options = new JsonSerializerOptions
             {
                 PropertyNameCaseInsensitive = true,

@@ -4,13 +4,28 @@ This is the extended version of the "Core Classes" section in the [README](READM
 
 ---
 
+## Projects
+
+| Project | What it is |
+|---|---|
+| `FinalProject` | The game — every class below. A library, referencing only the KNI framework packages and no platform backend, which is what lets both heads share it. |
+| `TiltanTale.DesktopGL` | Desktop head: an entry point, the icon and manifest, and `DesktopTiltanTaleGame`. Backed by SDL2/OpenGL. |
+| `TiltanTale.Blazor` | Browser head: a Blazor WebAssembly page whose canvas is the game, and `BrowserTiltanTaleGame`. Backed by WebGL. Drives `Game.Tick()` from `requestAnimationFrame`, because a browser tab can't have its event loop blocked by `Game.Run()`. |
+
+`FinalProject/Content` is shared: each head builds `Content.mgcb` for its own platform, and both import `Content/RawContent.props` for the JSON and Tiled files that skip the pipeline.
+
+---
+
 ## Core Classes and Their Responsibilities
 
 ### Engine
 
 | Class | Responsibility |
 |---|---|
-| `Game1` | Entry point. Loads assets, registers sprites and sounds, owns `PlayerData` and `RouteTracker`. |
+| `Game1` | The game proper. Loads assets, registers sprites and sounds, owns `PlayerData` and `RouteTracker`. Contains nothing platform-specific; `CanExitToDesktop` and `CanToggleFullscreen` are the two seams each head answers. |
+| `ContentFiles` | Reads the hand-authored data files (maps, teachers, items, endings) through `TitleContainer` — a file read on desktop, a synchronous HTTP fetch in the browser. The reason no loader had to become async to run on the web. |
+| `ContentPaths` | Builds those relative, forward-slash paths and folds `.`/`..` in string space, because WebAssembly has no working directory for `Path.GetFullPath` to resolve against. |
+| `GameLog` | Where a content-load failure goes: `map_debug.txt` next to a windowed exe that has no console, and the browser devtools console. |
 | `GameStateManager` | A stack of game states with push / pop / replace, so a battle can sit on top of the overworld and return to it. |
 | `GameState` | Base class for a screen. `OnEnter` / `OnExit` / `Pause` / `Resume` / `Update` / `Draw`. |
 | `InputManager` | One keyboard snapshot per frame, distinguishing "held" from "just pressed". |

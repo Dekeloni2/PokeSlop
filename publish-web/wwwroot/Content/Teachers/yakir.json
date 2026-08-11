@@ -1,0 +1,127 @@
+{
+  "name": "Yakir",
+  "id": "yakir",
+  "spriteName": "yakir",
+  "baseHp": 51,
+  "baseAtk": 4,
+  "goldReward": 30,
+  "itemReward": "Faded Hoodie",
+  "theme": "yakirTheme",
+  "themeVolume": 0.4,
+  "sequentialMoves": true,
+  "sprite": {
+    "sheet": "yakir",
+    "anchor": [ 0, 0 ],
+    "scale": 2.0,
+    "parts": [
+      { "name": "leftArm",  "src": [ 0, 16, 14, 29 ],  "offset": [ 10, 38 ], "bobX": 0, "bobY": 1.5, "speed": 0.55, "phase": 0.50 },
+      { "name": "rightArm", "src": [ 54, 16, 14, 29 ], "offset": [ 36, 38 ], "bobX": 0, "bobY": 1.5, "speed": 0.65, "phase": 0.80 },
+      { "name": "torso",    "src": [ 18, 0, 32, 68 ],  "offset": [ 14, 34 ], "bobX": 0, "bobY": 1, "speed": 0.45, "phase": 0.00 },
+      { "name": "head",     "src": [ 72, 7, 32, 42 ],  "srcHurt": [ 108, 7, 32, 42 ], "offset": [ 14, 0 ], "bobX": 0, "bobY": 1, "speed": 0.45, "phase": 0.00 }
+    ]
+  },
+  "battleDialogue": {
+    "onEncounter": "Ah, right on time.|Take a seat - it's time to learn C#!.|These lessons will unlock your true potential.",
+    "onAttack": [
+      "That's a runtime error waiting to happen.",
+      "You didn't even check for null first.",
+      "This is going straight into your final grade."
+    ],
+    "onAct": [
+      "C# is such an excellent language to learn|Surely you will be able to find a job once you learn it!| But before we do...",
+      "Seems like this was pretty easy for you! Onto the next lesson!.",
+      "The third lesson is really hard! Good luck!",
+      "I have seen some students fail on this lesson!|Are you also going to fail?|I believe you won't!",
+      "Wow, you are really good at this!"
+    ],
+    "onSpare": [
+      "Mercy isn't in the syllabus."
+    ],
+    "onDefeat": "How could you have done this?|We were having so much fun together...|I just wanted you to learn how to code.....|........|I guess I was wrong....",
+    "onSpared": "It seems you have learned everything you need to be a successful dev|Don't forget to come to C# Advanced next semester!."
+  },
+  "moves": [
+    {
+      "name": "Data Types",
+      "power": 1,
+      "accuracy": 100,
+      "description": "Yakir starts the lesson.",
+      "pattern": "DataTypes"
+    },
+    {
+      "name": "Conditionals",
+      "power": 1,
+      "accuracy": 100,
+      "description": "The lesson moves on to if statements.",
+      "pattern": "Conditionals"
+    },
+    {
+      "name": "Loops",
+      "power": 1,
+      "accuracy": 100,
+      "description": "The lesson moves on to repetition.",
+      "pattern": "Loops"
+    },
+    {
+      "name": "The Program",
+      "power": 1,
+      "accuracy": 100,
+      "description": "Everything he taught, running at once.",
+      "pattern": "Program"
+    },
+    {
+      "name": "One Pixel",
+      "power": 1,
+      "accuracy": 100,
+      "description": "After all these years, he finally draws it.",
+      "pattern": "Pixel",
+      "isUltimate": true
+    }
+  ],
+  "actOptions": [
+    {
+      "name": "Check",
+      "descriptionByHp": [
+        { "minPercent": 67, "text": "Yakir - HP 51, ATK 4. Teaches C# and Unity at Tiltan.|Why does he have 51 HP? It doesn't matter." }
+      ],
+      "spareGain": 0
+    },
+    {
+      "name": "Debug",
+      "description": "You ask Yakir for help debugging your Final Project's code.",
+      "extraMessages": [ "Yakir then solves the issue with extreme precision and accuracy.|You can't be anything less than shocked and impressed" ],
+      "spareGain": 30
+    },
+    {
+      "name": "Compliment",
+      "description": "You tell Yakir his lectures are actually useful.",
+      "extraMessages": [ "Yakir truly appreciates your feedback" ],
+      "spareGain": 30
+    },
+    {
+      "name": "Photo",
+      "description": "There's a photo taped inside his laptop lid.",
+      "extraMessages": [ "A kid in a blue jumpsuit and gloves, mid-pose.|It's him." ],
+      "speech": "That was ONE Purim. ONE.|...You want to see it? Fine.|YOU ASKED FOR THIS.",
+      "spareGain": 20,
+      "forcesPattern": "GarlicGun"
+    }
+  ],
+  "spareSuccessAt": 100,
+  "spareSuccessText": "Yakir nods once and lets you pass.",
+  "spareTextByPercent": [
+    { "minPercent": 0,  "text": "Yakir isn't finished with the lesson yet." },
+    { "minPercent": 50, "text": "Yakir seems less interested in fighting." },
+    { "minPercent": 80, "text": "Yakir is packing up his laptop..." }
+  ],
+  "turnNarrationByHp": [
+    { "minPercent": 67, "text": " * Yakir is currently opening his laptop." },
+    { "minPercent": 34, "text": " * Yakir alt-tabs to his slides." },
+    { "minPercent": 0,  "text": " * Yakir opens a new project file." }
+  ],
+  "turnNarrationBySpare": [
+    { "minPercent": 0,  "text": " * Yakir waits for your answer." },
+    { "minPercent": 50, "text": " * Yakir has stopped taking attendance." },
+    { "minPercent": 80, "text": " * Yakir is ready to call it a semester." }
+  ]
+}

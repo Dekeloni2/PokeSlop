@@ -1,0 +1,59 @@
+# Publishes the browser build to GitHub Pages.
+#
+# The game is a static site once published — no .NET runs on the server, so
+# Pages can host it as-is. This just runs the same `dotnet publish` you'd run
+# locally and uploads wwwroot.
+name: Deploy web build
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch: # so you can also deploy on demand from the Actions tab
+
+# What Pages deployment needs from the workflow's token
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+# Never let two deploys race; let a newer push finish rather than cancelling it
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 8.0.x
+
+      # Release, so the debug-only cheats (free inventory, V for the shop,
+      # 1-8 for endings, B for a test battle) compile out — see the #if DEBUG
+      # blocks in Game1 and OverworldState.
+      - name: Publish
+        run: dotnet publish TiltanTale.Blazor -c Release -o publish
+
+      # Pages runs Jekyll over the site by default, and Jekyll skips every
+      # folder starting with an underscore — which is _framework and
+      # _content, i.e. the entire .NET runtime and all of KNI's JS. Without
+      # this file the page loads and then silently 404s everything.
+      - name: Disable Jekyll
+        run: touch publish/wwwroot/.nojekyll
+
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: publish/wwwroot
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4

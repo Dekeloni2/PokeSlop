@@ -1,0 +1,8 @@
+[
+  {
+    "tiles": [ { "x": 2, "y": 9 }, { "x": 2, "y": 10 } ],
+    "targetMap": "toilet",
+    "spawnX": 17,
+    "spawnY": 12
+  }
+]

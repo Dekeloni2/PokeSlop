@@ -642,13 +642,20 @@ namespace FinalProject.States
         private static TeacherStats LoadTeacherStatsById(string id, string errorTag = "TEACHER LOAD ERROR")
         {
             string path = ContentPaths.Under("Teachers", id + ".json");
-            if (!File.Exists(path))
+
+            try
             {
-                LogDebug($"{errorTag}: no teacher file for \"{id}\" at {path}");
+                return TeacherLoader.Load(path);
+            }
+            catch (Exception e)
+            {
+                // Used to be an Exists check up front; on the web that's a
+                // whole extra fetch of a file we're about to fetch anyway, so
+                // let the read itself be the check. A missing file and an
+                // unparseable one both mean "no teacher" to every caller.
+                LogDebug($"{errorTag}: could not load teacher \"{id}\" from {path}: {e.Message}");
                 return null;
             }
-
-            return TeacherLoader.Load(path);
         }
 
         // The Undertale-style intro, soul starting where the player stands on
@@ -921,20 +928,32 @@ namespace FinalProject.States
             // Return cached map if we've already loaded it
             if (!_mapCache.TryGetValue(mapName, out TileMap loaded))
             {
-                string path = Path.Combine(mapsDir, mapName + ".tmj");
-                if (!File.Exists(path))
-                    path = Path.Combine(mapsDir, mapName + ".json");
-
+                // .tmj is what Tiled exports; .json is the older spelling some
+                // maps still use. Try the first and fall back, rather than
+                // probing with an Exists that costs a whole fetch on the web.
                 try
                 {
-                    loaded = MapLoader.Load(path, Game.Content);
-                    _mapCache[mapName] = loaded;
+                    loaded = MapLoader.Load(ContentPaths.Combine(mapsDir, mapName + ".tmj"), Game.Content);
+                }
+                catch (IOException)
+                {
+                    try
+                    {
+                        loaded = MapLoader.Load(ContentPaths.Combine(mapsDir, mapName + ".json"), Game.Content);
+                    }
+                    catch (Exception e)
+                    {
+                        LogDebug($"MAP LOAD ERROR ({mapName}): {e.Message}\n{e.StackTrace}");
+                        return;
+                    }
                 }
                 catch (Exception e)
                 {
                     LogDebug($"MAP LOAD ERROR ({mapName}): {e.Message}\n{e.StackTrace}");
                     return;
                 }
+
+                _mapCache[mapName] = loaded;
             }
 
             _map = loaded;
@@ -957,64 +976,49 @@ namespace FinalProject.States
             UpdateAreaMusic();
         }
 
-        private static List<MapTransition> LoadTransitions(string mapsDir, string mapName)
+        // Anything a map can optionally carry alongside its .tmj — warps, boss
+        // gates, transitions — is the same shape: "{map}{suffix}", a JSON list,
+        // and absence means "none of those here". Three near-identical copies
+        // of this used to sit side by side; a fourth kind of sidecar is now the
+        // one LoadSidecar call below rather than another twenty lines.
+        private static List<T> LoadSidecar<T>(string mapsDir, string mapName, string suffix,
+                                              JsonSerializerOptions options = null)
         {
-            string path = Path.Combine(mapsDir, mapName + ".transitions.json");
-            if (!File.Exists(path)) return new List<MapTransition>();
+            string path = ContentPaths.Combine(mapsDir, mapName + suffix);
+
+            // read-or-null rather than exists-then-read: on the web an Exists
+            // probe is a whole extra fetch of the same file (see ContentFiles)
+            string json = ContentFiles.ReadAllTextOrNull(path);
+            if (json == null) return new List<T>();
 
             try
             {
-                string json = File.ReadAllText(path);
-                var options = new JsonSerializerOptions
-                {
-                    PropertyNameCaseInsensitive = true,
-                    Converters = { new System.Text.Json.Serialization.JsonStringEnumConverter() }
-                };
-                return JsonSerializer.Deserialize<List<MapTransition>>(json, options)
-                    ?? new List<MapTransition>();
+                options ??= new JsonSerializerOptions { PropertyNameCaseInsensitive = true };
+                return JsonSerializer.Deserialize<List<T>>(json, options) ?? new List<T>();
             }
-            catch { return new List<MapTransition>(); }
+            catch (Exception e)
+            {
+                // A sidecar that's present but malformed is an authoring
+                // mistake, not "there isn't one" — say so instead of silently
+                // behaving as though the file were missing.
+                LogDebug($"SIDECAR PARSE ERROR ({path}): {e.Message}");
+                return new List<T>();
+            }
         }
+
+        private static List<MapTransition> LoadTransitions(string mapsDir, string mapName)
+            => LoadSidecar<MapTransition>(mapsDir, mapName, ".transitions.json", new JsonSerializerOptions
+            {
+                PropertyNameCaseInsensitive = true,
+                Converters = { new System.Text.Json.Serialization.JsonStringEnumConverter() }
+            });
 
         private static List<MapWarp> LoadWarps(string mapsDir, string mapName)
-        {
-            string path = Path.Combine(mapsDir, mapName + ".warps.json");
-            if (!File.Exists(path)) return new List<MapWarp>();
-
-            try
-            {
-                string json = File.ReadAllText(path);
-                var options = new JsonSerializerOptions { PropertyNameCaseInsensitive = true };
-                return JsonSerializer.Deserialize<List<MapWarp>>(json, options)
-                    ?? new List<MapWarp>();
-            }
-            catch { return new List<MapWarp>(); }
-        }
+            => LoadSidecar<MapWarp>(mapsDir, mapName, ".warps.json");
 
         private static List<BossGate> LoadBossGates(string mapsDir, string mapName)
-        {
-            string path = Path.Combine(mapsDir, mapName + ".bossgates.json");
-            if (!File.Exists(path)) return new List<BossGate>();
+            => LoadSidecar<BossGate>(mapsDir, mapName, ".bossgates.json");
 
-            try
-            {
-                string json = File.ReadAllText(path);
-                var options = new JsonSerializerOptions { PropertyNameCaseInsensitive = true };
-                return JsonSerializer.Deserialize<List<BossGate>>(json, options)
-                    ?? new List<BossGate>();
-            }
-            catch { return new List<BossGate>(); }
-        }
-
-        private static void LogDebug(string message)
-        {
-            try
-            {
-                File.AppendAllText(
-                    Path.GetFullPath(Path.Combine(AppContext.BaseDirectory, "map_debug.txt")),
-                    message + "\n");
-            }
-            catch { }
-        }
+        private static void LogDebug(string message) => GameLog.Write(message);
     }
 }

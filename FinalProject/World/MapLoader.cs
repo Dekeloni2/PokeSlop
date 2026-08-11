@@ -1,20 +1,24 @@
 using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Text.Json;
 using System.Xml.Linq;
 using Microsoft.Xna.Framework.Content;
 using Microsoft.Xna.Framework.Graphics;
+using FinalProject.Core;
 
 namespace FinalProject.World
 {
     // Reads a Tiled JSON export and constructs a TileMap ready for use.
     // Usage: TileMap map = MapLoader.Load("Content/Maps/entrance.json", Content);
+    //
+    // Paths here are relative with forward slashes and go through
+    // ContentFiles rather than System.IO.File, so the same map loads off disk
+    // on desktop and over HTTP in the browser. See ContentFiles.
     public static class MapLoader
     {
         public static TileMap Load(string jsonPath, ContentManager content)
         {
-            string json = File.ReadAllText(jsonPath);
+            string json = ContentFiles.ReadAllText(jsonPath);
 
             using JsonDocument doc  = JsonDocument.Parse(json);
             JsonElement        root = doc.RootElement;
@@ -24,7 +28,7 @@ namespace FinalProject.World
             int tileWidth  = root.GetProperty("tilewidth").GetInt32();
             int tileHeight = root.GetProperty("tileheight").GetInt32();
 
-            string mapDir = Path.GetDirectoryName(Path.GetFullPath(jsonPath));
+            string mapDir = ContentPaths.DirectoryOf(jsonPath);
 
             // ── Tilesets ─────────────────────────────────────────────────────
             var tilesets = new List<TilesetInfo>();
@@ -34,7 +38,7 @@ namespace FinalProject.World
                 int firstGid = tsEl.GetProperty("firstgid").GetInt32();
 
                 TilesetInfo info = tsEl.TryGetProperty("source", out JsonElement sourceEl)
-                    ? LoadExternalTileset(Path.Combine(mapDir, sourceEl.GetString()), firstGid, content)
+                    ? LoadExternalTileset(ContentPaths.Combine(mapDir, sourceEl.GetString()), firstGid, content)
                     : ParseTileset(tsEl, firstGid, content, mapDir);
 
                 if (info != null)
@@ -202,12 +206,12 @@ namespace FinalProject.World
         // or a JSON tileset (.tsj, from exporting as JSON). Branch on extension.
         private static TilesetInfo LoadExternalTileset(string tsPath, int firstGid, ContentManager content)
         {
-            string mapDir = Path.GetDirectoryName(tsPath);
+            string mapDir = ContentPaths.DirectoryOf(tsPath);
 
-            if (string.Equals(Path.GetExtension(tsPath), ".tsx", StringComparison.OrdinalIgnoreCase))
+            if (tsPath.EndsWith(".tsx", StringComparison.OrdinalIgnoreCase))
                 return ParseTilesetXml(tsPath, firstGid, content, mapDir);
 
-            string json = File.ReadAllText(tsPath);
+            string json = ContentFiles.ReadAllText(tsPath);
             using JsonDocument doc = JsonDocument.Parse(json);
             return ParseTileset(doc.RootElement, firstGid, content, mapDir);
         }
@@ -233,7 +237,7 @@ namespace FinalProject.World
         // </tileset>
         private static TilesetInfo ParseTilesetXml(string tsPath, int firstGid, ContentManager content, string mapDir)
         {
-            XElement tilesetEl = XDocument.Load(tsPath).Root;
+            XElement tilesetEl = ContentFiles.ReadXml(tsPath).Root;
 
             int columns    = (int)tilesetEl.Attribute("columns");
             int tileWidth  = (int)tilesetEl.Attribute("tilewidth");
@@ -267,15 +271,7 @@ namespace FinalProject.World
             }
         }
 
-        private static void LogDebug(string message)
-        {
-            try
-            {
-                string logPath = Path.GetFullPath(Path.Combine(AppContext.BaseDirectory, "map_debug.txt"));
-                File.AppendAllText(logPath, message + "\n");
-            }
-            catch { /* ignore logging failures */ }
-        }
+        private static void LogDebug(string message) => GameLog.Write(message);
 
         private static int[] ParseLayerData(JsonElement layerEl, int count)
         {
@@ -289,22 +285,30 @@ namespace FinalProject.World
         }
 
         // Turns a Tiled image path into a ContentManager key. Tiled stores the
-        // path relative to the map file (e.g. "../../Content/Sprites/Tilesets/
+        // path relative to the map file (e.g. "../Sprites/Tilesets/
         // TileMap.png"); the key is the part after "Content/" with no extension
         // ("Sprites/Tilesets/TileMap").
         private static string ImagePathToContentKey(string imagePath, string mapDir)
         {
-            string fullPath = Path.GetFullPath(Path.Combine(mapDir ?? string.Empty, imagePath));
-            string normalized = Path.ChangeExtension(fullPath, null).Replace('\\', '/');
+            // Resolved in string space rather than against the filesystem —
+            // the browser doesn't have one. mapDir is already relative
+            // ("Content/Maps"), so this lands on "Content/Sprites/...".
+            string resolved = ContentPaths.Combine(mapDir, imagePath);
+
+            int dot = resolved.LastIndexOf('.');
+            int lastSlash = resolved.LastIndexOf('/');
+            if (dot > lastSlash)
+                resolved = resolved.Substring(0, dot);
 
             // Take everything after the last "Content/" so a folder named
-            // Content earlier in the install path can't be picked by mistake.
-            int index = normalized.LastIndexOf("/Content/", StringComparison.OrdinalIgnoreCase);
+            // Content earlier in the path can't be picked by mistake.
+            const string marker = "Content/";
+            int index = resolved.LastIndexOf(marker, StringComparison.OrdinalIgnoreCase);
             if (index >= 0)
-                return normalized.Substring(index + "/Content/".Length);
+                return resolved.Substring(index + marker.Length);
 
             // Path has no Content folder — fall back to just the file name.
-            return Path.GetFileNameWithoutExtension(imagePath);
+            return lastSlash >= 0 ? resolved.Substring(lastSlash + 1) : resolved;
         }
     }
 }

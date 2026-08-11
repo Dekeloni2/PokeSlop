@@ -4,3 +4,10 @@ obj/
 riderModule.iml
 /_ReSharper.Caches/
 .claude/
+
+# Build output: the content pipeline writes .xnb here and the Blazor head
+# stages the raw JSON/maps here too. Sources live in FinalProject/Content.
+TiltanTale.Blazor/wwwroot/Content/
+
+# Written by GameLog when content fails to load
+map_debug.txt

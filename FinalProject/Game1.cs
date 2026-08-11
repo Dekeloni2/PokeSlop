@@ -1,7 +1,6 @@
     // Game1.cs
 using System;
 using System.Collections.Generic;
-using System.IO;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
@@ -17,8 +16,29 @@ using FinalProject.UI;
 
 namespace FinalProject
 {
+    // The game itself, with nothing platform-specific in it. Each platform
+    // subclasses this in its own head project (TiltanTale.DesktopGL,
+    // TiltanTale.Blazor) and overrides the two capabilities below — that's the
+    // whole of what differs between running as a window and running in a
+    // browser tab.
     public class Game1 : Game
     {
+        // Whether this platform lets the game close itself. A desktop window
+        // can; a browser tab can't — a page can't close itself, so Exit()
+        // throws PlatformNotSupportedException there and "hold ESC to quit"
+        // has nothing to do but stay quiet about it.
+        // public because the instructions screen lists these controls and
+        // shouldn't promise keys that do nothing on the platform it's running
+        // on — see MainMenuState
+        public virtual bool CanExitToDesktop => true;
+
+        // Whether the game is allowed to drive fullscreen itself. On the web
+        // it isn't: fullscreen has to come from a user gesture the browser
+        // trusts, and F11 already does the right thing there anyway. The
+        // canvas is scaled to fit by CSS instead, which is the same
+        // letterboxing FitToScreen does for the desktop back buffer.
+        public virtual bool CanToggleFullscreen => true;
+
         private GraphicsDeviceManager _graphics;
         private SpriteBatch _spriteBatch;
 
@@ -90,7 +110,15 @@ namespace FinalProject
             _graphics = new GraphicsDeviceManager(this)
             {
                 PreferredBackBufferWidth  = GameSettings.WindowWidth,
-                PreferredBackBufferHeight = GameSettings.WindowHeight
+                PreferredBackBufferHeight = GameSettings.WindowHeight,
+
+                // Reach caps a texture at 2048px and GarlicGun.png is 2555
+                // wide. Desktop OpenGL never enforced that, so the game ran
+                // for a long time on content the profile it asked for didn't
+                // actually allow; WebGL does enforce it, and the first thing
+                // the browser build did was refuse to load that sprite.
+                // HiDef allows 4096, which every target here can provide.
+                GraphicsProfile = GraphicsProfile.HiDef
             };
 
             Content.RootDirectory = "Content";
@@ -245,7 +273,7 @@ namespace FinalProject
             // The instructions screen already says "[Hold ESC] - Quit"; this
             // is what actually makes that true rather than exiting on the
             // first press like it used to.
-            if (Input.IsKeyDown(Keys.Escape))
+            if (CanExitToDesktop && Input.IsKeyDown(Keys.Escape))
             {
                 _escapeHoldSeconds += (float)gameTime.ElapsedGameTime.TotalSeconds;
                 if (_escapeHoldSeconds >= EscapeHoldToQuitSeconds)
@@ -256,7 +284,7 @@ namespace FinalProject
                 _escapeHoldSeconds = 0f;
             }
 
-            if (Input.IsKeyPressed(Keys.F11))
+            if (CanToggleFullscreen && Input.IsKeyPressed(Keys.F11))
                 ToggleFullscreen();
 
 #if DEBUG

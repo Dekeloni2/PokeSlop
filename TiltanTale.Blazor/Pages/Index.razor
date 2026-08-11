@@ -1,0 +1,43 @@
+@page "/"
+@page "/index.html"
+@inject IJSRuntime JsRuntime
+
+<PageTitle>TiltanTale</PageTitle>
+
+@*
+    The canvas is the whole game. It's sized by CSS to fill the page and
+    letterboxed with object-fit, so the 3:2 picture keeps its shape at any
+    window size — the browser's answer to GameSettings.FitToScreen.
+
+    image-rendering:pixelated matters here: the art is 20px tiles and an 8px
+    font, and the default smooth upscale turns both to mush. It's the CSS
+    equivalent of the SamplerState.PointClamp every Begin() in the game uses.
+*@
+<div id="canvasHolder">
+    <canvas id="theCanvas"></canvas>
+</div>
+
+<style>
+    html, body {
+        margin: 0;
+        padding: 0;
+        overflow: hidden;
+        background: #000;
+    }
+
+    #canvasHolder {
+        position: fixed;
+        inset: 0;
+        background: #000;
+    }
+
+    #theCanvas {
+        display: block;
+        width: 100%;
+        height: 100%;
+        object-fit: contain;
+        image-rendering: pixelated;
+        image-rendering: crisp-edges;
+        touch-action: none;
+    }
+</style>

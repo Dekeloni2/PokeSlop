@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.IO;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
@@ -158,11 +157,11 @@ public class EndingState : GameState
         string path = ContentPaths.Under("Teachers", id + ".json");
 
         Speaker speaker = null;
-        if (File.Exists(path))
-        {
-            try { speaker = Speaker.ForTeacher(TeacherLoader.Load(path)); }
-            catch { /* an unreadable teacher just speaks facelessly */ }
-        }
+        // no Exists check first — a missing file and an unreadable one both
+        // mean the same thing here, and on the web the check costs a second
+        // fetch of the file we're already reading (see ContentFiles)
+        try { speaker = Speaker.ForTeacher(TeacherLoader.Load(path)); }
+        catch { /* an absent or unreadable teacher just speaks facelessly */ }
 
         _speakers[id] = speaker;
         return speaker;

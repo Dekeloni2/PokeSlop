@@ -1,0 +1,22 @@
+[
+  {
+    "tiles": [ { "x": 48, "y": 27 }, { "x": 48, "y": 28 } ],
+    "teacherId": "yakir",
+    "promptText": "In this class, resides Yakir, the C# teacher. Would you like to enter his class?",
+    "sparedText": "* Yakir is talking with some students about their final project.|He seemed to enjoy teaching you and waits for you to come back next semester",
+    "killedText": "* This room is empty of anyone. No point in going back in."
+  },
+  {
+    "tiles": [ { "x": 11, "y": 31 }, { "x": 12, "y": 31 } ],
+    "teacherId": "david",
+    "promptText": "In this class, resides David, the math teacher. Would you like to enter his class?",
+    "sparedText": "* David, still sweating from this encounter, proceeds to draw hexagons.|He seems to enjoy teaching you and waits for you to come back next semester",
+    "killedText": "* A room with a white board with hexagons drawn on it.| No point in going back in."
+  },
+  {
+    "tiles": [ { "x": 17, "y": 22 }, { "x": 18, "y": 22 }, { "x": 19, "y": 22 }, { "x": 20, "y": 22 } ],
+    "teacherId": "dorbendor",
+    "promptText": "In this class, resides Dor Ben Dor, who teaches Game Design 101. Would you like to enter his class?",
+    "genocidePromptText": "............|Finally you arrived at the studio....|Are you planning on trying to eliminate me too?|Fine. Come and test your might against me."
+  }
+]

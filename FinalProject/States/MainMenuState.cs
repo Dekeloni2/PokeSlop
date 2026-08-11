@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
@@ -165,15 +166,21 @@ namespace FinalProject.States
             {
                 int lineHeight = 30;
 
-                string[] instructions = new string[]
+                // the last two are only true where the platform actually lets
+                // the game drive its own window — in a browser tab neither key
+                // does anything, and listing them would be a lie (see
+                // Game1.CanToggleFullscreen / CanExitToDesktop)
+                var instructions = new List<string>
                 {
                     "[Z or ENTER] - Confirm",
                     "[X] - Cancel",
-                    "[C] - Menu (In-game)",
-                    "[F11] - Toggle Fullscreen",
-                    "[Hold ESC] - Quit",
-                    "When HP is 0, you lose."
+                    "[C] - Menu (In-game)"
                 };
+
+                if (Game.CanToggleFullscreen) instructions.Add("[F11] - Toggle Fullscreen");
+                if (Game.CanExitToDesktop)    instructions.Add("[Hold ESC] - Quit");
+
+                instructions.Add("When HP is 0, you lose.");
 
                 foreach (string line in instructions)
                 {

@@ -1,0 +1,77 @@
+<Project Sdk="Microsoft.NET.Sdk.BlazorWebAssembly">
+
+    <!-- ══════════════════════════════════════════════════════════════════
+         The browser head: a WebGL canvas in a page, via KNI's BlazorGL
+         backend.
+
+         Same FinalProject library as the desktop head, same content, same
+         Game1 — what differs is who owns the frame loop (the page, through
+         requestAnimationFrame; see Pages/Index.razor.cs) and where content
+         has to physically sit (under wwwroot, so it can be fetched over
+         HTTP rather than read off a disk that isn't there).
+         ══════════════════════════════════════════════════════════════════ -->
+
+    <PropertyGroup>
+        <TargetFramework>net8.0</TargetFramework>
+        <Nullable>disable</Nullable>
+        <ImplicitUsings>disable</ImplicitUsings>
+        <AssemblyName>TiltanTale</AssemblyName>
+        <RootNamespace>TiltanTale.Blazor</RootNamespace>
+        <DefineConstants>$(DefineConstants);BLAZORGL</DefineConstants>
+        <!-- what the content builder compiles Content.mgcb for; also what
+             makes it output into wwwroot/ instead of bin/ -->
+        <KniPlatform>BlazorGL</KniPlatform>
+    </PropertyGroup>
+
+    <PropertyGroup>
+        <!-- the game shows no dates or times, so there's no reason to ship
+             the timezone database into the browser -->
+        <BlazorEnableTimeZoneSupport>false</BlazorEnableTimeZoneSupport>
+    </PropertyGroup>
+
+    <ItemGroup>
+        <PackageReference Include="nkast.Kni.Platform.Blazor.GL" Version="4.2.9001.2"/>
+        <PackageReference Include="nkast.Xna.Framework.Content.Pipeline.Builder" Version="4.2.9001"/>
+    </ItemGroup>
+
+    <ItemGroup>
+        <PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly" Version="8.0.17"/>
+        <PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly.DevServer" Version="8.0.17" PrivateAssets="all"/>
+    </ItemGroup>
+
+    <ItemGroup>
+        <ProjectReference Include="..\FinalProject\FinalProject.csproj"/>
+    </ItemGroup>
+
+    <!-- Builds the shared Content.mgcb for BlazorGL. With KniPlatform set to
+         BlazorGL the builder writes the .xnb straight into wwwroot\Content\
+         rather than the usual bin folder, because in a browser "shipped
+         alongside the game" means "served as a static file". -->
+    <ItemGroup>
+        <KniContentReference Include="..\FinalProject\Content\Content.mgcb">
+            <Link>Content\Content.mgcb</Link>
+        </KniContentReference>
+    </ItemGroup>
+
+    <!-- The hand-authored JSON/XML that skips the pipeline. Same list the
+         desktop head uses; different destination, because the only files a
+         WebAssembly build can open are the ones published under wwwroot. -->
+    <Import Project="..\FinalProject\Content\RawContent.props"/>
+
+    <!-- Static web assets are collected from wwwroot, and they're collected
+         early — before a target that merely *emits* Content items would get
+         a look in. So the files are physically copied into wwwroot ahead of
+         that, which is also exactly what the KNI content builder does with
+         the .xnb it produces. wwwroot\Content is build output, not source;
+         see .gitignore.
+
+         %(RecursiveDir) is the path within the Content folder ("Maps\"),
+         which is what rebuilds the same layout on the other side — see
+         RawContent.props for why the globs are rooted where they are. -->
+    <Target Name="StageRawContentInWwwroot" BeforeTargets="ResolveStaticWebAssetsInputs;BeforeBuild">
+        <Copy SourceFiles="@(TiltanTaleRawContent)"
+              DestinationFiles="@(TiltanTaleRawContent->'$(MSBuildProjectDirectory)\wwwroot\Content\%(RecursiveDir)%(Filename)%(Extension)')"
+              SkipUnchangedFiles="true"/>
+    </Target>
+
+</Project>

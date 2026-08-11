@@ -1,0 +1,17 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "TiltanTale (Desktop)",
+            "type": "dotnet",
+            "request": "launch",
+            "projectPath": "${workspaceFolder}/TiltanTale.DesktopGL/TiltanTale.DesktopGL.csproj"
+        },
+        {
+            "name": "TiltanTale (Browser)",
+            "type": "dotnet",
+            "request": "launch",
+            "projectPath": "${workspaceFolder}/TiltanTale.Blazor/TiltanTale.Blazor.csproj"
+        }
+    ]
+}
